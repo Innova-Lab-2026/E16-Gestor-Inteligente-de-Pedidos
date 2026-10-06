@@ -1,0 +1,363 @@
+# Declaración de Autoría Técnica, Contribución Inicial y Reconocimiento del Proyecto
+
+**Fecha:** 6 de octubre de 2026
+**Proyecto:** `E16-Gestor-Inteligente-de-Pedidos`
+**Repositorio:** `https://github.com/Innova-Lab-2026/E16-Gestor-Inteligente-de-Pedidos`
+**Autor de la implementación y arquitectura inicial:** Leandro Maselli (github.com/leoroan)
+**Licencia del software:** MIT
+
+---
+
+## 1. Objeto de esta declaración
+
+El presente documento tiene por objeto dejar constancia de la **contribución técnica inicial, las decisiones arquitectónicas y el trabajo de implementación realizado sobre la base del proyecto `base_node_express`**.
+
+Esta declaración no pretende desconocer ni apropiarse de la idea, los requerimientos funcionales, el dominio de negocio ni las decisiones que hayan sido definidos colectivamente o por quienes impulsan el proyecto.
+
+Su finalidad es más simple: **documentar el trabajo realizado para que la construcción inicial del proyecto no quede desvinculada de las personas que efectivamente la llevaron adelante.**
+
+El proyecto se desarrolla con carácter colaborativo y con la intención de que pueda evolucionar, crecer y llegar a convertirse en una solución funcional y útil para sus destinatarios.
+
+---
+
+## 2. Contribución técnica inicial
+
+Leandro Maselli deja constancia de haber realizado, entre otras tareas, la **creación y estructuración inicial del repositorio backend**, incluyendo:
+
+- Creación y configuración inicial del repositorio.
+- Definición de la estructura de directorios y organización del código.
+- Definición de las primeras capas de la aplicación.
+- Diseño de la arquitectura inicial del backend.
+- Investigación y evaluación de patrones de diseño y criterios de organización del código.
+- Definición de convenciones y criterios de desarrollo.
+- Implementación de la estructura base sobre la cual posteriormente puede continuar el desarrollo.
+- Configuración inicial de herramientas de desarrollo y ejecución.
+- Implementación de mecanismos iniciales de manejo de errores y separación de responsabilidades.
+- Definición y desarrollo de las primeras pruebas automatizadas del sistema.
+- Investigación técnica necesaria para adoptar las decisiones anteriores.
+
+Estas tareas constituyen la **base técnica inicial** del repositorio y no deben confundirse con la totalidad del proyecto ni con la autoría de sus requerimientos o finalidad.
+
+---
+
+## 3. Arquitectura y criterios técnicos iniciales
+
+Como parte de dicha contribución, se establecieron y/o implementaron inicialmente criterios relacionados con:
+
+### Arquitectura por capas
+
+Separación de responsabilidades entre componentes de la aplicación, procurando evitar el acoplamiento innecesario entre controladores, lógica de negocio, acceso a datos y modelos.
+
+### MVC
+
+Adopción de una separación conceptual entre modelos, controladores y lógica relacionada con la aplicación, adaptada a las necesidades de un backend basado en Node.js y Express.
+
+### Adapter
+
+Investigación y utilización del patrón Adapter para desacoplar integraciones externas y permitir que determinados componentes puedan ser reemplazados o extendidos sin modificar innecesariamente la lógica principal del sistema.
+
+### Capa de acceso a datos
+
+Definición de una capa intermedia destinada a aislar las operaciones de persistencia de la lógica de negocio, independientemente de que conceptualmente sea denominada DAO, Repository o de otra manera durante la evolución del proyecto.
+
+### Buenas prácticas
+
+Aplicación inicial de criterios relacionados con:
+
+- separación de responsabilidades;
+- modularidad;
+- reutilización;
+- manejo centralizado de errores;
+- validación;
+- mantenibilidad;
+- bajo acoplamiento;
+- principios SOLID cuando resulten apropiados;
+- facilidad de prueba y evolución del sistema.
+
+Estos criterios constituyen decisiones técnicas de la implementación inicial y podrán ser modificados, reemplazados o mejorados por los colaboradores del proyecto cuando las necesidades del sistema así lo requieran.
+
+---
+
+## 4. Tecnologías y decisiones del proyecto
+
+La elección de determinadas tecnologías, herramientas o servicios puede responder a decisiones establecidas previamente para el proyecto y/o a decisiones tomadas de manera conjunta.
+
+En particular, se reconoce que el **stack tecnológico y los requerimientos de negocio no constituyen autoría exclusiva de quien realizó la implementación inicial**.
+
+Por lo tanto, esta declaración no atribuye a Leandro Maselli la propiedad de:
+
+- la idea general del proyecto;
+- el concepto de negocio;
+- los requerimientos funcionales;
+- los objetivos del sistema;
+- las reglas de negocio definidas por sus responsables;
+- la elección de tecnologías que haya sido establecida por la dirección o por el grupo;
+- los aportes realizados posteriormente por otros integrantes.
+
+La presente declaración se limita a documentar la **contribución técnica efectivamente realizada sobre la implementación inicial**.
+
+---
+
+## 5. Reconocimiento de los colaboradores
+
+El proyecto es y continuará siendo un trabajo colaborativo.
+
+Toda persona que contribuya al repositorio mediante código, documentación, pruebas, diseño, investigación, corrección de errores, revisión, infraestructura, decisiones técnicas u otros aportes relevantes deberá poder ser reconocida de acuerdo con su participación efectiva.
+
+El historial del repositorio, los commits, pull requests, issues y demás mecanismos de colaboración constituyen, cuando existan, una referencia objetiva para identificar dichas contribuciones.
+
+La autoría de la implementación inicial no excluye ni disminuye el valor de las contribuciones posteriores.
+
+Por el contrario, **la intención es que cada persona que ayude a transformar esta base en un producto real pueda ver su trabajo reconocido como parte de la historia del proyecto.**
+
+---
+
+## 6. Intención y espíritu de la contribución
+
+El trabajo realizado sobre la estructura inicial del proyecto fue efectuado con carácter colaborativo y con la intención de **hacer posible que la idea pueda pasar de una propuesta a una implementación real**.
+
+La documentación de esta contribución no tiene como finalidad obstaculizar el desarrollo, limitar la participación de terceros ni generar una disputa sobre la propiedad del proyecto.
+
+Su finalidad es dejar constancia de que detrás de la estructura inicial hubo tiempo dedicado a:
+
+- investigar alternativas;
+- analizar problemas;
+- tomar decisiones;
+- diseñar una arquitectura;
+- escribir código;
+- establecer una base de pruebas;
+- anticipar problemas futuros;
+- y construir una plataforma sobre la cual otras personas puedan continuar trabajando.
+
+Existe un interés genuino en que el proyecto **salga adelante, sea utilizado y tenga una vida más allá de su etapa inicial**.
+
+Precisamente por eso se considera importante conservar también la historia de cómo comenzó.
+
+El reconocimiento de una contribución no debería ser entendido como una barrera para continuar construyendo, sino como una forma de preservar la trazabilidad y valorar el trabajo que permitió llegar hasta allí.
+
+---
+
+## 7. Licencia del código
+
+El código fuente del repositorio se encuentra publicado bajo la **MIT License**, salvo que determinados archivos, dependencias o componentes indiquen expresamente una licencia diferente.
+
+La licencia MIT determina las condiciones legales de uso, modificación, distribución y redistribución del software.
+
+Esta declaración **no modifica ni reemplaza la licencia MIT**.
+
+En consecuencia, las condiciones de uso del código serán aquellas establecidas por la licencia correspondiente y por las licencias de terceros que resulten aplicables.
+
+La presente declaración únicamente documenta la contribución técnica y la historia inicial del repositorio.
+
+---
+
+## 8. Estado inicial documentado
+
+A efectos de preservar una referencia histórica de la implementación inicial, se establece como referencia:
+
+**Repositorio:** `base_node_express`
+**URL:** `https://github.com/leoroan/base_node_express.git`
+**Commit de referencia:** `d00f647ac0b57e2e048570fd298e7df712f72a17`
+**Fecha de referencia:** 6 de octubre de 2026
+**Contribuyente principal de la implementación inicial:** Leandro Maselli
+
+Este commit representa únicamente una **referencia histórica de la base inicial**, y no implica que las versiones posteriores deban permanecer idénticas a ella.
+
+---
+
+## 9. Evolución futura
+
+El proyecto podrá evolucionar libremente mediante nuevos commits, refactorizaciones, modificaciones de arquitectura, incorporación de nuevas tecnologías y participación de nuevos colaboradores.
+
+Las decisiones futuras deberán evaluarse en función de las necesidades reales del proyecto y no estarán condicionadas por las decisiones iniciales cuando estas hayan dejado de resultar adecuadas.
+
+La arquitectura inicial debe entenderse como **un punto de partida, no como una estructura inmutable**.
+
+El mayor valor de una buena base técnica no está en permanecer intacta, sino en permitir que otras personas puedan construir sobre ella y mejorarla.
+
+---
+
+## 10. Declaración final
+
+Esta declaración se incorpora al repositorio con el propósito de preservar una parte de la historia técnica del proyecto.
+
+Leandro Maselli deja constancia de haber asumido, en la etapa inicial, una parte sustancial de la responsabilidad relacionada con la **creación del repositorio, la organización de su estructura, la investigación técnica, el diseño arquitectónico inicial, la implementación de sus bases y la definición de sus primeras pruebas**.
+
+El reconocimiento de este trabajo no pretende competir con el proyecto ni con quienes lo impulsan.
+
+Por el contrario, nace de la intención de que el esfuerzo realizado tenga continuidad y de que, si el proyecto consigue crecer, **también pueda recordarse quiénes participaron en la construcción de sus primeros cimientos**.
+
+El objetivo final no es que la base permanezca asociada a una sola persona.
+
+El objetivo es que esa base permita que **muchas personas puedan construir algo mejor sobre ella**.
+
+---
+
+# 11. Uso de datos, información, inteligencia artificial y almacenamiento
+
+El proyecto puede ser utilizado como infraestructura de gestión y centralización de información perteneciente a distintos emprendimientos, organizaciones o usuarios.
+
+En determinados escenarios, dichos usuarios pueden integrar servicios externos, sistemas de mensajería, bases de clientes u otras fuentes de información, pudiendo incorporarse al sistema datos pertenecientes tanto al usuario del servicio como a terceros con los que dicho usuario mantiene una relación comercial o de cualquier otra naturaleza.
+
+En consecuencia, el sistema puede llegar a procesar, transmitir o almacenar información que resulte **confidencial, privada o personal**, incluyendo eventualmente información relativa a clientes, contactos, conversaciones, operaciones comerciales, preferencias, comunicaciones y otros datos proporcionados por los propios usuarios o por servicios integrados.
+
+## 11.1. Responsabilidad sobre los datos incorporados
+
+La incorporación de información al sistema es responsabilidad de quien la proporciona, administra o integra.
+
+Cada emprendimiento, organización o usuario que utilice la plataforma será responsable de:
+
+- determinar qué información incorpora al sistema;
+- contar con las autorizaciones, bases legales o consentimientos que correspondan;
+- determinar la finalidad para la cual utiliza dicha información;
+- garantizar que la información incorporada pueda ser legítimamente procesada;
+- respetar los derechos de las personas cuyos datos sean tratados;
+- configurar adecuadamente las integraciones y permisos de acceso;
+- y cumplir con las obligaciones legales que resulten aplicables a su actividad.
+
+La existencia de una funcionalidad técnica que permita almacenar, consultar, procesar o integrar determinada información **no implica que dicha información pueda ser utilizada legítimamente para cualquier finalidad**.
+
+La responsabilidad sobre la licitud, exactitud, pertinencia y finalidad de los datos incorporados corresponde al usuario o entidad que los proporciona o determina su utilización, sin perjuicio de las responsabilidades que legalmente puedan corresponder a cada parte.
+
+---
+
+## 11.2. Información proveniente de sistemas de mensajería y terceros
+
+El proyecto puede integrarse con plataformas de mensajería, redes sociales, APIs, servicios externos u otros sistemas pertenecientes a terceros.
+
+Como consecuencia de dichas integraciones, pueden ingresar al sistema datos que originalmente fueron generados o administrados fuera de este proyecto.
+
+La utilización de dichos datos deberá respetar:
+
+- las condiciones de uso de la plataforma de origen;
+- las autorizaciones correspondientes;
+- la finalidad para la cual fueron obtenidos;
+- los permisos configurados;
+- y la legislación aplicable.
+
+La plataforma no debe interpretarse como una autorización para acceder, recopilar, almacenar o utilizar información de terceros que el usuario no se encuentre legítimamente autorizado a tratar.
+
+---
+
+## 11.3. Acceso a información confidencial
+
+Debido a la naturaleza centralizada del sistema, determinados usuarios, administradores, desarrolladores, operadores o componentes técnicos podrían tener acceso, dependiendo de la configuración implementada, a información perteneciente a los emprendimientos que utilizan la plataforma y, eventualmente, a información de los clientes de dichos emprendimientos.
+
+El acceso técnico potencial a una información **no constituye autorización para utilizarla, divulgarla, copiarla, transferirla o explotarla para una finalidad distinta de aquella para la cual fue proporcionada**.
+
+Los accesos deberán limitarse, en la medida técnica y operativamente posible, a las funciones y permisos necesarios para la prestación del servicio y la administración del sistema.
+
+Toda persona que obtenga acceso a información confidencial como consecuencia de su participación en el desarrollo, administración, mantenimiento o utilización del sistema deberá preservar su confidencialidad y utilizar dicha información únicamente para las finalidades legítimas correspondientes.
+
+---
+
+## 11.4. Almacenamiento y servicios de infraestructura
+
+El sistema puede utilizar servicios de terceros para el almacenamiento, procesamiento, transmisión o respaldo de información.
+
+La utilización de dichos servicios no convierte al desarrollador de la aplicación en propietario de la información almacenada.
+
+Los proveedores de infraestructura, bases de datos, almacenamiento de archivos, servicios de mensajería, autenticación u otros servicios tecnológicos podrán encontrarse sujetos a sus propios términos, políticas de privacidad y condiciones de prestación.
+
+La selección o integración técnica de un determinado proveedor no constituye una garantía respecto de las políticas, disponibilidad, seguridad o condiciones futuras de dicho proveedor.
+
+La configuración, credenciales, permisos, políticas de acceso, retención y eliminación de información deberán ser administradas de acuerdo con las responsabilidades asignadas a cada participante del proyecto.
+
+---
+
+## 11.5. Inteligencia artificial y procesamiento automatizado
+
+El proyecto puede incorporar, actualmente o en el futuro, funcionalidades basadas en **inteligencia artificial, aprendizaje automático, procesamiento automatizado o servicios externos de IA**.
+
+La utilización de estas tecnologías deberá considerarse especialmente sensible cuando el sistema procese información personal, confidencial, comercial o perteneciente a terceros.
+
+Salvo que se establezca expresamente lo contrario, la incorporación de una funcionalidad de inteligencia artificial no debe interpretarse como una autorización para enviar información confidencial o datos personales a un proveedor externo de IA.
+
+Antes de utilizar información en servicios de terceros deberán evaluarse, según corresponda:
+
+- la naturaleza de los datos;
+- la finalidad del procesamiento;
+- la legitimidad del tratamiento;
+- las condiciones del proveedor;
+- las políticas de conservación y utilización de los datos;
+- los mecanismos de seguridad;
+- y las obligaciones legales aplicables.
+
+Las respuestas, clasificaciones, recomendaciones, predicciones o decisiones producidas mediante inteligencia artificial deberán considerarse **resultados automatizados sujetos a posibles errores, omisiones o interpretaciones incorrectas**, salvo que un mecanismo específico establezca controles adicionales.
+
+La incorporación de IA no traslada automáticamente la responsabilidad por las decisiones tomadas a partir de sus resultados al desarrollador de la infraestructura.
+
+La persona o entidad que utilice dichos resultados será responsable de determinar si corresponde utilizarlos, verificarlos, corregirlos o descartarlos, especialmente cuando puedan afectar derechos, intereses o decisiones relevantes de personas.
+
+---
+
+## 11.6. Limitación y delimitación de responsabilidad
+
+El desarrollador de la implementación inicial no asume responsabilidad por el contenido, origen, exactitud, legitimidad, finalidad o utilización que terceros hagan de la información que incorporen al sistema, salvo aquellas responsabilidades que no puedan excluirse legalmente.
+
+En particular, la implementación técnica de mecanismos que permitan almacenar, consultar, sincronizar, integrar o procesar información **no implica responsabilidad sobre las decisiones comerciales, administrativas, legales u operativas que los usuarios adopten utilizando dicha información**.
+
+Cada participante será responsable dentro del ámbito que le corresponda por:
+
+- los datos que incorpore;
+- las integraciones que configure;
+- las credenciales que administre;
+- los permisos que otorgue;
+- los usuarios a los que habilite;
+- las decisiones que adopte utilizando la información;
+- y el cumplimiento de las obligaciones legales aplicables a su actividad.
+
+Ninguna disposición de esta declaración pretende excluir responsabilidades que, por disposición legal, no puedan ser válidamente excluidas o limitadas.
+
+---
+
+## 11.7. Seguridad y buenas prácticas
+
+La arquitectura del sistema podrá incorporar mecanismos destinados a reducir riesgos de acceso indebido, pérdida, modificación o divulgación de información.
+
+Sin embargo, ninguna infraestructura informática puede garantizar de manera absoluta la inexistencia de vulnerabilidades, errores humanos, fallas de terceros, interrupciones de servicio, accesos no autorizados o incidentes de seguridad.
+
+Por este motivo, los responsables de cada implementación deberán adoptar medidas razonables de seguridad acordes con la naturaleza y sensibilidad de la información procesada.
+
+Entre ellas podrán incluirse, según corresponda:
+
+- autenticación y autorización;
+- control de permisos;
+- protección de credenciales;
+- cifrado;
+- registros de auditoría;
+- separación de entornos;
+- copias de seguridad;
+- políticas de conservación y eliminación;
+- actualización de dependencias;
+- y monitoreo de servicios.
+
+---
+
+## 11.8. Principio de responsabilidad compartida
+
+El funcionamiento seguro y legítimo de una plataforma de estas características no depende exclusivamente del código fuente.
+
+Existe una **responsabilidad compartida** entre quienes desarrollan la aplicación, quienes administran la infraestructura, quienes integran servicios externos y quienes utilizan la plataforma para gestionar información.
+
+Por ello, la existencia de una funcionalidad técnica no debe interpretarse como una transferencia automática de responsabilidad entre las partes.
+
+Cada participante deberá actuar dentro de las facultades que le correspondan y adoptar las medidas necesarias para evitar el uso indebido de información a la que tenga acceso.
+
+---
+
+## 11.9. Finalidad de esta declaración
+
+Estas disposiciones tienen como finalidad dejar claramente documentado que la creación de una infraestructura tecnológica **no implica apropiación de los datos que circulen por ella ni responsabilidad automática sobre las actividades realizadas por sus usuarios**.
+
+El propósito del proyecto es proporcionar una herramienta tecnológica que pueda ser utilizada para centralizar y facilitar la gestión de información.
+
+La responsabilidad sobre el uso legítimo de dicha herramienta, la información incorporada y las decisiones tomadas a partir de ella deberá ser asumida por los actores que intervienen efectivamente en cada operación, dentro de los límites establecidos por la legislación aplicable.
+
+Esta declaración deberá interpretarse conjuntamente con la licencia del software, los términos de utilización que eventualmente se establezcan, las políticas de privacidad correspondientes y cualquier acuerdo específico celebrado entre las partes.
+
+---
+
+**Leandro Maselli**
+Autor de la implementación y arquitectura técnica inicial
+`github.com/leoroan`

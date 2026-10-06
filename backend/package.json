@@ -1,0 +1,23 @@
+{
+  "name": "base_node_express",
+  "version": "1.0.0",
+  "description": "Backend simple en Node.js + Express + JS ESM con patrÃ³n Adapter para webhooks de WhatsApp",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "node --test tests/unit/*.test.js tests/integration/*.test.js",
+    "smoke": "node tests/smoke.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.117.2",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
