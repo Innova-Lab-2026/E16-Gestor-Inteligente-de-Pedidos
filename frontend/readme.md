@@ -65,7 +65,6 @@ Cuando veas que Next.js quedó listo, abrí:
 **http://localhost:4000**
 
 > El frontend usa el puerto **4000** de tu máquina (el contenedor escucha en el 3000 internamente),
-> para no chocar con el backend, que usa el 3000.
 
 ### 4. Apagar
 
