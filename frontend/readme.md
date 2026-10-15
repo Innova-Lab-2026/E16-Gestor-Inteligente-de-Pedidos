@@ -135,7 +135,7 @@ src/
 │  ├─ (public)/                  # Sin sesión (el "observador")
 │  │  ├─ login/
 │  │  └─ registro/
-│  ├─ (app)/                     # Con sesión (se protege acá, tarea siguiente)
+│  ├─ (app)/                     # Con sesión (se protege acá)
 │  │  ├─ dashboard/
 │  │  ├─ pedidos/
 │  │  ├─ catalogo/
