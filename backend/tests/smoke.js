@@ -118,7 +118,10 @@ try {
   console.log("\n6. Webhooks publicos (no exigen JWT)");
   const tg = await call("/webhooks/telegram", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-Telegram-Bot-Api-Secret-Token": "mi_secreto_telegram_123",
+    },
     body: JSON.stringify({ update_id: 999999 }),
   });
   check("POST /webhooks/telegram responde sin 401", tg.status !== 401, `(llego ${tg.status})`);
