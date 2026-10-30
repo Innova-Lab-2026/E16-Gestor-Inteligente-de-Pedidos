@@ -68,6 +68,7 @@ export const env = {
     VERIFY_TOKEN: read("VERIFY_TOKEN", ""),
     PHONE_NUMBER_ID: read("WHATSAPP_PHONE_NUMBER_ID", ""),
     ACCESS_TOKEN: read("WHATSAPP_ACCESS_TOKEN", ""),
+    APP_SECRET: read("WHATSAPP_APP_SECRET", ""),
   },
 };
 

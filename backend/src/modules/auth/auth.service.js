@@ -95,7 +95,7 @@ export class AuthService {
       throw new Error(
         "El usuario se creó en Supabase Auth pero no tiene perfil en `usuarios`. " +
           "Falta ejecutar la migración 001 (trigger `on_auth_user_created`): " +
-          "ver Docs/pruebas-manuales.md, paso 3."
+          "ver Docs/pruebas-manuales.md, paso 3.",
       );
     }
 
@@ -157,7 +157,7 @@ export class AuthService {
   async update({ userToken, metadata, password }) {
     if (!metadata && !password) {
       throw new BadRequestError(
-        "Debe enviarse al menos 'metadata' o 'password'"
+        "Debe enviarse al menos 'metadata' o 'password'",
       );
     }
 

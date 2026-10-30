@@ -37,6 +37,10 @@ do $$ begin
   create type evento_estado as enum ('PROCESADO', 'ERROR', 'REVISION_REQUERIDA');
 exception when duplicate_object then null; end $$;
 
+do $$ begin
+  create type tipo_documento as enum ('DNI', 'PASAPORTE', 'CUIT/CUIL', 'CI');
+exception when duplicate_object then null; end $$;
+
 -- ---------------------------------------------------------------------
 -- 1. emprendimientos (tenant raíz)
 -- ---------------------------------------------------------------------
@@ -52,7 +56,13 @@ create table if not exists public.emprendimientos (
 -- ---------------------------------------------------------------------
 create table if not exists public.usuarios (
   id uuid primary key references auth.users(id) on delete cascade,
+  tipo_documento tipo_documento,
+  numero_documento varchar(50),
+  nombre varchar(255) not null,
+  apellido varchar(255) not null,
+  telefono varchar(255),
   email varchar(255) not null unique,
+  direccion text,
   created_at timestamptz not null default now()
 );
 
@@ -94,6 +104,7 @@ create table if not exists public.productos (
   stock_disponible integer,
   stock_minimo integer not null default 0,
   identificador_externo varchar(100),
+  sku_o_identificador varchar(100),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   -- Un producto con variantes no administra stock propio.
@@ -154,6 +165,10 @@ create table if not exists public.pedidos (
   total numeric(10,2),
   observaciones text,
   requiere_revision boolean not null default false,
+  confirmed_at timestamptz,
+  ready_at timestamptz,
+  delivered_at timestamptz,
+  cancelled_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   -- Regla del dominio: MANUAL => canal_id NULL; CANAL => canal_id NOT NULL
@@ -268,8 +283,8 @@ begin
   -- `email` es NOT NULL UNIQUE y no todo usuario de Auth tiene email
   -- (los de solo telefono no lo traen). Un placeholder derivado del id
   -- mantiene la restriccion sin colisionar entre usuarios.
-  insert into public.usuarios (id, email)
-  values (p_id, coalesce(v_email, p_id::text || '@sin-email.invalid'))
+  insert into public.usuarios (id, email, nombre, apellido)
+  values (p_id, coalesce(v_email, p_id::text || '@sin-email.invalid'), '', '')
   on conflict (id) do update set email = excluded.email;
 end;
 $$;

@@ -17,6 +17,7 @@ export const integrations = {
     verifyToken: env.WHATSAPP.VERIFY_TOKEN,
     phoneNumberId: env.WHATSAPP.PHONE_NUMBER_ID,
     accessToken: env.WHATSAPP.ACCESS_TOKEN,
+    appSecret: env.WHATSAPP.APP_SECRET,
   },
 };
 
