@@ -6,9 +6,14 @@ import { ROUTES } from "@/config/router";
 import { SESSION_COOKIE } from "./constants";
 
 export async function login(_previousState: { error?: string }, formData: FormData) {
+  const apiUrl = process.env.API_URL?.replace(/\/+$/, "");
+  if (!apiUrl) {
+    return { error: "No pudimos conectar con el servidor. Intentá nuevamente." };
+  }
+
   let res: Response;
   try {
-    res = await fetch(`${process.env.API_URL}/auth/login`, {
+    res = await fetch(`${apiUrl}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -29,7 +34,17 @@ export async function login(_previousState: { error?: string }, formData: FormDa
     return { error: "No pudimos iniciar sesión. Intentá nuevamente." };
   }
 
-  const { access_token: token } = await res.json();
+  let token: unknown;
+  try {
+    token = (await res.json())?.access_token;
+  } catch {
+    return { error: "El servidor respondió con un formato inesperado." };
+  }
+
+  if (typeof token !== "string" || !token) {
+    return { error: "El servidor no devolvió una sesión válida." };
+  }
+
   (await cookies()).set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",

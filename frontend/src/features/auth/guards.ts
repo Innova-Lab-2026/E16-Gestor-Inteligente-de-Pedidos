@@ -11,6 +11,6 @@ export async function requireSession() {
 
 export async function requireRole(roles: Role[]) {
   const session = await requireSession();
-  if (!roles.includes(session.role)) redirect(ROUTES.home);
+  if (!session.role || !roles.includes(session.role)) redirect(ROUTES.home);
   return session;
 }

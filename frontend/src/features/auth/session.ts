@@ -13,8 +13,11 @@ export const getSession = cache(async (): Promise<Session | null> => {
     return null;
   }
 
+  const apiUrl = process.env.API_URL?.replace(/\/+$/, "");
+  if (!apiUrl) return null;
+
   try {
-    const res = await fetch(`${process.env.API_URL}/auth/me`, {
+    const res = await fetch(`${apiUrl}/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     });
