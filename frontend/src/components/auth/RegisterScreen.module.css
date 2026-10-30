@@ -1,0 +1,727 @@
+.screen {
+  width: min(100%, 480px);
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: 18px clamp(16px, 4.3vw, 20px) 32px;
+  background: #fff;
+  color: #102a39;
+}
+
+.header {
+  display: flex;
+  min-height: 56px;
+  align-items: center;
+  gap: 14px;
+}
+
+.backLink {
+  display: grid;
+  width: 25px;
+  height: 32px;
+  color: #102a39;
+  place-items: center;
+}
+
+.backLink svg {
+  width: 23px;
+  height: 23px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.header h1 {
+  margin: 0;
+  color: #7622ed;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.intro {
+  margin: 14px 0 24px;
+  color: #586574;
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.field input {
+  width: 100%;
+  height: 52px;
+  border: 2px solid #102a39;
+  border-radius: 28px;
+  padding: 0 20px;
+  color: #102a39;
+  font-size: 17px;
+  font-weight: 400;
+  outline-offset: 2px;
+}
+
+.field input::placeholder {
+  color: #586574;
+  opacity: 1;
+}
+
+.field input:focus-visible {
+  border-width: 2px;
+  outline: none;
+}
+
+.fieldInvalid {
+  color: #e52b2b;
+}
+
+.fieldInvalid input {
+  border-color: #e52b2b;
+  color: #e52b2b;
+}
+
+.field small {
+  color: #586574;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.field small.error {
+  color: #e52b2b;
+}
+
+.passwordRules {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 4px 0 0;
+  padding: 0;
+  color: #586574;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.35;
+  list-style: none;
+}
+
+.ruleValid {
+  color: #078c4b;
+}
+
+.passwordWrap {
+  position: relative;
+  display: block;
+}
+
+.passwordWrap input {
+  padding-right: 42px;
+}
+
+.passwordToggle {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  display: grid;
+  width: 25px;
+  height: 25px;
+  transform: translateY(-50%);
+  place-items: center;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #111;
+  cursor: pointer;
+}
+
+.passwordToggle svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+
+.error {
+  margin: 0;
+  color: #e52b2b !important;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.success {
+  margin: 0;
+  color: #147545;
+  font-size: 13px;
+}
+
+.success a {
+  color: #006b91;
+  font-weight: 600;
+}
+
+.terms {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: #586574;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.terms input {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  margin: 0;
+  accent-color: #1d3343;
+}
+
+.submitButton {
+  min-height: 52px;
+  margin-top: 4px;
+  border: 0;
+  border-radius: 24px;
+  background: #056184;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.businessStep {
+  display: flex;
+  min-height: calc(100dvh - 16px);
+  flex-direction: column;
+  padding-bottom: 0;
+}
+
+.businessScreen {
+  padding-top: 10px;
+  padding-bottom: 8px;
+}
+
+.progressHeader {
+  display: flex;
+  height: 22px;
+  align-items: center;
+  gap: 10px;
+  color: #586574;
+  font-size: 16px;
+}
+
+.stepBack {
+  display: grid;
+  width: 20px;
+  height: 22px;
+  place-items: center;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #65707b;
+  cursor: pointer;
+}
+
+.stepBack svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.progressTrack {
+  height: 8px;
+  overflow: hidden;
+  margin: 7px -4px 24px;
+  border-radius: 8px;
+  background: #d5e4f7;
+}
+
+.progressTrack span {
+  display: block;
+  width: 50%;
+  height: 100%;
+  border-radius: inherit;
+  background: #8700cf;
+}
+
+.businessTitle {
+  max-width: 360px;
+  margin: 0 0 10px;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.businessIntro {
+  margin: 0 0 22px;
+  color: #586574;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.businessField {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 25px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.businessField > input,
+.productPicker > input {
+  width: 100%;
+  height: 52px;
+  border: 2px solid #102a39;
+  border-radius: 28px;
+  padding: 0 20px;
+  background: #fff;
+  color: #102a39;
+  font-size: 17px;
+  font-weight: 400;
+  outline-offset: 2px;
+}
+
+.businessField > input::placeholder,
+.productPicker > input::placeholder {
+  color: #586574;
+  opacity: 1;
+}
+
+.businessField > small {
+  color: #586574;
+  font-size: 15px;
+  font-weight: 400;
+}
+
+.productPicker {
+  position: relative;
+}
+
+.productPicker > input {
+  padding-right: 54px;
+}
+
+.productPickerOpen > input {
+  border-color: #7622ed;
+}
+
+.searchIcon {
+  position: absolute;
+  top: 50%;
+  right: 18px;
+  width: 25px;
+  height: 25px;
+  transform: translateY(-50%);
+  fill: none;
+  stroke: #111;
+  stroke-linecap: round;
+  stroke-width: 1.8;
+  pointer-events: none;
+}
+
+.productOptions {
+  position: absolute;
+  z-index: 2;
+  top: calc(100% - 2px);
+  right: 0;
+  left: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  border: 2px solid #7622ed;
+  border-top: 0;
+  border-radius: 0 0 22px 22px;
+  background: #fff;
+  list-style: none;
+}
+
+.productOptions button {
+  width: 100%;
+  min-height: 40px;
+  border: 0;
+  border-top: 1px solid #7622ed;
+  padding: 5px 20px;
+  background: #fff;
+  color: #7622ed;
+  font-size: 16px;
+  text-align: left;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.productOptions button:hover,
+.productOptions button:focus-visible {
+  background: #7622ed;
+  color: #fff;
+}
+
+.noOptions {
+  padding: 10px 20px;
+  color: #586574;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.customProductField {
+  margin-top: -1px;
+}
+
+.customProductField > span {
+  color: #7622ed;
+}
+
+.businessStep > .submitButton {
+  width: 100%;
+  flex: 0 0 auto;
+  margin-top: auto;
+}
+
+.deliveryStep {
+  gap: 0;
+}
+
+.progressComplete span {
+  width: 100%;
+}
+
+.deliveryTitle {
+  margin: 0 0 22px;
+  padding: 0 4px;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.channelList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.channelCard {
+  position: relative;
+  display: flex;
+  min-height: 78px;
+  align-items: center;
+  gap: 14px;
+  border: 2px solid #d5e4f7;
+  border-radius: 20px;
+  padding: 12px 15px;
+  background: #fff;
+  color: #102a39;
+}
+
+.channelCard > input[type="checkbox"] {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  appearance: none;
+  display: grid;
+  box-sizing: border-box;
+  min-width: 26px;
+  min-height: 26px;
+  place-content: center;
+  border: 0;
+  border-radius: 7px;
+  margin: 0;
+  background: #c9d7e9;
+  cursor: pointer;
+}
+
+.channelCard > input[type="checkbox"]:checked {
+  background: #7622ed;
+}
+
+.channelCard > input[type="checkbox"]:checked::after {
+  width: 6px;
+  height: 10px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  margin-top: -2px;
+  content: "";
+  transform: rotate(45deg);
+}
+
+.channelCheck {
+  position: absolute;
+  top: 50%;
+  left: 15px;
+  display: grid;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
+  transform: translateY(-50%);
+  place-items: center;
+  border: 2px solid #9aaabe;
+  border-radius: 7px;
+  aspect-ratio: 1;
+  pointer-events: none;
+}
+
+.channelCopy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.channelCopy strong {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.channelCopy small {
+  color: #586574;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.25;
+}
+
+.channelSelected {
+  align-items: flex-start;
+  border-color: #7622ed;
+  background: #f7f2ff;
+}
+
+.channelSelected .channelCopy {
+  gap: 3px;
+}
+
+.channelManualSelected {
+  border-color: #d5e4f7;
+  background: #fff;
+}
+
+.channelManualSelected > input[type="checkbox"]:checked {
+  background: #1d3544;
+}
+
+.channelPhone {
+  width: calc(100% + 40px);
+  height: 52px;
+  border: 2px solid #102a39;
+  border-radius: 28px;
+  margin: 12px 0 0 -40px;
+  padding: 0 20px;
+  background: #fff;
+  color: #102a39;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.channelPhone::placeholder,
+.pickupField input::placeholder {
+  color: #586574;
+  opacity: 1;
+}
+
+.channelUnavailable {
+  min-height: 78px;
+  border-color: transparent;
+  background: #f2f5f8;
+  color: #586574;
+}
+
+.channelUnavailable .channelCopy small {
+  color: #586574;
+}
+
+.channelUnavailable .channelCopy {
+  margin-left: 40px;
+}
+
+.channelBadge {
+  border-radius: 10px;
+  padding: 5px 10px;
+  background: #d5e4f7;
+  color: #102a39;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.deliveryFieldset {
+  min-width: 0;
+  border: 0;
+  margin: 24px 0 0;
+  padding: 0;
+}
+
+.deliveryFieldset legend {
+  margin-bottom: 9px;
+  padding: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.deliveryOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.deliveryOption {
+  display: inline-flex;
+  min-width: 86px;
+  min-height: 49px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 2px solid #aabbd0;
+  border-radius: 26px;
+  padding: 0 16px;
+  background: #fff;
+  color: #102a39;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.deliveryOptionSelected {
+  border-color: #7622ed;
+  background: #7622ed;
+  color: #fff;
+}
+
+.pickupField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+  color: #7622ed;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.pickupField input {
+  width: 100%;
+  height: 52px;
+  border: 2px solid #102a39;
+  border-radius: 28px;
+  padding: 0 20px;
+  background: #fff;
+  color: #102a39;
+  font-size: 17px;
+  font-weight: 400;
+}
+
+.deliveryActions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 24px;
+}
+
+.deliveryActions > .submitButton {
+  margin-top: 0;
+}
+
+.verificationList {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.verificationCard {
+  display: flex;
+  flex-direction: column;
+  border: 2px solid #7622ed;
+  border-radius: 19px;
+  padding: 15px 16px 16px;
+  background: #f7f2ff;
+}
+
+.verificationCard h2 {
+  margin: 0;
+  color: #102a39;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.verificationCard p {
+  margin: 0 0 14px;
+  color: #586574;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.verificationInput {
+  width: 100%;
+  height: 52px;
+  border: 2px solid #102a39;
+  border-radius: 28px;
+  padding: 0 18px;
+  background: #fff;
+  color: #102a39;
+  font-size: 17px;
+  outline-offset: 2px;
+}
+
+.verificationInputInvalid {
+  border-color: #e52b2b;
+  color: #102a39;
+}
+
+.verificationError {
+  margin: 12px 0 0;
+  color: #e52b2b;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.resendButton {
+  min-height: 49px;
+  border: 0;
+  border-radius: 26px;
+  margin-top: 14px;
+  background: #c000ef;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.verificationStep .deliveryActions {
+  margin-top: auto;
+}
+
+@media (max-width: 360px) {
+  .screen {
+    padding-inline: 14px;
+  }
+
+  .intro {
+    font-size: 16px;
+  }
+
+  .field input {
+    height: 48px;
+    font-size: 16px;
+  }
+}

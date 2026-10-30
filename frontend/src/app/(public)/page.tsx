@@ -1,7 +1,5 @@
+import LoginScreen from "@/components/auth/LoginScreen";
+
 export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center">
-      <h1>Hola soy el body</h1>
-    </div>
-  );
+  return <LoginScreen />;
 }
