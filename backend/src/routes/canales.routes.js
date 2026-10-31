@@ -21,7 +21,7 @@ router.patch(
   "/:id",
   idParams,
   validate({ body: updateCanalSchema }),
-  controller.update
+  controller.update,
 );
 router.post("/:id/activar", idParams, controller.toggle(true));
 router.post("/:id/desactivar", idParams, controller.toggle(false));

@@ -66,9 +66,10 @@ export const env = {
 
   WHATSAPP: {
     VERIFY_TOKEN: read("VERIFY_TOKEN", ""),
-    PHONE_NUMBER_ID: read("WHATSAPP_PHONE_NUMBER_ID", ""),
-    ACCESS_TOKEN: read("WHATSAPP_ACCESS_TOKEN", ""),
+    APP_ID: read("WHATSAPP_APP_ID", ""),
     APP_SECRET: read("WHATSAPP_APP_SECRET", ""),
+    CONFIG_ID: read("WHATSAPP_CONFIG_ID", ""),
+    ENCRYPTION_KEY: read("WHATSAPP_ENCRYPTION_KEY", ""),
   },
 };
 

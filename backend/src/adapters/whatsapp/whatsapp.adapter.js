@@ -19,7 +19,7 @@ export class WhatsAppAdapter extends ChannelAdapter {
   normalizeIncomingEvent(parsed) {
     return new NormalizedChannelEvent({
       channelType: WhatsAppAdapter.channelType,
-      externalChannelId: parsed.contactId,
+      externalChannelId: parsed.phoneNumberId,
       externalMessageId: parsed.messageId,
       externalContactId: parsed.contactId,
       externalContactName: parsed.contactName,

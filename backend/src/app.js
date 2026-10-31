@@ -14,17 +14,12 @@ app.use(cors());
 app.use(
   express.json({
     limit: "1mb",
-    // Captura el cuerpo crudo antes de parsear, necesario para validar
-    // firmas HMAC (X-Hub-Signature-256) de webhooks de Meta sin alterar el payload.
     verify: (req, res, buf) => {
       req.rawBody = buf;
     },
-  })
+  }),
 );
 app.use(express.urlencoded({ extended: true }));
-
-// Los webhooks por compatibilidad con los
-// proveedores que exigen esa ruta (Meta, Telegram).
 app.use("/webhooks", webhooksRoutes);
 
 // API principal
@@ -38,7 +33,7 @@ app.get("/", (req, res) => {
   });
 });
 
-// 404 y manejador central de errores (deben ir al final).
+// 404 y manejador central de errores.
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
 

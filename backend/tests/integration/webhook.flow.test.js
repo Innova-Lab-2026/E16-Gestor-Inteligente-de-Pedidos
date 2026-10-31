@@ -32,7 +32,7 @@ const canalWhatsapp = {
   id: "55555555-5555-5555-5555-555555555555",
   tipo: CHANNEL_TYPE.WHATSAPP,
   emprendimiento_id: EMP,
-  identificador_externo: "wa_5491112345678",
+  identificador_externo: "1234567890",
   activo: true,
 };
 
@@ -134,12 +134,13 @@ const telegramPayload = (messageId, text) => ({
   },
 });
 
-const whatsappPayload = (messageId, from, text) => ({
+const whatsappPayload = (messageId, from, text, phoneNumberId = "1234567890") => ({
   entry: [
     {
       changes: [
         {
           value: {
+            metadata: { phone_number_id: phoneNumberId },
             timestamp: "1735689600",
             contacts: [{ profile: { name: "Cliente Test" } }],
             messages: [
@@ -259,7 +260,7 @@ describe("Flujo webhook HTTP", () => {
   });
 
   test("rechaza un mensaje de WhatsApp de un canal no registrado", async () => {
-    const payload = whatsappPayload("wamid.msg-nocanal", "99999999999999", "texto");
+    const payload = whatsappPayload("wamid.msg-nocanal", "99999999999999", "texto", "9999999999");
     const { status } = await post("/webhooks/whatsapp", payload);
     assert.equal(status, 404, "canal no registrado debe devolver 404");
   });

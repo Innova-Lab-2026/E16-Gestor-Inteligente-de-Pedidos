@@ -10,7 +10,10 @@ export const parseWhatsappPayload = (rawPayload) => {
 
   if (!message) return null;
 
+  const phoneNumberId = value?.metadata?.phone_number_id || null;
+
   return {
+    phoneNumberId,
     messageId: message.id || "unknown_id",
     contactId: message.from ? `wa_${message.from}` : null,
     contactName: value?.contacts?.[0]?.profile?.name || null,
