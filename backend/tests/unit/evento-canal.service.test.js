@@ -1,4 +1,4 @@
-﻿import { test, describe } from "node:test";
+import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 
 import {
@@ -129,7 +129,7 @@ describe("EventoCanalService - idempotencia", () => {
     const { service, pedidosCreados } = build();
 
     await service.process(telegram("2 remeras", 42));
-    await service.process(telegram("1 gorro", 43));
+    await service.process(telegram("1 remeras", 43));
 
     assert.equal(pedidosCreados.length, 2);
   });
@@ -139,12 +139,11 @@ describe("EventoCanalService - pedidos para revision", () => {
   test("marca el pedido para revision si no identifica el producto", async () => {
     const { service, pedidosCreados } = build();
 
-    await service.process(telegram("2 cosas raras"));
+    const resultado = await service.process(telegram("2 cosas raras"));
 
-    const pedido = pedidosCreados[0];
-    assert.equal(pedido.dto.requiereRevision, true);
-    assert.equal(pedido.dto.items.length, 0);
-    assert.equal(pedido.dto.reservarStock, false, "nunca reserva stock desde un mensaje ambiguo");
+    assert.equal(resultado.pedido, null);
+    assert.equal(resultado.evento.estado_procesamiento, "REVISION_REQUERIDA");
+    assert.equal(pedidosCreados.length, 0, "no debe invocar createFromChannel");
   });
 
   test("crea el pedido con items si identifica el producto", async () => {
@@ -171,7 +170,7 @@ describe("EventoCanalService - canal desconocido", () => {
   test("falla si el canal externo no esta registrado", async () => {
     const { service, eventoDao } = build({ conCanal: false });
 
-    await assert.rejects(() => service.process(telegram("2 remeras")), /No hay ningun canal|No hay ningún canal/);
+    await assert.rejects(() => service.process(telegram("2 remeras")), /No hay ningun canal|No hay ning�n canal/);
     assert.equal(eventoDao.eventos.length, 0, "no se registra nada sin canal resuelto");
   });
 });

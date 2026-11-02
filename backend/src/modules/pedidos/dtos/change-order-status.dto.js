@@ -9,7 +9,7 @@ export const changeOrderStatusSchema = z.object({
 });
 
 export const changePaymentStatusSchema = z.object({
-  estadoCobro: z.enum(Object.values(PAYMENT_STATUS)),
+  estado_cobro: z.enum(Object.values(PAYMENT_STATUS)),
 });
 
 export const pedidoIdParamSchema = z.object({
@@ -18,7 +18,7 @@ export const pedidoIdParamSchema = z.object({
 
 export const listPedidosQuerySchema = z.object({
   estado: z.enum(Object.values(ORDER_STATUS)).optional(),
-  requiereRevision: z
+  requiere_revision: z
     .enum(["true", "false"])
     .transform((v) => v === "true")
     .optional(),

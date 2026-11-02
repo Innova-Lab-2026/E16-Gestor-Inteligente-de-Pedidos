@@ -57,6 +57,12 @@ export class CanalService {
     return this.canalDao.setActivo(emprendimientoId, id, activo);
   }
 
+  async remove(emprendimientoId, id) {
+    await this.getById(emprendimientoId, id);
+    return this.canalDao.remove(emprendimientoId, id);
+  }
+
+
   /**
    * Resuelve el tenant desde un evento normalizado.
    * @param {import('../../adapters/channel-event.js').NormalizedChannelEvent} evento

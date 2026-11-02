@@ -47,12 +47,12 @@ export class PedidoService {
     for (const item of items) {
       const producto = await this.productoService.getById(
         emprendimientoId,
-        item.productoId
+        item.producto_id
       );
 
       let variante = null;
-      if (item.varianteId) {
-        variante = await this.varianteService.getById(item.varianteId);
+      if (item.variante_id) {
+        variante = await this.varianteService.getById(item.variante_id);
         if (variante.producto_id !== producto.id) {
           throw new BadRequestError(
             `La variante ${variante.id} no pertenece al producto ${producto.nombre}`
@@ -60,20 +60,20 @@ export class PedidoService {
         }
       } else if (producto.tiene_variantes) {
         throw new BadRequestError(
-          `El producto "${producto.nombre}" tiene variantes: indicá 'varianteId'`
+          `El producto "${producto.nombre}" tiene variantes: indicá 'variante_id'`
         );
       }
 
-      const precioUnitario = item.precioUnitario ?? Number(producto.precio);
+      const precioUnitario = item.precio_unitario ?? Number(producto.precio);
       const subtotal = Number(
         (precioUnitario * item.cantidad).toFixed(2)
       );
 
       resueltos.push({
-        productoId: producto.id,
-        varianteId: variante?.id ?? null,
+        producto_id: producto.id,
+        variante_id: variante?.id ?? null,
         cantidad: item.cantidad,
-        precioUnitario,
+        precio_unitario: precioUnitario,
         subtotal,
       });
     }
@@ -104,7 +104,7 @@ export class PedidoService {
       throw new BadRequestError("Un pedido de canal exige canal_id");
     }
 
-    let clienteId = dto.clienteId ?? null;
+    let clienteId = dto.cliente_id ?? null;
     if (clienteId) {
       // Verifica pertenencia al tenant antes de associar.
       await this.clienteService.getById(emprendimientoId, clienteId);
@@ -112,7 +112,7 @@ export class PedidoService {
 
     // Un pedido que requiere revisión puede no tener items identificados.
     const itemsEntrantes = Array.isArray(dto.items) ? dto.items : [];
-    const requiereRevision = Boolean(dto.requiereRevision);
+    const requiereRevision = Boolean(dto.requiere_revision);
 
     if (itemsEntrantes.length === 0 && !requiereRevision) {
       throw new BadRequestError("El pedido debe tener al menos un item");
@@ -128,13 +128,13 @@ export class PedidoService {
       origen_tipo: origen,
       canal_id: origen === ORIGIN.CANAL ? canalId : null,
       estado: ORDER_STATUS.RECIBIDO,
-      estado_cobro: dto.estadoCobro,
-      modalidad_entrega: dto.modalidadEntrega ?? null,
-      fecha_prevista_entrega: dto.fechaPrevistaEntrega ?? null,
+      estado_cobro: dto.estado_cobro,
+      modalidad_entrega: dto.modalidad_entrega ?? null,
+      fecha_prevista_entrega: dto.fecha_prevista_entrega ?? null,
       subtotal,
       total,
       observaciones: requiereRevision
-        ? [dto.observaciones, `REVISAR: ${dto.motivoRevision ?? "sin detalle"}`]
+        ? [dto.observaciones, `REVISAR: ${dto.motivo_revision ?? "sin detalle"}`]
             .filter(Boolean)
             .join(" | ")
         : dto.observaciones ?? null,
@@ -146,11 +146,15 @@ export class PedidoService {
     // unidad lógica de negocio (ver db/migrations para el RPC transaccional).
     const pedido = await this.pedidoDao.createConItems(cabecera, items);
 
-    if (dto.reservarStock && items.length) {
+    if (dto.reservar_stock && items.length) {
       await this.stockService.reservarPedido({
         emprendimientoId,
         pedidoId: pedido.id,
-        items,
+        items: items.map((it) => ({
+          productoId: it.producto_id,
+          varianteId: it.variante_id,
+          cantidad: it.cantidad,
+        })),
       });
     }
 
@@ -217,24 +221,24 @@ export class PedidoService {
     return actualizado;
   }
 
-  async changePaymentStatus({ emprendimientoId, id, estadoCobro }) {
+  async changePaymentStatus({ emprendimientoId, id, estado_cobro }) {
     await this.pedidoDao.findByIdOrFail(emprendimientoId, id, {
       conItems: false,
     });
     return this.pedidoDao.updateEstadoCobro(
       emprendimientoId,
       id,
-      estadoCobro
+      estado_cobro
     );
   }
 
   /** Marca el pedido como revisado o pendiente de revisión desde el panel. */
-  async setRevision({ emprendimientoId, id, requiereRevision, observaciones }) {
+  async setRevision({ emprendimientoId, id, requiere_revision, observaciones }) {
     await this.pedidoDao.findByIdOrFail(emprendimientoId, id, {
       conItems: false,
     });
     return this.pedidoDao.updateRevision(emprendimientoId, id, {
-      requiereRevision,
+      requiereRevision: requiere_revision,
       observaciones,
     });
   }

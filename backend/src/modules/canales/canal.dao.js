@@ -1,6 +1,12 @@
-import { createSupabaseClient, createSecretClient } from "../../config/database.js";
+import {
+  createSupabaseClient,
+  createSecretClient,
+} from "../../config/database.js";
 import { NotFoundError } from "../../errors/not-found.error.js";
-import { CHANNEL_TYPE, isChannelType } from "../../constants/channel-type.enum.js";
+import {
+  CHANNEL_TYPE,
+  isChannelType,
+} from "../../constants/channel-type.enum.js";
 
 /**
  * Acceso a `canales`.
@@ -20,12 +26,17 @@ export class CanalDao {
     // evaluar. El emprendimiento sale del canal registrado
     // (canales.identificador_externo), nunca de un dato del request; los
     // DAOs filtran siempre por ese id. Todo otro flujo llega con token.
-    return this.token
-      ? createSupabaseClient(this.token)
-      : createSecretClient();
+    return this.token ? createSupabaseClient(this.token) : createSecretClient();
   }
 
-  async create({ emprendimientoId, tipo, identificadorExterno, nombre, config, activo = true }) {
+  async create({
+    emprendimientoId,
+    tipo,
+    identificador_externo,
+    nombre,
+    config,
+    activo = true,
+  }) {
     if (!isChannelType(tipo)) {
       throw new Error(`Tipo de canal inválido: ${tipo}`);
     }
@@ -35,7 +46,7 @@ export class CanalDao {
       .insert({
         emprendimiento_id: emprendimientoId,
         tipo,
-        identificador_externo: identificadorExterno,
+        identificador_externo: identificador_externo,
         nombre: nombre ?? null,
         config: config ?? null,
         activo,
@@ -112,6 +123,24 @@ export class CanalDao {
 
   async setActivo(emprendimientoId, id, activo) {
     return this.update(emprendimientoId, id, { activo });
+  }
+
+  async remove(emprendimientoId, id) {
+    await this.findByIdOrFail(emprendimientoId, id);
+    const { error: pedidosError } = await this.#client()
+      .from("pedidos")
+      .update({ origen_tipo: "MANUAL", canal_id: null })
+      .eq("canal_id", id)
+      .eq("emprendimiento_id", emprendimientoId);
+    if (pedidosError) throw pedidosError;
+
+    const { error } = await this.#client()
+      .from("canales")
+      .delete()
+      .eq("id", id)
+      .eq("emprendimiento_id", emprendimientoId);
+    if (error) throw error;
+    return { id };
   }
 }
 

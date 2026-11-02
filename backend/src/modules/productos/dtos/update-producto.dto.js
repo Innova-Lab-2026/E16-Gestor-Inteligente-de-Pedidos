@@ -1,13 +1,11 @@
 import { z } from "zod";
-import { createProductoSchema, toProductoRow } from "./create-producto.dto.js";
+import { createProductoSchema } from "./create-producto.dto.js";
 
 export { createProductoSchema };
 
 export const updateProductoSchema = createProductoSchema
-  .omit({ tieneVariantes: true })
+  .omit({ tiene_variantes: true })
   .partial()
   .extend({ activo: z.boolean().optional() });
-
-export const toUpdateProductoRow = toProductoRow;
 
 export default updateProductoSchema;

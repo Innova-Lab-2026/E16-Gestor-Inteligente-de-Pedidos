@@ -26,5 +26,8 @@ router.patch(
 router.post("/:id/activar", idParams, controller.toggle(true));
 router.post("/:id/desactivar", idParams, controller.toggle(false));
 router.get("/:id/eventos", idParams, controller.listEventos);
+router.delete("/:id", idParams, controller.remove);
+
+
 
 export default router;

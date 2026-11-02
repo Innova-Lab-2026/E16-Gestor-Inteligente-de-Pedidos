@@ -12,17 +12,17 @@ const UUID = "22222222-2222-2222-2222-222222222222";
 describe("DTO de pedido manual", () => {
   test("aplica defaults y coerciona numeros", () => {
     const dto = createPedidoManualSchema.parse({
-      items: [{ productoId: UUID, cantidad: "3" }],
+      items: [{ producto_id: UUID, cantidad: "3" }],
     });
 
     assert.equal(dto.items[0].cantidad, 3);
-    assert.equal(dto.estadoCobro, "PENDIENTE");
-    assert.equal(dto.reservarStock, true);
+    assert.equal(dto.estado_cobro, "PENDIENTE");
+    assert.equal(dto.reservar_stock, true);
   });
 
   test("rechaza cantidad cero o negativa", () => {
     assert.throws(
-      () => createPedidoManualSchema.parse({ items: [{ productoId: UUID, cantidad: 0 }] }),
+      () => createPedidoManualSchema.parse({ items: [{ producto_id: UUID, cantidad: 0 }] }),
       /entero mayor a 0/
     );
   });
@@ -33,7 +33,7 @@ describe("DTO de pedido manual", () => {
 
   test("rechaza un productoId que no es UUID", () => {
     assert.throws(
-      () => createPedidoManualSchema.parse({ items: [{ productoId: "abc", cantidad: 1 }] }),
+      () => createPedidoManualSchema.parse({ items: [{ producto_id: "abc", cantidad: 1 }] }),
       /UUID/
     );
   });
@@ -60,7 +60,7 @@ describe("DTO de producto", () => {
   test("acepta precio como string", () => {
     const dto = createProductoSchema.parse({ nombre: "X", precio: "1500.50" });
     assert.equal(dto.precio, 1500.5);
-    assert.equal(dto.stockMinimo, 0);
+    assert.equal(dto.stock_minimo, 0);
   });
 
   test("impone maximo de longitud del nombre", () => {
@@ -74,7 +74,7 @@ describe("DTO de producto", () => {
 describe("DTO de canal", () => {
   test("rechaza un tipo de canal no soportado", () => {
     assert.throws(
-      () => createCanalSchema.parse({ tipo: "MANUAL", identificadorExterno: "x" }),
+      () => createCanalSchema.parse({ tipo: "MANUAL", identificador_externo: "x" }),
       /inválido/
     );
   });

@@ -5,6 +5,8 @@ import { PedidoService } from "../pedidos/pedido.service.js";
 import { ProductoService } from "../productos/producto.service.js";
 import { VarianteService } from "../variantes/variante.service.js";
 import { ClienteService } from "../clientes/cliente.service.js";
+import { InterpretadorService } from "../interpretacion/interpretador.service.js";
+import { INTENCION_MENSAJE } from "../interpretacion/intencion.enum.js";
 import { logger } from "../../utils/logger.js";
 
 /**
@@ -21,32 +23,15 @@ import { logger } from "../../utils/logger.js";
  */
 export const interpretarTextoPedido = (texto) => {
   if (!texto) return [];
-
-  return String(texto)
-    .split(/[\n;,]+/)
-    .map((linea) => linea.trim())
-    .filter(Boolean)
-    .map((linea) => {
-      // "2 remeras negras talle M" -> cantidad 2, resto "remeras negras talle M"
-      const conCantidad = /^(\d{1,3})\s*(?:x\s*)?(.+)$/i.exec(linea);
-      const cantidad = conCantidad ? Number(conCantidad[1]) : null;
-      const descripcion = (conCantidad ? conCantidad[2] : linea).trim();
-
-      // Se separa un eventual talle/color al final: "remera talle M".
-      const conVariante =
-        /(.+?)\s+(talle|color)\s+([\wÁÉÍÓÚáéíóúñ]+)\s*$/i.exec(descripcion);
-
-      if (conVariante) {
-        return {
-          cantidad,
-          descripcion: conVariante[1].trim(),
-          variante: `${conVariante[2]} ${conVariante[3]}`.trim(),
-        };
-      }
-
-      return { cantidad, descripcion, variante: null };
-    })
-    .filter((item) => item.descripcion.length > 0);
+  const svc = new InterpretadorService();
+  return svc
+    .extraerItems(texto)
+    .map((it) => ({
+      cantidad: it.cantidad,
+      descripcion: it.producto_mencionado,
+      variante: it.variante_mencionada,
+      unidad: it.unidad,
+    }));
 };
 
 /**
@@ -70,6 +55,7 @@ export class EventoCanalService {
     productoService,
     varianteService,
     clienteService,
+    interpretadorService,
   } = {}) {
     this.canalService = canalService || new CanalService();
     this.eventoCanalDao =
@@ -78,6 +64,7 @@ export class EventoCanalService {
     this.productoService = productoService || new ProductoService();
     this.varianteService = varianteService || new VarianteService();
     this.clienteService = clienteService || new ClienteService();
+    this.interpretadorService = interpretadorService || new InterpretadorService();
   }
 
   /**
@@ -107,20 +94,28 @@ export class EventoCanalService {
       canalId: canal.id,
       mensajeriaMessageId: evento.externalMessageId,
       payloadRaw: evento.rawPayload,
-      estadoProcesamiento: PROCESSING_STATUS.REVISION_REQUERIDA,
+      estadoProcesamiento: PROCESSING_STATUS.PROCESADO,
     });
 
     try {
-      const pedido = await this.#generarPedido(canal, evento);
+      const interpretacion = this.interpretadorService.interpretar({ text: evento.text });
 
-      const estado = pedido.requiere_revision
-        ? PROCESSING_STATUS.REVISION_REQUERIDA
-        : PROCESSING_STATUS.PROCESADO;
+      // Sin intención de compra: no crear pedido.
+      if (interpretacion.intencion !== INTENCION_MENSAJE.PEDIDO) {
+        const actualizado = await this.eventoCanalDao.actualizarEstado(
+          registrado.id,
+          PROCESSING_STATUS.PROCESADO
+        );
+        return { duplicado: false, evento: actualizado, pedido: null };
+      }
+
+      // Intención de compra: resolver contra catálogo.
+      const { pedido, estado } = await this.#generarPedido(canal, evento, interpretacion);
 
       const actualizado = await this.eventoCanalDao.actualizarEstado(
         registrado.id,
         estado,
-        pedido.id
+        pedido?.id
       );
 
       return { duplicado: false, evento: actualizado, pedido };
@@ -141,42 +136,60 @@ export class EventoCanalService {
 
   /**
    * Interpreta el mensaje, resuelve cliente/items y delega la creación.
+   * No crea pedidos vacíos.
    * @param {object} canal
    * @param {import('../../adapters/channel-event.js').NormalizedChannelEvent} evento
+   * @param {object} interpretacion
    */
-  async #generarPedido(canal, evento) {
+  async #generarPedido(canal, evento, interpretacion) {
     const emprendimientoId = canal.emprendimiento_id;
     const motivos = [];
     const items = [];
 
-    for (const interpretado of interpretarTextoPedido(evento.text)) {
-      const cantidad = interpretado.cantidad ?? 1;
+    for (const interpretado of interpretacion.items) {
+      const cantidad = interpretado.cantidad; // puede ser null; no asumir 1
 
-      const { producto, requiereRevision, motivo } =
+      const { producto, requiereRevision: prodRevision, motivo: prodMotivo } =
         await this.productoService.resolveFromChannel(emprendimientoId, {
-          nombre: interpretado.descripcion,
+          nombre: interpretado.producto_mencionado,
         });
 
       if (!producto) {
-        motivos.push(motivo);
+        motivos.push(prodMotivo);
         continue;
       }
 
       const resolved = await this.varianteService.resolveFromChannel(
         producto,
-        interpretado.variante
+        interpretado.variante_mencionada
       );
 
       if (resolved.requiereRevision) {
         motivos.push(resolved.motivo);
-        continue;
       }
 
-      items.push({
-        productoId: producto.id,
-        varianteId: resolved.variante?.id ?? null,
-        cantidad,
-      });
+      // Conservar item si producto identificado, aunque variante no se resuelva.
+      // No asignar variante sustituta. Si falta cantidad, no crear item inválido.
+      if (cantidad !== null) {
+        items.push({
+          productoId: producto.id,
+          varianteId: resolved.variante?.id ?? null,
+          cantidad,
+        });
+      } else {
+        motivos.push(`cantidad faltante para ${producto.nombre}`);
+      }
+    }
+
+    // No crear pedido vacío.
+    if (items.length === 0) {
+      const estado = motivos.length > 0
+        ? PROCESSING_STATUS.REVISION_REQUERIDA
+        : PROCESSING_STATUS.PROCESADO;
+      if (motivos.length) {
+        logger.warn(`[EventosCanal] Sin items resueltos: ${motivos.join("; ")}`);
+      }
+      return { pedido: null, estado };
     }
 
     let clienteId = null;
@@ -197,20 +210,26 @@ export class EventoCanalService {
       logger.warn(`[EventosCanal] Pedido para revisión: ${motivos.join("; ")}`);
     }
 
-    return this.pedidoService.createFromChannel({
+    const requiereRevision = motivos.length > 0;
+    const pedido = await this.pedidoService.createFromChannel({
       emprendimientoId,
       canalId: canal.id,
       dto: {
         clienteId,
-        requiereRevision: motivos.length > 0 || items.length === 0,
+        requiereRevision,
         motivoRevision: motivos.join("; "),
         items,
-        // Nunca se reserva stock desde un mensaje ambiguo: primero lo
-        // revisa el emprendimiento antes de descontar.
         reservarStock: false,
         observaciones: evento.text?.slice(0, 2000) ?? null,
       },
     });
+
+    return {
+      pedido,
+      estado: requiereRevision
+        ? PROCESSING_STATUS.REVISION_REQUERIDA
+        : PROCESSING_STATUS.PROCESADO,
+    };
   }
 }
 

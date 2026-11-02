@@ -39,7 +39,7 @@ export class VarianteService {
 
   async update(id, dto) {
     const variante = await this.getById(id);
-    return this.varianteDao.update(variante.id, toRowSafe(dto));
+    return this.varianteDao.update(variante.id, dto);
   }
 
   /**
@@ -47,6 +47,14 @@ export class VarianteService {
    * @returns {Promise<{ variante: object|null, requiereRevision: boolean, motivo?: string }>}
    */
   async resolveFromChannel(producto, textoVariante) {
+    const norm = (s) =>
+      String(s || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+
     if (!textoVariante) {
       return {
         variante: null,
@@ -57,20 +65,23 @@ export class VarianteService {
       };
     }
 
-    const candidatas = await this.varianteDao.findByNombre(
-      producto.id,
-      textoVariante
-    );
+    // Normalizar expresiones equivalentes: "talle M" -> "m", "M" -> "m"
+    const textoNorm = norm(textoVariante).replace(/^(talle|color|sabor)\s+/i, "");
 
-    if (candidatas.length === 1) {
-      return { variante: candidatas[0], requiereRevision: false };
+    const candidatas = await this.varianteDao.listByProducto(producto.id);
+    const matches = candidatas.filter((v) => {
+      const vNorm = norm(v.nombre).replace(/^(talle|color|sabor)\s+/i, "");
+      return vNorm === textoNorm;
+    });
+
+    if (matches.length === 1) {
+      return { variante: matches[0], requiereRevision: false };
     }
-
-    if (candidatas.length > 1) {
+    if (matches.length > 1) {
       return {
         variante: null,
         requiereRevision: true,
-        motivo: `"${textoVariante}" coincide con ${candidatas.length} variantes`,
+        motivo: `"${textoVariante}" coincide con ${matches.length} variantes`,
       };
     }
 
@@ -81,14 +92,5 @@ export class VarianteService {
     };
   }
 }
-
-const toRowSafe = (dto) => {
-  const row = {};
-  if (dto.nombre !== undefined) row.nombre = dto.nombre;
-  if (dto.stockDisponible !== undefined) row.stock_disponible = dto.stockDisponible;
-  if (dto.stockMinimo !== undefined) row.stock_minimo = dto.stockMinimo;
-  if (dto.activo !== undefined) row.activo = dto.activo;
-  return row;
-};
 
 export default VarianteService;

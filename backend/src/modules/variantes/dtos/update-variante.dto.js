@@ -1,10 +1,10 @@
-import { createVarianteSchema, toVarianteRow } from "./create-variante.dto.js";
+import { createVarianteSchema } from "./create-variante.dto.js";
 
-export { createVarianteSchema, toVarianteRow };
+export { createVarianteSchema };
 
 export const updateVarianteSchema = createVarianteSchema
-  .omit({ stockDisponible: true })
+  .omit({ stock_disponible: true })
   .partial()
-  .extend({ stockDisponible: createVarianteSchema.shape.stockDisponible.optional() });
+  .extend({ stock_disponible: createVarianteSchema.shape.stock_disponible.optional() });
 
 export default updateVarianteSchema;

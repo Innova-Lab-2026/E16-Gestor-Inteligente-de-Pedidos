@@ -103,16 +103,14 @@ export class StockController {
 
   /** POST /api/stock/movimientos (reposición, producción, pérdida, corrección) */
   createMovimiento = async (req, res) => {
-    const { productoId, varianteId = null, tipo, cantidad, motivo } =
-      req.validated.body;
-
+    const body = req.validated.body;
     const result = await this.#service(req).ajustarManual({
       emprendimientoId: req.tenant.id,
-      productoId,
-      varianteId,
-      tipo,
-      cantidad,
-      motivo,
+      productoId: body.producto_id,
+      varianteId: body.variante_id ?? null,
+      tipo: body.tipo,
+      cantidad: body.cantidad,
+      motivo: body.motivo,
     });
 
     return res.status(201).json(result);

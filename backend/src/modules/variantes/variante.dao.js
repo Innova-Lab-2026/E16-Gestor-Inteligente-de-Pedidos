@@ -23,14 +23,14 @@ export class VarianteDao {
       : createSecretClient();
   }
 
-  async create({ productoId, nombre, stockDisponible = 0, stockMinimo = 0, activo = true }) {
+  async create({ productoId, nombre, stock_disponible = 0, stock_minimo = 0, activo = true }) {
     const { data, error } = await this.#client()
       .from("variantes")
       .insert({
         producto_id: productoId,
         nombre,
-        stock_disponible: stockDisponible,
-        stock_minimo: stockMinimo,
+        stock_disponible,
+        stock_minimo,
         activo,
       })
       .select()

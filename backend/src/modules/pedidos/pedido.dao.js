@@ -48,10 +48,10 @@ export class PedidoDao {
       .insert(
         items.map((item) => ({
           pedido_id: pedidoRow.id,
-          producto_id: item.productoId,
-          variante_id: item.varianteId ?? null,
+          producto_id: item.producto_id,
+          variante_id: item.variante_id ?? null,
           cantidad: item.cantidad,
-          precio_unitario: item.precioUnitario,
+          precio_unitario: item.precio_unitario,
           subtotal: item.subtotal,
         }))
       )
@@ -100,15 +100,15 @@ export class PedidoDao {
     return pedido;
   }
 
-  async list(emprendimientoId, { estado, requiereRevision, limite = 50, offset = 0 } = {}) {
+  async list(emprendimientoId, { estado, requiere_revision, limite = 50, offset = 0 } = {}) {
     let query = this.#client()
       .from("pedidos")
       .select("*, clientes(nombre)")
       .eq("emprendimiento_id", emprendimientoId);
 
     if (estado) query = query.eq("estado", estado);
-    if (requiereRevision !== undefined) {
-      query = query.eq("requiere_revision", requiereRevision);
+    if (requiere_revision !== undefined) {
+      query = query.eq("requiere_revision", requiere_revision);
     }
 
     const { data, error } = await query

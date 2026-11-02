@@ -43,6 +43,14 @@ export class CanalController {
     );
     return res.status(200).json(result);
   };
+  /** DELETE /api/canales/:id */
+  remove = async (req, res) => {
+    const { id } = req.validated.params;
+    await this.#service(req).remove(req.tenant.id, id);
+    return res.status(200).json({ message: "Canal eliminado correctamente", id });
+  };
+
+
 
   /** POST /api/canales/:id/activar | /desactivar */
   toggle = (activo) => async (req, res) => {

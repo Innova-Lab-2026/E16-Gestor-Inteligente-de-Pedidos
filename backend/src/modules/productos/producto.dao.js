@@ -1,53 +1,40 @@
-import { createSupabaseClient, createSecretClient } from "../../config/database.js";
+// modules/productos/producto.dao.js
+import {
+  createSupabaseClient,
+  createSecretClient,
+} from "../../config/database.js";
 
-/**
- * Acceso a la tabla `productos`.
- */
 export class ProductoDao {
   constructor(token) {
     this.token = token;
   }
 
   #client() {
-    // Unico lugar del backend que usa la clave secreta: un webhook llega
-    // de Telegram/Meta, sin JWT, asi que RLS no tiene identidad que
-    // evaluar. El emprendimiento sale del canal registrado
-    // (canales.identificador_externo), nunca de un dato del request; los
-    // DAOs filtran siempre por ese id. Todo otro flujo llega con token.
-    return this.token
-      ? createSupabaseClient(this.token)
-      : createSecretClient();
+    return this.token ? createSupabaseClient(this.token) : createSecretClient();
   }
 
-  async create({
-    emprendimientoId,
-    nombre,
-    descripcion,
-    precio,
-    tieneVariantes,
-    stockDisponible,
-    stockMinimo,
-    identificadorExterno,
-  }) {
+  async create(data) {
     const payload = {
-      emprendimiento_id: emprendimientoId,
-      nombre,
-      descripcion: descripcion ?? null,
-      precio,
-      tiene_variantes: Boolean(tieneVariantes),
-      // Con variantes el stock vive en cada variante, no en el producto.
-      stock_disponible: tieneVariantes ? null : (stockDisponible ?? 0),
-      stock_minimo: stockMinimo ?? 0,
-      identificador_externo: identificadorExterno ?? null,
+      emprendimiento_id: data.emprendimientoId,
+      nombre: data.nombre,
+      descripcion: data.descripcion,
+      precio: data.precio,
+      activo: data.activo,
+      tiene_variantes: data.tiene_variantes,
+      stock_disponible: data.stock_disponible,
+      stock_minimo: data.stock_minimo,
+      identificador_externo: data.identificador_externo,
+      sku_o_identificador: data.sku_o_identificador,
     };
 
-    const { data, error } = await this.#client()
+    const { data: result, error } = await this.#client()
       .from("productos")
       .insert(payload)
       .select()
       .single();
+
     if (error) throw error;
-    return data;
+    return result;
   }
 
   async listByEmprendimiento(emprendimientoId, { soloActivos = true } = {}) {
@@ -74,7 +61,6 @@ export class ProductoDao {
     return data;
   }
 
-  /** Búsqueda por identificador externo (canales). No es obligatorio. */
   async findByIdentificadorExterno(emprendimientoId, identificador) {
     if (!identificador) return null;
     const { data, error } = await this.#client()
@@ -87,7 +73,6 @@ export class ProductoDao {
     return data;
   }
 
-  /** Búsqueda tolerante por nombre, usada al interpretar un mensaje. */
   async searchByName(emprendimientoId, texto, limite = 5) {
     const { data, error } = await this.#client()
       .from("productos")
@@ -101,6 +86,7 @@ export class ProductoDao {
   }
 
   async update(emprendimientoId, id, cambios) {
+    // cambios vienen en snake_case desde el Controller/Service
     const { data, error } = await this.#client()
       .from("productos")
       .update(cambios)

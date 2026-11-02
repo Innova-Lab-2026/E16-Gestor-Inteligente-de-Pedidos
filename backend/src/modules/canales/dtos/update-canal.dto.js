@@ -1,5 +1,5 @@
-import { updateCanalSchema, toCanalRow } from "./create-canal.dto.js";
+import { updateCanalSchema } from "./create-canal.dto.js";
 
-export { updateCanalSchema, toCanalRow };
+export { updateCanalSchema };
 
 export default updateCanalSchema;
