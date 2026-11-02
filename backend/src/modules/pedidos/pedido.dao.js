@@ -33,32 +33,33 @@ export class PedidoDao {
   async createConItems(pedido, items) {
     const client = this.#client();
 
-    const { data: pedidoRow, error: pedidoError } = await client
-      .from("pedidos")
-      .insert(pedido)
-      .select()
-      .single();
+    const args = {
+      p_emprendimiento_id: pedido.emprendimiento_id,
+      p_origen_tipo: pedido.origen_tipo,
+      p_canal_id: pedido.canal_id ?? null,
+      p_cliente_id: pedido.cliente_id ?? null,
+      p_estado_cobro: pedido.estado_cobro ?? "PENDIENTE",
+      p_modalidad_entrega: pedido.modalidad_entrega ?? null,
+      p_fecha_prevista_entrega: pedido.fecha_prevista_entrega ?? null,
+      p_subtotal: pedido.subtotal ?? 0,
+      p_total: pedido.total ?? 0,
+      p_observaciones: pedido.observaciones ?? null,
+      p_requiere_revision: pedido.requiere_revision ?? false,
+      p_items: items.map((item) => ({
+        producto_id: item.producto_id,
+        variante_id: item.variante_id ?? null,
+        cantidad: item.cantidad,
+        precio_unitario: item.precio_unitario,
+        subtotal: item.subtotal,
+      })),
+    };
 
-    if (pedidoError) throw pedidoError;
+    const { data, error } = await client.rpc("crear_pedido_con_items", args);
+    if (error) throw error;
 
-    if (!items.length) return pedidoRow;
-
-    const { data: itemsRows, error: itemsError } = await client
-      .from("items_pedido")
-      .insert(
-        items.map((item) => ({
-          pedido_id: pedidoRow.id,
-          producto_id: item.producto_id,
-          variante_id: item.variante_id ?? null,
-          cantidad: item.cantidad,
-          precio_unitario: item.precio_unitario,
-          subtotal: item.subtotal,
-        }))
-      )
-      .select();
-
-    if (itemsError) throw itemsError;
-
+    const result = typeof data === "string" ? JSON.parse(data) : data;
+    const pedidoRow = result.pedido;
+    const itemsRows = (result.items || []).map((i) => i);
     return { ...pedidoRow, items: itemsRows };
   }
 
@@ -138,14 +139,11 @@ export class PedidoDao {
       );
     }
 
-    const { data, error } = await this.#client()
-      .from("pedidos")
-      .update({ estado: nuevoEstado, updated_at: new Date().toISOString() })
-      .eq("id", id)
-      .eq("emprendimiento_id", emprendimientoId)
-      .select()
-      .single();
-
+    const { data, error } = await this.#client().rpc("cambiar_estado_pedido", {
+      p_emprendimiento_id: emprendimientoId,
+      p_pedido_id: id,
+      p_nuevo_estado: nuevoEstado,
+    });
     if (error) throw error;
     return data;
   }

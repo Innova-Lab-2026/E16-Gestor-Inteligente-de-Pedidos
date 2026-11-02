@@ -51,7 +51,7 @@ export class StockService {
       throw new NotFoundError(
         varianteId
           ? `Variante ${varianteId} no encontrada`
-          : `Producto ${productoId} no encontrado`
+          : `Producto ${productoId} no encontrado`,
       );
     }
 
@@ -94,30 +94,23 @@ export class StockService {
       throw new BadRequestError("La cantidad del movimiento no puede ser 0");
     }
 
-    const stockResultante = await this.stockDao.applyDelta(
-      { productoId, varianteId },
-      delta
-    );
+    const { stockResultante, movimiento } = await this.stockDao.applyMove({
+      emprendimientoId,
+      productoId,
+      varianteId,
+      pedidoId,
+      tipo,
+      delta,
+      motivo,
+    });
 
-    // La RPC devuelve NULL cuando no había stock suficiente: en ese caso
-    // no se registra movimiento, para no dejar la bitácora inconsistente.
     if (stockResultante === null || stockResultante === undefined) {
       throw new BadRequestError(
         `Stock insuficiente para el producto ${productoId}` +
           (varianteId ? ` (variante ${varianteId})` : "") +
-          `: se requieren ${Math.abs(delta)} unidades`
+          `: se requieren ${Math.abs(delta)} unidades`,
       );
     }
-
-    const movimiento = await this.movimientoStockDao.create({
-      emprendimiento_id: emprendimientoId,
-      producto_id: productoId,
-      variante_id: varianteId,
-      pedido_id: pedidoId,
-      tipo,
-      cantidad: delta,
-      motivo,
-    });
 
     return { stockResultante, movimiento };
   }
@@ -185,7 +178,7 @@ export class StockService {
   }) {
     if (tipo === STOCK_MOVEMENT_TYPE.CORRECCION_MANUAL && !cantidad) {
       throw new BadRequestError(
-        "Una corrección manual requiere la cantidad con signo a aplicar"
+        "Una corrección manual requiere la cantidad con signo a aplicar",
       );
     }
 
@@ -204,10 +197,9 @@ export class StockService {
   }
 
   async ultimosMovimientos(emprendimientoId, limite = 100) {
-    return this.movimientoStockDao.listByEmprendimiento(
-      emprendimientoId,
-      { limite }
-    );
+    return this.movimientoStockDao.listByEmprendimiento(emprendimientoId, {
+      limite,
+    });
   }
 }
 

@@ -67,6 +67,24 @@ export class StockDao {
     if (error) throw error;
     return data;
   }
+  async applyMove({ emprendimientoId, productoId, varianteId, pedidoId, tipo, delta, motivo }) {
+    const { data, error } = await this.#client().rpc("mover_stock_con_movimiento", {
+      p_emprendimiento_id: emprendimientoId,
+      p_producto_id: productoId,
+      p_variante_id: varianteId ?? null,
+      p_pedido_id: pedidoId ?? null,
+      p_tipo: tipo,
+      p_cantidad: delta,
+      p_motivo: motivo ?? null,
+    });
+    if (error) throw error;
+    const row = Array.isArray(data) ? data[0] : data;
+    return {
+      stockResultante: row.stock_resultante ?? row.stockResultante,
+      movimiento: { id: row.movimiento_id ?? row.movimientoId },
+    };
+  }
+
 }
 
 export default StockDao;
