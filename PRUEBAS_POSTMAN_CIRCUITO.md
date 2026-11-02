@@ -10,6 +10,8 @@
 - `{{phoneNumberId}}`
 - `{{messageId}}`
 - `{{texto}}`
+- `{{token}}` (JWT de login)
+- `{{emprendimientoId}}`
 
 ## 0) Pre-requisitos (setup mínimo)
 
@@ -104,6 +106,21 @@ Header en el resto: `Authorization: Bearer <token>` y, si hay varios emprendimie
   ]
 }
 ```
+### Request en Postman (webhook)
+- Método: `POST`
+- URL: `{{baseUrl}}/webhooks/whatsapp`
+- Headers:
+  - `Content-Type: application/json`
+  - `X-Hub-Signature-256: sha256=<firma>` (en dev puede omitirse si el backend no valida; en prod es obligatoria)
+- Body: `raw` → `JSON` (usar el payload base con las variables resueltas).
+
+### Verificación general (después de cada caso)
+- Pedidos del tenant: `GET {{baseUrl}}/api/pedidos?limite=200` (Headers: `Authorization: Bearer {{token}}`, `x-emprendimiento-id: {{emprendimientoId}}`).
+- Detalle de pedido creado: `GET {{baseUrl}}/api/pedidos/<pedidoId>` y `GET {{baseUrl}}/api/pedidos/<pedidoId>/eventos`.
+- Stock: `GET {{baseUrl}}/api/stock/movimientos?limite=100` (mismos headers).
+- Eventos de canal sin pedido asociado: consultar `GET {{baseUrl}}/api/pedidos?requiereRevision=true`.
+
+---
 
 ## 1) Primer mensaje – crea pedido
 - `messageId`: `abc123`
@@ -202,12 +219,13 @@ Esperado:
 - `texto`: `1 harina integral`
 Esperado:
 - Si no coincide por tokens completos, no se asocia incorrectamente
-
 ## 14) Verificación de inventario
 Después de un pedido confirmado:
-1. Consultar stock del producto/variante por API o base de datos.
+1. Consultar stock del producto/variante por API: `GET {{baseUrl}}/api/stock/movimientos?limite=100` (Headers: `Authorization: Bearer {{token}}`, `x-emprendimiento-id: {{emprendimientoId}}`).
 2. Verificar que el descuento se realice únicamente en el flujo de pedidos/inventario.
 3. Verificar que la resolución de catálogo no haya modificado stock.
+4. Revisar bitácora del pedido: `GET {{baseUrl}}/api/pedidos/<pedidoId>/movimientos`.
+5. Verificar evento asociado: `GET {{baseUrl}}/api/pedidos/<pedidoId>/eventos`.
 
 ## Notas
 - No se agregaron dependencias, IA, migraciones ni cambios de esquema.
