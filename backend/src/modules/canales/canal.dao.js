@@ -35,6 +35,7 @@ export class CanalDao {
     identificador_externo,
     nombre,
     config,
+    whatsapp_conexion_id = null,
     activo = true,
   }) {
     if (!isChannelType(tipo)) {
@@ -49,6 +50,7 @@ export class CanalDao {
         identificador_externo: identificador_externo,
         nombre: nombre ?? null,
         config: config ?? null,
+        whatsapp_conexion_id,
         activo,
       })
       .select()

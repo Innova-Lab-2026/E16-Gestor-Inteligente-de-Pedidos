@@ -2,6 +2,7 @@ import { Router } from "express";
 import authRoutes from "./auth.routes.js";
 import emprendimientosRoutes from "./emprendimientos.routes.js";
 import canalesRoutes from "./canales.routes.js";
+import whatsappConexionRoutes from "../modules/whatsapp-conexion/whatsapp-conexion.routes.js";
 import productosRoutes, { stockRouter, variantesRouter } from "./productos.routes.js";
 import clientesRoutes from "./clientes.routes.js";
 import pedidosRoutes from "./pedidos.routes.js";
@@ -32,6 +33,7 @@ router.use("/auth", authRoutes);
 // Dominio (requieren JWT + tenant)
 router.use("/emprendimientos", emprendimientosRoutes);
 router.use("/canales", canalesRoutes);
+router.use("/canales", whatsappConexionRoutes);
 router.use("/productos", productosRoutes);
 router.use("/variantes", variantesRouter);
 router.use("/stock", stockRouter);

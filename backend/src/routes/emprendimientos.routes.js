@@ -25,7 +25,7 @@ router.post(
   "/",
   authMiddleware,
   validate({ body: createEmprendimientoSchema }),
-  undertakingsController.create
+  undertakingsController.create,
 );
 
 // Detalle: exige ser miembro del tenant (RLS + filtro explícito).
@@ -34,7 +34,7 @@ router.get(
   authMiddleware,
   idParams,
   tenantMiddleware(),
-  undertakingsController.getById
+  undertakingsController.getById,
 );
 router.patch(
   "/:id",
@@ -42,7 +42,7 @@ router.patch(
   idParams,
   validate({ body: updateEmprendimientoSchema }),
   tenantMiddleware(),
-  undertakingsController.update
+  undertakingsController.update,
 );
 
 // Perfil del usuario autenticado.
@@ -51,7 +51,7 @@ router.get(
   "/me/usuario/:id",
   authMiddleware,
   idParams,
-  usuariosController.getById
+  usuariosController.getById,
 );
 
 export default router;
