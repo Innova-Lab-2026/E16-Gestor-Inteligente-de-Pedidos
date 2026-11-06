@@ -1,7 +1,10 @@
-﻿import { CHANNEL_TYPE } from "../../constants/channel-type.enum.js";
+import { logger } from "../../utils/logger.js";
+
+import { CHANNEL_TYPE } from "../../constants/channel-type.enum.js";
 import { ChannelAdapter } from "../interfaces/channel.adapter.interface.js";
 import { NormalizedChannelEvent } from "../channel-event.js";
 import { parseWhatsappPayload } from "./whatsapp.payload-parser.js";
+import { normalizeWhatsAppRecipient } from "./whatsapp-phone.utils.js";
 
 /**
  * Adapter de WhatsApp (Meta Cloud API).
@@ -41,29 +44,45 @@ export class WhatsAppAdapter extends ChannelAdapter {
     parametrosPlantilla = [],
   }) {
     if (!accessToken) {
-      throw new Error("Access token requerido para enviar mensajes de WhatsApp");
+      throw new Error(
+        "Access token requerido para enviar mensajes de WhatsApp",
+      );
     }
     if (!phoneNumberId) {
-      throw new Error("phoneNumberId requerido para enviar mensajes de WhatsApp");
+      throw new Error(
+        "phoneNumberId requerido para enviar mensajes de WhatsApp",
+      );
     }
     if (!telefonoDestino) {
-      throw new Error("telefonoDestino requerido para enviar mensajes de WhatsApp");
+      throw new Error(
+        "telefonoDestino requerido para enviar mensajes de WhatsApp",
+      );
     }
 
-    const url = "https://graph.facebook.com/v20.0/" + phoneNumberId + "/messages";
+    const url =
+      "https://graph.facebook.com/v20.0/" + phoneNumberId + "/messages";
+
+    const recipient = normalizeWhatsAppRecipient(telefonoDestino);
 
     let payload;
     if (tipo === "plantilla") {
       if (!nombrePlantilla) {
-        throw new Error("nombrePlantilla es requerido para mensajes de plantilla");
+        throw new Error(
+          "nombrePlantilla es requerido para mensajes de plantilla",
+        );
       }
-      const componentes = [{
-        type: "body",
-        parameters: parametrosPlantilla.map((p) => ({ type: "text", text: p })),
-      }];
+      const componentes = [
+        {
+          type: "body",
+          parameters: parametrosPlantilla.map((p) => ({
+            type: "text",
+            text: p,
+          })),
+        },
+      ];
       payload = {
         messaging_product: "whatsapp",
-        to: telefonoDestino,
+        to: recipient,
         type: "template",
         template: {
           name: nombrePlantilla,
@@ -77,7 +96,7 @@ export class WhatsAppAdapter extends ChannelAdapter {
       }
       payload = {
         messaging_product: "whatsapp",
-        to: telefonoDestino,
+        to: recipient,
         type: "text",
         text: { body: texto },
       };
@@ -96,7 +115,8 @@ export class WhatsAppAdapter extends ChannelAdapter {
       const data = await response.json();
 
       if (!response.ok || data.error) {
-        const mensajeError = data.error?.message || "Error " + response.status + " de Meta";
+        const mensajeError =
+          data.error?.message || "Error " + response.status + " de Meta";
         throw new Error("WhatsApp API: " + mensajeError);
       }
 
@@ -108,7 +128,9 @@ export class WhatsAppAdapter extends ChannelAdapter {
       };
     } catch (error) {
       if (error.message.startsWith("WhatsApp API:")) throw error;
-      throw new Error("Error de red enviando mensaje de WhatsApp: " + error.message);
+      throw new Error(
+        "Error de red enviando mensaje de WhatsApp: " + error.message,
+      );
     }
   }
 }

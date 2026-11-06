@@ -2,6 +2,7 @@ import { BadRequestError } from "../../errors/bad-request.error.js";
 import { NotFoundError } from "../../errors/not-found.error.js";
 import { ForbiddenError } from "../../errors/forbidden.error.js";
 import { UnauthorizedError } from "../../errors/unauthorized.error.js";
+import { ConflictError } from "../../errors/conflict.error.js";
 import { integrations } from "../../config/integrations.js";
 import { WhatsAppConexionDao } from "./whatsapp-conexion.dao.js";
 import { logger } from "../../utils/logger.js";
@@ -70,81 +71,76 @@ export class WhatsAppConexionService {
     accessToken,
     nombreCanal,
   }) {
+    // Verificar acceso al emprendimiento.
     const acceso = await this.#verificarAcceso(usuarioId, emprendimientoId);
+
     if (!acceso) {
       throw new ForbiddenError(
         "El usuario no tiene acceso a este emprendimiento",
       );
     }
 
-    // Validar token contra Meta: verificar que el phone_number_id exista y sea accesible
-    let phoneInfo;
-    try {
-      const res = await fetch(
-        `https://graph.facebook.com/v20.0/${phoneNumberId}?fields=display_phone_number,verified_name`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        },
+    // Validar token y número contra Meta.
+    const phoneRes = await fetch(
+      `https://graph.facebook.com/v20.0/${phoneNumberId}?fields=display_phone_number,verified_name`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      },
+    );
+
+    const phoneInfo = await phoneRes.json();
+
+    if (!phoneRes.ok || phoneInfo.error) {
+      throw new BadRequestError(
+        phoneInfo.error?.message || "Token o phone_number_id invalido",
       );
-      const data = await res.json();
-      if (!res.ok || data.error) {
-        throw new BadRequestError(
-          data.error?.message || "Token o phone_number_id invalido",
-        );
-      }
-      phoneInfo = data;
-    } catch (e) {
-      if (e instanceof BadRequestError) throw e;
-      throw new BadRequestError("No se pudo validar el token contra Meta");
     }
 
-    // Verificar que el numero pertenezca al WABA indicado
-    try {
-      const res = await fetch(
-        `https://graph.facebook.com/v20.0/${wabaId}/phone_numbers?fields=id`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        },
+    // Verificar que el número pertenezca a la WABA indicada.
+    const wabaRes = await fetch(
+      `https://graph.facebook.com/v20.0/${wabaId}/phone_numbers?fields=id`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      },
+    );
+
+    const wabaData = await wabaRes.json();
+
+    if (!wabaRes.ok || wabaData.error) {
+      throw new BadRequestError(
+        wabaData.error?.message || "No se pudo verificar la WABA",
       );
-      const data = await res.json();
-      if (!res.ok || data.error) {
-        throw new BadRequestError(
-          data.error?.message || "No se pudo verificar la WABA",
-        );
-      }
-      const ids = (data.data || []).map((n) => n.id);
-      if (!ids.includes(phoneNumberId)) {
-        throw new BadRequestError(
-          "El phone_number_id no pertenece al WABA indicado",
-        );
-      }
-    } catch (e) {
-      if (e instanceof BadRequestError) throw e;
-      throw new BadRequestError("No se pudo verificar la WABA en Meta");
     }
 
-    // Evitar reasignacion: si phone_number_id ya esta vinculado a otro emprendimiento -> 409
+    const phoneNumbers = (wabaData.data || []).map((number) => number.id);
+
+    if (!phoneNumbers.includes(phoneNumberId)) {
+      throw new BadRequestError(
+        "El phone_number_id no pertenece al WABA indicado",
+      );
+    }
+
+    // Evitar reasignar un número a otro emprendimiento.
     const existenteNumero = await this.dao.findByPhoneNumberId(phoneNumberId);
-    if (existenteNumero) {
-      const conexion = existenteNumero.whatsapp_conexiones;
-      if (
-        conexion &&
-        conexion.emprendimiento_id &&
-        conexion.emprendimiento_id !== emprendimientoId
-      ) {
-        throw new ConflictError(
-          "El numero de WhatsApp ya esta vinculado a otro emprendimiento",
-          { phoneNumberId },
-        );
-      }
+
+    if (
+      existenteNumero?.conexion?.emprendimiento_id &&
+      existenteNumero.conexion.emprendimiento_id !== emprendimientoId
+    ) {
+      throw new ConflictError(
+        "El numero de WhatsApp ya esta vinculado a otro emprendimiento",
+        { phoneNumberId },
+      );
     }
 
-    // Canal generico: si existe para otro emprendimiento -> 409
+    // Verificar que el canal no pertenezca a otro emprendimiento.
     const { CanalDao } = await import("../canales/canal.dao.js");
+
     const canalExistente = await new CanalDao().findByExternal(
       "WHATSAPP",
       phoneNumberId,
     );
+
     if (
       canalExistente &&
       canalExistente.emprendimiento_id !== emprendimientoId
@@ -155,8 +151,9 @@ export class WhatsAppConexionService {
       );
     }
 
-    // Reutilizar conexion existente por WABA si pertenece al mismo emprendimiento
+    // Buscar conexión existente por WABA.
     let conexion = await this.dao.findByWaba(wabaId);
+
     if (conexion && conexion.emprendimiento_id !== emprendimientoId) {
       throw new ConflictError(
         "La WABA ya esta vinculada a otro emprendimiento",
@@ -164,6 +161,7 @@ export class WhatsAppConexionService {
       );
     }
 
+    // Crear o actualizar conexión.
     if (conexion) {
       conexion = await this.dao.update(emprendimientoId, conexion.id, {
         accessToken,
@@ -185,37 +183,29 @@ export class WhatsAppConexionService {
       });
     }
 
-    // Crear/actualizar numero
-    const numeroExistente = await this.dao.findByPhoneNumberId(phoneNumberId);
-    if (numeroExistente) {
-      await this.dao.actualizarNumero(conexion.id, numeroExistente.id, {
+    // Crear o actualizar número.
+    if (existenteNumero) {
+      await this.dao.actualizarNumero(conexion.id, existenteNumero.numero.id, {
         numeroTelefono,
         nombreRegistro: phoneInfo.verified_name ?? null,
         activo: true,
       });
     } else {
-      try {
-        await this.dao.crearNumero(conexion.id, {
-          phoneNumberId,
-          numeroTelefono,
-          nombreRegistro: phoneInfo.verified_name ?? null,
-          nombreCanal: nombreCanal || `WhatsApp ${numeroTelefono}`,
-          activo: true,
-        });
-      } catch (e) {
-        // ignorar duplicado
-      }
+      await this.dao.crearNumero(conexion.id, {
+        phoneNumberId,
+        numeroTelefono,
+        nombreRegistro: phoneInfo.verified_name ?? null,
+        nombreCanal: nombreCanal || `WhatsApp ${numeroTelefono}`,
+        activo: true,
+      });
     }
 
+    // Asegurar canal genérico.
     await this.#asegurarCanalGenerico(
       emprendimientoId,
       conexion.id,
       phoneNumberId,
       numeroTelefono,
-    );
-
-    logger.info(
-      `[WhatsAppConexion] Conexion manual creada para emprendimiento ${emprendimientoId}`,
     );
 
     return {

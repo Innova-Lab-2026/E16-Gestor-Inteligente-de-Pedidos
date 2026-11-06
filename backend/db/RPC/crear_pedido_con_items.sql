@@ -27,9 +27,17 @@ declare
   v_pedido public.pedidos;
   v_items jsonb;
 begin
-  -- 1. SEGURIDAD: verificar pertenencia al tenant
-  if not public.usuario_tiene_emprendimiento(p_emprendimiento_id) then
-    raise exception 'Acceso denegado: No eres miembro de este emprendimiento'
+  -- 1. SEGURIDAD: verificar pertenencia al tenant.
+  -- Con sesion (usuario autenticado): hay que ser miembro del emprendimiento.
+  -- Sin sesion: solo la clave secreta del backend (service_role) puede crear
+  -- pedidos (flujo de canal/webhook). `anon` nunca.
+  if auth.uid() is not null then
+    if not public.usuario_tiene_emprendimiento(p_emprendimiento_id) then
+      raise exception 'Acceso denegado: No eres miembro de este emprendimiento'
+        using errcode = '42501';
+    end if;
+  elsif auth.role() is distinct from 'service_role' then
+    raise exception 'Sin sesion solo la clave secreta del backend puede crear pedidos'
       using errcode = '42501';
   end if;
 
@@ -75,4 +83,4 @@ $$;
 
 grant execute on function public.crear_pedido_con_items(
   uuid, pedido_origen, uuid, uuid, pedido_estado_cobro, entrega_modalidad, date, numeric, numeric, text, boolean, jsonb
-) to authenticated;
+) to authenticated, service_role;

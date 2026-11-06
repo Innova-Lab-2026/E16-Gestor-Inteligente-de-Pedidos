@@ -7,7 +7,14 @@ import { VarianteService } from "../variantes/variante.service.js";
 import { ClienteService } from "../clientes/cliente.service.js";
 import { InterpretadorService } from "../interpretacion/interpretador.service.js";
 import { INTENCION_MENSAJE } from "../interpretacion/intencion.enum.js";
+import { CHANNEL_TYPE } from "../../constants/channel-type.enum.js";
+import { IntentDetector } from "../whatsapp-pedidos/intent-detector.js";
+import { OrderTemplateBuilder } from "../whatsapp-pedidos/order-template-builder.js";
+import { OrderTemplateParser } from "../whatsapp-pedidos/order-template-parser.js";
+import { OrderTemplateValidator } from "../whatsapp-pedidos/order-template-validator.js";
 import { logger } from "../../utils/logger.js";
+import { WhatsAppConexionService } from "../whatsapp-conexion/whatsapp-conexion.service.js";
+import { WhatsAppAdapter } from "../../adapters/whatsapp/whatsapp.adapter.js";
 
 /**
  * Interpretación mínima de un mensaje de texto en items de pedido.
@@ -56,6 +63,12 @@ export class EventoCanalService {
     varianteService,
     clienteService,
     interpretadorService,
+    intentDetector,
+    orderTemplateBuilder,
+    orderTemplateParser,
+    orderTemplateValidator,
+    whatsAppAdapter,
+    whatsAppConexionService,
   } = {}) {
     this.canalService = canalService || new CanalService();
     this.eventoCanalDao =
@@ -65,6 +78,14 @@ export class EventoCanalService {
     this.varianteService = varianteService || new VarianteService();
     this.clienteService = clienteService || new ClienteService();
     this.interpretadorService = interpretadorService || new InterpretadorService();
+    this.intentDetector = intentDetector || new IntentDetector();
+    this.orderTemplateBuilder = orderTemplateBuilder || new OrderTemplateBuilder();
+    this.orderTemplateParser = orderTemplateParser || new OrderTemplateParser();
+    this.orderTemplateValidator =
+      orderTemplateValidator || new OrderTemplateValidator({ productoService: this.productoService, varianteService: this.varianteService });
+    this.whatsAppAdapter = whatsAppAdapter || new WhatsAppAdapter();
+    this.whatsAppConexionService =
+      whatsAppConexionService || new WhatsAppConexionService();
   }
 
   /**
@@ -98,6 +119,144 @@ export class EventoCanalService {
     });
 
     try {
+      // Primera etapa: captura estructurada por WhatsApp.
+      // Solo aplica a canales WhatsApp; Telegram/Web no se alteran.
+      if (canal.tipo === CHANNEL_TYPE.WHATSAPP && this.intentDetector.detect(evento.text)) {
+        const plantilla = this.orderTemplateBuilder.build();
+        const telefonoDestino = String(evento.externalContactId || "").replace(
+          /^wa_/,
+          "",
+        );
+
+        // Resolver credenciales reutilizando el mecanismo existente.
+        const conexionId = canal.whatsapp_conexion_id;
+        if (!conexionId) {
+          throw new Error("El canal WhatsApp no tiene conexión activa");
+        }
+        const accessToken = await this.whatsAppConexionService.obtenerAccessToken(
+          canal.emprendimiento_id,
+          conexionId,
+        );
+        const phoneNumberId = canal.identificador_externo;
+
+        await this.whatsAppAdapter.sendMessage({
+          accessToken,
+          phoneNumberId,
+          telefonoDestino,
+          texto: plantilla,
+        });
+
+        const actualizado = await this.eventoCanalDao.actualizarEstado(
+          registrado.id,
+          PROCESSING_STATUS.PROCESADO,
+        );
+        return { duplicado: false, evento: actualizado, pedido: null };
+      }
+
+      // Segunda etapa: reconocimiento de plantilla estructurada.
+      if (canal.tipo === CHANNEL_TYPE.WHATSAPP) {
+        const parsed = OrderTemplateParser.parse(evento.text);
+        if (parsed !== null) {
+          const telefonoDestino = String(evento.externalContactId || "").replace(
+            /^wa_/,
+            "",
+          );
+
+          const enviar = async (texto) => {
+            const conexionId = canal.whatsapp_conexion_id;
+            if (!conexionId) throw new Error("Sin conexión WhatsApp");
+            const accessToken =
+              await this.whatsAppConexionService.obtenerAccessToken(
+                canal.emprendimiento_id,
+                conexionId,
+              );
+            await this.whatsAppAdapter.sendMessage({
+              accessToken,
+              phoneNumberId: canal.identificador_externo,
+              telefonoDestino,
+              texto,
+            });
+          };
+
+          if (!parsed.ok) {
+            await enviar(`Hay errores en tu plantilla:\n- ${parsed.errors.join("\n- ")}`);
+            const actualizado = await this.eventoCanalDao.actualizarEstado(
+              registrado.id,
+              PROCESSING_STATUS.PROCESADO,
+            );
+            return { duplicado: false, evento: actualizado, pedido: null };
+          }
+
+          const validacion = await this.orderTemplateValidator.validate(
+            canal.emprendimiento_id,
+            parsed.data,
+          );
+
+          if (!validacion.valido) {
+            await enviar(
+              `Hay errores en tu plantilla:\n- ${validacion.errores.join("\n- ")}`,
+            );
+            const actualizado = await this.eventoCanalDao.actualizarEstado(
+              registrado.id,
+              PROCESSING_STATUS.PROCESADO,
+            );
+            return { duplicado: false, evento: actualizado, pedido: null };
+          }
+
+          // Crear cliente (reutilizar por teléfono si existe).
+          const nombreCliente = validacion.dataNormalizada.nombre;
+          const telefonoCliente =
+            telefonoDestino && /^\d{6,}$/.test(telefonoDestino)
+              ? telefonoDestino
+              : null;
+
+          let clienteId = null;
+          try {
+            const cliente = await this.clienteService.findOrCreateFromChannel(
+              canal.emprendimiento_id,
+              {
+                nombre: nombreCliente,
+                telefono: telefonoCliente,
+                direccion: validacion.dataNormalizada.direccion,
+              },
+            );
+            clienteId = cliente.id;
+          } catch (e) {
+            // Si no se puede resolver cliente, se continúa sin cliente (no bloquear).
+            logger.warn(`[EventosCanal] Cliente no resuelto: ${e.message}`);
+          }
+
+          const pedido = await this.pedidoService.createFromChannel({
+            emprendimientoId: canal.emprendimiento_id,
+            canalId: canal.id,
+            dto: {
+              clienteId,
+              requiereRevision: false,
+              items: validacion.dataNormalizada.items.map((it) => ({
+                producto_id: it.producto_id,
+                variante_id: it.variante_id,
+                cantidad: it.cantidad,
+              })),
+              reservarStock: false,
+              estado_cobro: "PENDIENTE",
+              modalidadEntrega: validacion.dataNormalizada.modalidadEntrega,
+              observaciones: validacion.dataNormalizada.observaciones,
+            },
+          });
+
+          await enviar(
+            `Pedido recibido correctamente.\nID: ${pedido.id}\nEstado: Recibido`,
+          );
+
+          const actualizado = await this.eventoCanalDao.actualizarEstado(
+            registrado.id,
+            PROCESSING_STATUS.PROCESADO,
+            pedido.id,
+          );
+          return { duplicado: false, evento: actualizado, pedido };
+        }
+      }
+
       const interpretacion = this.interpretadorService.interpretar({ text: evento.text });
 
       // Sin intención de compra: no crear pedido.

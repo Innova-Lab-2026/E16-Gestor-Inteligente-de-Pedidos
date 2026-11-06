@@ -15,8 +15,13 @@ declare
   v_actual pedido_estado;
   v_pedido public.pedidos;
 begin
-  if not public.usuario_tiene_emprendimiento(p_emprendimiento_id) then
-    raise exception 'Acceso denegado' using errcode = '42501';
+  if auth.uid() is not null then
+    if not public.usuario_tiene_emprendimiento(p_emprendimiento_id) then
+      raise exception 'Acceso denegado' using errcode = '42501';
+    end if;
+  elsif auth.role() is distinct from 'service_role' then
+    raise exception 'Sin sesion solo la clave secreta del backend puede cambiar estado'
+      using errcode = '42501';
   end if;
 
   select estado into v_actual
@@ -51,4 +56,4 @@ begin
 end;
 $$;
 
-grant execute on function public.cambiar_estado_pedido(uuid, uuid, pedido_estado) to authenticated;
+grant execute on function public.cambiar_estado_pedido(uuid, uuid, pedido_estado) to authenticated, service_role;
