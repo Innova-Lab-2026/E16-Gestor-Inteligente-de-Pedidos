@@ -1,8 +1,9 @@
 import type { Role } from "@/features/auth/types";
 
 export const ROUTES = {
-  login: "/login",
+  login: "/",
   registro: "/registro",
+  recuperarContrasena: "/forgot-password",
   home: "/dashboard",
 } as const;
 

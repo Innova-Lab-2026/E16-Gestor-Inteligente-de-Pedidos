@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { SESSION_COOKIE } from "./constants";
 import type { Session } from "./types";
 
-// cache() evita llamar al backend varias veces en un mismo request
+// cache() avoids repeated backend calls within one request.
 export const getSession = cache(async (): Promise<Session | null> => {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!token) return null;
@@ -13,9 +13,11 @@ export const getSession = cache(async (): Promise<Session | null> => {
     return null;
   }
 
+  const apiUrl = process.env.API_URL?.replace(/\/+$/, "");
+  if (!apiUrl) return null;
+
   try {
-    // Ajustar al endpoint real del backend
-    const res = await fetch(`${process.env.API_URL}/auth/me`, {
+    const res = await fetch(`${apiUrl}/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     });
