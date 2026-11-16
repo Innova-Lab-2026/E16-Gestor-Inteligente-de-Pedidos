@@ -119,7 +119,7 @@ begin
     (v_actual = 'EN_PREPARACION' and p_nuevo_estado in ('LISTO','CANCELADO')) or
     (v_actual = 'LISTO'          and p_nuevo_estado in ('ENTREGADO','CANCELADO')) or
     (v_actual = 'LISTO'          and p_nuevo_estado = 'EN_VIAJE'
-                                 and v_modalidad is distinct from 'RETIRO') or
+                                 and coalesce(v_modalidad = 'ENVIO', false)) or
     (v_actual = 'EN_VIAJE'       and p_nuevo_estado in ('ENTREGADO','CANCELADO'))
   ) then
     raise exception 'Transicion invalida: % -> %', v_actual, p_nuevo_estado using errcode = 'P0005';
@@ -139,23 +139,48 @@ begin
 
   if p_nuevo_estado = 'CANCELADO'
      and not exists (
-       select 1 from public.movimientos_stock
-       where pedido_id = p_pedido_id and tipo = 'RESTITUCION_CANCELACION'
+       select 1
+       from public.movimientos_stock m
+       join public.productos p
+         on p.id = m.producto_id
+        and p.emprendimiento_id = p_emprendimiento_id
+       left join public.variantes v
+         on v.id = m.variante_id
+        and v.producto_id = m.producto_id
+       where m.pedido_id = p_pedido_id
+         and m.emprendimiento_id = p_emprendimiento_id
+         and m.tipo = 'RESTITUCION_CANCELACION'
+         and (m.variante_id is null or v.id is not null)
      )
   then
     for r in
-      select producto_id, variante_id, sum(-cantidad)::int as devolver
-      from public.movimientos_stock
-      where pedido_id = p_pedido_id and tipo = 'RESERVA_PEDIDO'
-      group by producto_id, variante_id
-      having sum(-cantidad) > 0
+      select m.producto_id, m.variante_id, sum(-m.cantidad)::int as devolver
+      from public.movimientos_stock m
+      join public.productos p
+        on p.id = m.producto_id
+       and p.emprendimiento_id = p_emprendimiento_id
+      left join public.variantes v
+        on v.id = m.variante_id
+       and v.producto_id = m.producto_id
+      where m.pedido_id = p_pedido_id
+        and m.emprendimiento_id = p_emprendimiento_id
+        and m.tipo = 'RESERVA_PEDIDO'
+        and (m.variante_id is null or v.id is not null)
+      group by m.producto_id, m.variante_id
+      having sum(-m.cantidad) > 0
     loop
       if r.variante_id is not null then
-        update public.variantes set stock_disponible = stock_disponible + r.devolver
-        where id = r.variante_id;
+        update public.variantes v
+        set stock_disponible = v.stock_disponible + r.devolver
+        from public.productos p
+        where v.id = r.variante_id
+          and v.producto_id = r.producto_id
+          and p.id = v.producto_id
+          and p.emprendimiento_id = p_emprendimiento_id;
       else
         update public.productos set stock_disponible = stock_disponible + r.devolver, updated_at = now()
-        where id = r.producto_id;
+        where id = r.producto_id
+          and emprendimiento_id = p_emprendimiento_id;
       end if;
 
       insert into public.movimientos_stock

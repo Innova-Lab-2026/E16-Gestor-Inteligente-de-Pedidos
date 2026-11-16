@@ -98,13 +98,62 @@ end $$;
 );
 
 testDb(
-  "un envío puede pasar de LISTO a EN_VIAJE y ENTREGADO, pero un retiro no",
+  "cancelar un pedido ignora movimientos que referencian productos de otro emprendimiento",
+  `
+insert into public.pedidos
+  (emprendimiento_id, cliente_id, origen_tipo, estado, estado_cobro, total)
+values
+  (current_setting('test.emprendimiento_a')::uuid,
+   current_setting('test.cliente_a')::uuid, 'MANUAL', 'RECIBIDO', 'PENDIENTE', 100)
+returning set_config('test.pedido', id::text, true);
+
+set local role authenticated;
+insert into public.movimientos_stock
+  (emprendimiento_id, producto_id, pedido_id, tipo, cantidad)
+values
+  (current_setting('test.emprendimiento_a')::uuid,
+   current_setting('test.producto_b')::uuid,
+   current_setting('test.pedido')::uuid, 'RESERVA_PEDIDO', -2);
+
+select public.cambiar_estado_pedido(
+  current_setting('test.emprendimiento_a')::uuid,
+  current_setting('test.pedido')::uuid,
+  'CANCELADO',
+  'prueba de aislamiento'
+);
+reset role;
+
+do $$
+declare
+  v_stock integer;
+  v_restituciones integer;
+begin
+  select stock_disponible into v_stock
+  from public.productos
+  where id = current_setting('test.producto_b')::uuid;
+
+  select count(*) into v_restituciones
+  from public.movimientos_stock
+  where pedido_id = current_setting('test.pedido')::uuid
+    and tipo = 'RESTITUCION_CANCELACION';
+
+  if v_stock <> 4 or v_restituciones <> 0 then
+    raise exception 'Se restituyó stock ajeno: stock %, restituciones %',
+      v_stock, v_restituciones;
+  end if;
+end $$;
+`
+);
+
+testDb(
+  "solo un envío puede pasar de LISTO a EN_VIAJE y luego ENTREGADO",
   `
 insert into public.pedidos
   (emprendimiento_id, origen_tipo, estado, modalidad_entrega, ready_at)
 values
   (current_setting('test.emprendimiento_a')::uuid, 'MANUAL', 'LISTO', 'ENVIO', now()),
-  (current_setting('test.emprendimiento_a')::uuid, 'MANUAL', 'LISTO', 'RETIRO', now())
+  (current_setting('test.emprendimiento_a')::uuid, 'MANUAL', 'LISTO', 'RETIRO', now()),
+  (current_setting('test.emprendimiento_a')::uuid, 'MANUAL', 'LISTO', null, now())
 returning id;
 
 select set_config('test.pedido_envio', id::text, true)
@@ -116,6 +165,11 @@ select set_config('test.pedido_retiro', id::text, true)
 from public.pedidos
 where emprendimiento_id = current_setting('test.emprendimiento_a')::uuid
   and modalidad_entrega = 'RETIRO';
+
+select set_config('test.pedido_sin_modalidad', id::text, true)
+from public.pedidos
+where emprendimiento_id = current_setting('test.emprendimiento_a')::uuid
+  and modalidad_entrega is null;
 
 do $$
 declare
@@ -146,6 +200,17 @@ begin
       'EN_VIAJE'
     );
     raise exception 'Se permitió EN_VIAJE para un pedido de RETIRO';
+  exception when sqlstate 'P0005' then
+    null;
+  end;
+
+  begin
+    perform public.cambiar_estado_pedido(
+      current_setting('test.emprendimiento_a')::uuid,
+      current_setting('test.pedido_sin_modalidad')::uuid,
+      'EN_VIAJE'
+    );
+    raise exception 'Se permitió EN_VIAJE sin modalidad de entrega';
   exception when sqlstate 'P0005' then
     null;
   end;
@@ -307,6 +372,58 @@ end $$;
 );
 
 testDb(
+  "identificador_externo es único por emprendimiento ignorando espacios y mayúsculas",
+  `
+insert into public.productos
+  (emprendimiento_id, nombre, precio, stock_disponible, identificador_externo)
+values
+  (current_setting('test.emprendimiento_a')::uuid, 'Producto con identificador externo', 100, 1, 'Ext-01');
+
+do $$
+begin
+  begin
+    insert into public.productos
+      (emprendimiento_id, nombre, precio, stock_disponible, identificador_externo)
+    values
+      (current_setting('test.emprendimiento_a')::uuid, 'Duplicado externo', 100, 1, ' ext-01 ');
+    raise exception 'Se permitió repetir identificador_externo dentro del emprendimiento';
+  exception when unique_violation then
+    null;
+  end;
+
+  insert into public.productos
+    (emprendimiento_id, nombre, precio, stock_disponible, identificador_externo)
+  values
+    (current_setting('test.emprendimiento_b')::uuid, 'Identificador externo en otro emprendimiento', 100, 1, 'ext-01');
+end $$;
+`
+);
+
+testDb(
+  "documento de cliente es único dentro del emprendimiento",
+  `
+insert into public.clientes
+  (emprendimiento_id, nombre, tipo_documento, numero_documento)
+values
+  (current_setting('test.emprendimiento_a')::uuid, 'Cliente con documento', 'DNI', '12345678'),
+  (current_setting('test.emprendimiento_b')::uuid, 'Documento en otro emprendimiento', 'DNI', '12345678');
+
+do $$
+begin
+  begin
+    insert into public.clientes
+      (emprendimiento_id, nombre, tipo_documento, numero_documento)
+    values
+      (current_setting('test.emprendimiento_a')::uuid, 'Cliente duplicado', 'DNI', '12345678');
+    raise exception 'Se permitió repetir el documento dentro del emprendimiento';
+  exception when unique_violation then
+    null;
+  end;
+end $$;
+`
+);
+
+testDb(
   "v_productos_stock clasifica stock simple y stock con variantes",
   `
 select set_config('test.sin_simple', gen_random_uuid()::text, true);
@@ -351,6 +468,81 @@ begin
      or (select nivel from public.v_productos_stock
       where producto_id = current_setting('test.ok_variantes')::uuid) <> 'OK' then
     raise exception 'v_productos_stock devolvió un nivel incorrecto';
+  end if;
+end $$;
+`
+);
+
+testDb(
+  "v_stock_bajo lista productos simples y variantes bajo el umbral",
+  `
+do $$
+declare
+  v_simple_sin_stock uuid;
+  v_simple_bajo uuid;
+  v_simple_ok uuid;
+  v_producto_variantes uuid;
+  v_variante_baja uuid;
+  v_variante_ok uuid;
+  v_filas integer;
+begin
+  insert into public.productos
+    (emprendimiento_id, nombre, precio, stock_disponible, stock_minimo)
+  values
+    (current_setting('test.emprendimiento_a')::uuid, 'Simple sin stock', 10, 0, 0)
+  returning id into v_simple_sin_stock;
+
+  insert into public.productos
+    (emprendimiento_id, nombre, precio, stock_disponible, stock_minimo)
+  values
+    (current_setting('test.emprendimiento_a')::uuid, 'Simple bajo', 10, 2, 3)
+  returning id into v_simple_bajo;
+
+  insert into public.productos
+    (emprendimiento_id, nombre, precio, stock_disponible, stock_minimo)
+  values
+    (current_setting('test.emprendimiento_a')::uuid, 'Simple OK', 10, 5, 3)
+  returning id into v_simple_ok;
+
+  insert into public.productos
+    (emprendimiento_id, nombre, precio, tiene_variantes, stock_disponible, stock_minimo)
+  values
+    (current_setting('test.emprendimiento_a')::uuid, 'Producto con variantes bajo stock', 10, true, null, 2)
+  returning id into v_producto_variantes;
+
+  insert into public.variantes (producto_id, nombre, stock_disponible, stock_minimo)
+  values (v_producto_variantes, 'Variante baja', 1, 2)
+  returning id into v_variante_baja;
+
+  insert into public.variantes (producto_id, nombre, stock_disponible, stock_minimo)
+  values (v_producto_variantes, 'Variante OK', 5, 2)
+  returning id into v_variante_ok;
+
+  select count(*) into v_filas
+  from public.v_stock_bajo
+  where producto_id in (v_simple_sin_stock, v_simple_bajo, v_simple_ok, v_producto_variantes);
+  if v_filas <> 3 then
+    raise exception 'v_stock_bajo devolvió % filas; se esperaban tres', v_filas;
+  end if;
+
+  if not exists (
+    select 1 from public.v_stock_bajo
+    where producto_id = v_simple_sin_stock and variante_id is null and stock_disponible = 0
+  ) or not exists (
+    select 1 from public.v_stock_bajo
+    where producto_id = v_simple_bajo and variante_id is null and stock_disponible = 2
+  ) or exists (
+    select 1 from public.v_stock_bajo where producto_id = v_simple_ok
+  ) or not exists (
+    select 1 from public.v_stock_bajo
+    where producto_id = v_producto_variantes
+      and variante_id = v_variante_baja
+      and stock_disponible = 1
+  ) or exists (
+    select 1 from public.v_stock_bajo
+    where producto_id = v_producto_variantes and variante_id = v_variante_ok
+  ) then
+    raise exception 'v_stock_bajo incluyó/excluyó una fila incorrectamente';
   end if;
 end $$;
 `
@@ -443,6 +635,59 @@ begin
      or (v_resumen->'pendiente_cobro'->>'pedidos')::integer <> 4
      or (v_resumen->'pendiente_cobro'->>'dias_mas_viejo')::integer <> v_dias then
     raise exception 'Pendiente de cobro incorrecto: %', v_resumen->'pendiente_cobro';
+  end if;
+end $$;
+`
+);
+
+testDb(
+  "dashboard_top_productos incluye desde y excluye hasta",
+  `
+do $$
+declare
+  v_pedido_inicio uuid;
+  v_pedido_medio uuid;
+  v_pedido_hasta uuid;
+  v_resultado record;
+  v_producto uuid := current_setting('test.producto_a')::uuid;
+begin
+  insert into public.pedidos
+    (emprendimiento_id, origen_tipo, estado, total, created_at)
+  values
+    (current_setting('test.emprendimiento_a')::uuid, 'MANUAL', 'RECIBIDO', 200, '2025-03-10 00:00:00+00')
+  returning id into v_pedido_inicio;
+
+  insert into public.pedidos
+    (emprendimiento_id, origen_tipo, estado, total, created_at)
+  values
+    (current_setting('test.emprendimiento_a')::uuid, 'MANUAL', 'RECIBIDO', 300, '2025-03-11 12:00:00+00')
+  returning id into v_pedido_medio;
+
+  insert into public.pedidos
+    (emprendimiento_id, origen_tipo, estado, total, created_at)
+  values
+    (current_setting('test.emprendimiento_a')::uuid, 'MANUAL', 'RECIBIDO', 500, '2025-03-12 00:00:00+00')
+  returning id into v_pedido_hasta;
+
+  insert into public.items_pedido
+    (pedido_id, producto_id, cantidad, precio_unitario, subtotal)
+  values
+    (v_pedido_inicio, v_producto, 2, 100, 200),
+    (v_pedido_medio, v_producto, 3, 100, 300),
+    (v_pedido_hasta, v_producto, 5, 100, 500);
+
+  select * into v_resultado
+  from public.dashboard_top_productos(
+    current_setting('test.emprendimiento_a')::uuid,
+    '2025-03-10 00:00:00+00',
+    '2025-03-12 00:00:00+00',
+    10
+  )
+  where producto_id = v_producto;
+
+  if v_resultado.unidades <> 5 or v_resultado.ingresos <> 500 then
+    raise exception 'El ranking no respetó el intervalo [desde, hasta): % unidades, % ingresos',
+      v_resultado.unidades, v_resultado.ingresos;
   end if;
 end $$;
 `

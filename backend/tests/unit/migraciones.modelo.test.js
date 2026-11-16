@@ -16,9 +16,31 @@ import {
   buildProductoServiceStub,
   buildVarianteServiceStub,
 } from "../helpers/stubs.js";
+import { validarUrlBaseDePruebas } from "../helpers/postgres-transaccion.js";
 
 const EMPRENDIMIENTO_ID = "11111111-1111-1111-1111-111111111111";
 const PRODUCTO_ID = "22222222-2222-2222-2222-222222222222";
+
+describe("URL de la base de pruebas", () => {
+  test("rechaza URLs cuya base no contiene test", () => {
+    assert.throws(
+      () =>
+        validarUrlBaseDePruebas(
+          "postgresql://usuario:clave@localhost/gestor"
+        ),
+      /nombre de la base debe contener 'test'/
+    );
+  });
+
+  test("acepta la base test_gestor", () => {
+    assert.equal(
+      validarUrlBaseDePruebas(
+        "postgresql://usuario:clave@localhost/test_gestor"
+      ),
+      "test_gestor"
+    );
+  });
+});
 
 describe("Estados agregados al modelo", () => {
   test("permite las transiciones nuevas desde LISTO y EN_VIAJE", () => {

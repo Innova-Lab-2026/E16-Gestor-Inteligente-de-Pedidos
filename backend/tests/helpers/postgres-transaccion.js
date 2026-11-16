@@ -35,6 +35,32 @@ function cargarSql(paths) {
     .join("\n");
 }
 
+export function validarUrlBaseDePruebas(databaseUrl = process.env.TEST_DATABASE_URL) {
+  if (!databaseUrl) {
+    throw new Error(
+      "TEST_DATABASE_URL es necesaria para ejecutar los tests de PostgreSQL contra test_gestor."
+    );
+  }
+
+  let databaseName;
+  try {
+    const url = new URL(databaseUrl);
+    databaseName = decodeURIComponent(url.pathname.replace(/^\/+/, ""));
+  } catch {
+    throw new Error(
+      "TEST_DATABASE_URL debe ser una URL válida cuyo nombre de base contenga 'test'."
+    );
+  }
+
+  if (!databaseName.toLowerCase().includes("test")) {
+    throw new Error(
+      "TEST_DATABASE_URL rechazado: el nombre de la base debe contener 'test'."
+    );
+  }
+
+  return databaseName;
+}
+
 const authDePrueba = `
 do $$
 begin
@@ -85,6 +111,8 @@ grant usage on schema auth to anon, authenticated, service_role;
 `;
 
 function psql(script) {
+  validarUrlBaseDePruebas();
+
   try {
     return execFileSync(
       "psql",
@@ -137,9 +165,7 @@ function prepararEsquema({ repetir = false } = {}) {
 }
 
 export function ejecutarEnPostgres(sql, { repetirMigraciones = false } = {}) {
-  if (!process.env.TEST_DATABASE_URL) {
-    throw new Error("TEST_DATABASE_URL es necesaria para ejecutar este test");
-  }
+  validarUrlBaseDePruebas();
 
   prepararEsquema({ repetir: repetirMigraciones });
   return psql(`BEGIN;\n${sql}\nROLLBACK;\n`);
