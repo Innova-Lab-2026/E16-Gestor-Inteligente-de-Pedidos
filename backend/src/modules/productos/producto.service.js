@@ -9,13 +9,10 @@ export class ProductoService {
     this.productoDao = productoDao || new ProductoDao(token);
     this.varianteDao = varianteDao || new VarianteDao(token);
   }
-
   async create(emprendimientoId, dto) {
-    // dto viene con snake_case desde Zod
     const tieneVariantes = Boolean(dto.tiene_variantes);
     const stockDisponibleRaw = dto.stock_disponible;
 
-    // Regla de negocio: Coherencia Stock/Variantes
     if (tieneVariantes) {
       if (stockDisponibleRaw !== undefined && stockDisponibleRaw !== null) {
         throw new BadRequestError(
@@ -23,23 +20,16 @@ export class ProductoService {
         );
       }
     } else {
-      // Si NO tiene variantes, debe tener stock numérico (o default 0)
-      // La constraint SQL exige NOT NULL, así que aseguramos un valor aquí.
       if (stockDisponibleRaw === undefined || stockDisponibleRaw === null) {
-        // Opcional: Podrías tirar error si quieres forzar al usuario a poner stock.
-        // Por ahora, usamos 0 como default seguro para cumplir la constraint.
       }
     }
 
-    // Preparamos el payload para el DAO (también en snake_case para alinearlo con la DB)
     const payloadParaDao = {
       emprendimientoId,
       nombre: dto.nombre,
       descripcion: dto.descripcion ?? null,
       precio: dto.precio,
       activo: dto.activo ?? true,
-
-      // Valores ya validados y normalizados
       tiene_variantes: tieneVariantes,
       stock_disponible: tieneVariantes ? null : Number(stockDisponibleRaw) || 0,
       stock_minimo: Number(dto.stock_minimo) || 0,
@@ -49,6 +39,7 @@ export class ProductoService {
 
     return this.productoDao.create(payloadParaDao);
   }
+
 
   async list(emprendimientoId, opciones) {
     return this.productoDao.listByEmprendimiento(emprendimientoId, opciones);
@@ -63,10 +54,6 @@ export class ProductoService {
   async update(emprendimientoId, id, cambios) {
     await this.getById(emprendimientoId, id);
 
-    // Lógica similar para update si cambia tiene_variantes
-    // Por simplicidad, pasamos directo al DAO que hará el merge/update parcial
-    // Asegurándonos de validar coherencia si ambos campos están presentes
-
     if (cambios.tiene_variantes !== undefined) {
       const tv = Boolean(cambios.tiene_variantes);
       if (
@@ -79,10 +66,6 @@ export class ProductoService {
         );
       }
       if (!tv && cambios.stock_disponible === undefined) {
-        // Si quita variantes, hay que asegurar stock.
-        // El frontend debería mandar stock_disponible explícito.
-        // Si no manda, podríamos mantener el existente o poner 0.
-        // Aquí lo dejaremos pasar y la DB/Constraint lo manejará o dará error.
       }
     }
 
@@ -90,60 +73,42 @@ export class ProductoService {
   }
 
   async resolveFromChannel(emprendimientoId, { identificadorExterno, nombre }) {
-    // ... (mantenés este método igual que antes, usa camelCase interno del objeto devuelto por DAO)
-    // Nota: El DAO devuelve snake_case desde Supabase.
-    // Si tu código de resolución usa p.nombre, p.descripcion, etc., funciona porque esos campos son iguales.
-    // Solo ojo con p.tiene_variantes vs p.tieneVariantes si accedes a eso.
+    const { normalizeText, esDenominacionMasEspecifica } = await import("../../utils/normalize.js");
 
     if (identificadorExterno) {
-      const exacto = await this.productoDao.findByIdentificadorExterno(
+      const productos = await this.productoDao.listByEmprendimiento(
         emprendimientoId,
-        identificadorExterno,
+        { soloActivos: true },
       );
-      if (exacto) return { producto: exacto, requiereRevision: false };
+      const q = normalizeText(identificadorExterno);
+      const exactosId = productos.filter((p) => {
+        const sku = normalizeText(p.sku_o_identificador);
+        const ext = normalizeText(p.identificador_externo);
+        return (sku && sku === q) || (ext && ext === q);
+      });
+      if (exactosId.length === 1) {
+        return { producto: exactosId[0], requiereRevision: false, estado: "resuelto", candidatos: exactosId };
+      }
+      if (exactosId.length > 1) {
+        return {
+          producto: null,
+          requiereRevision: true,
+          estado: "ambiguo",
+          candidatos: exactosId,
+          motivo: `El identificador "${identificadorExterno}" coincide con ${exactosId.length} productos`,
+        };
+      }
     }
 
-    if (!nombre) {
+    if (!nombre || !String(nombre).trim()) {
       return {
         producto: null,
         requiereRevision: true,
+        estado: "faltante",
+        candidatos: [],
         motivo: identificadorExterno
           ? `No se encontró el producto con identificador externo "${identificadorExterno}"`
           : "No se pudo identificar el producto en el mensaje",
-      };
-    }
-
-    const norm = (s) =>
-      String(s || "")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/\s+/g, " ")
-        .trim();
-
-    const stopwords = new Set([
-      "de",
-      "del",
-      "la",
-      "el",
-      "los",
-      "las",
-      "un",
-      "una",
-      "unos",
-      "unas",
-      "y",
-      "o",
-    ]);
-    const tokensEntrada = norm(nombre)
-      .split(" ")
-      .filter((t) => t && !stopwords.has(t));
-
-    if (tokensEntrada.length === 0) {
-      return {
-        producto: null,
-        requiereRevision: true,
-        motivo: "No se pudo identificar el producto en el mensaje",
       };
     }
 
@@ -152,28 +117,70 @@ export class ProductoService {
       { soloActivos: true },
     );
 
-    const candidatos = productos.filter((p) => {
-      const texto = norm(`${p.nombre || ""} ${p.descripcion || ""}`);
-      return tokensEntrada.every((tok) => texto.includes(tok));
-    });
+    const q = normalizeText(nombre);
 
-    if (candidatos.length === 1) {
-      return { producto: candidatos[0], requiereRevision: false };
+    const exactosNombre = productos.filter((p) => normalizeText(p.nombre) === q);
+    if (exactosNombre.length === 1) {
+      const hayMasEspecificos = productos.some((p) =>
+        p.id !== exactosNombre[0].id &&
+        esDenominacionMasEspecifica(exactosNombre[0].nombre, p.nombre),
+      );
+      if (hayMasEspecificos) {
+        return {
+          producto: null,
+          requiereRevision: true,
+          estado: "ambiguo",
+          candidatos: productos.filter((p) =>
+            esDenominacionMasEspecifica(exactosNombre[0].nombre, p.nombre) ||
+            normalizeText(p.nombre) === q,
+          ),
+          motivo: `El nombre "${nombre}" es genérico frente a ${productos.filter((p) =>
+            esDenominacionMasEspecifica(exactosNombre[0].nombre, p.nombre),
+          ).length} denominación(es) más específica(s)`,
+        };
+      }
+      return { producto: exactosNombre[0], requiereRevision: false, estado: "resuelto", candidatos: exactosNombre };
     }
-    if (candidatos.length > 1) {
+    if (exactosNombre.length > 1) {
       return {
         producto: null,
         requiereRevision: true,
-        motivo: `El texto "${nombre}" coincide con ${candidatos.length} productos`,
+        estado: "ambiguo",
+        candidatos: exactosNombre,
+        motivo: `El nombre "${nombre}" coincide exactamente con ${exactosNombre.length} productos`,
       };
     }
 
+    const exactosSku = productos.filter((p) => {
+      const sku = normalizeText(p.sku_o_identificador);
+      const ext = normalizeText(p.identificador_externo);
+      return (sku && sku === q) || (ext && ext === q);
+    });
+    if (exactosSku.length === 1) {
+      return { producto: exactosSku[0], requiereRevision: false, estado: "resuelto", candidatos: exactosSku };
+    }
+    if (exactosSku.length > 1) {
+      return {
+        producto: null,
+        requiereRevision: true,
+        estado: "ambiguo",
+        candidatos: exactosSku,
+        motivo: `El identificador "${nombre}" coincide con ${exactosSku.length} productos`,
+      };
+    }
+
+    const sugerencias = productos.filter((p) => {
+      const n = normalizeText(p.nombre);
+      return n.includes(q) || q.includes(n);
+    });
     return {
       producto: null,
       requiereRevision: true,
+      estado: "inexistente",
+      candidatos: sugerencias,
       motivo: identificadorExterno
         ? `No se encontró el producto con identificador externo "${identificadorExterno}"`
-        : "No se pudo identificar el producto en el mensaje",
+        : `No se encontró el producto "${nombre}"`,
     };
   }
 }
