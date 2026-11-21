@@ -48,11 +48,30 @@ Un panel operativo que centraliza pedidos (manuales y provenientes de WhatsApp),
 ## Estructura del repositorio
 
 - `backend/` — API y lógica de negocio (Node.js/Express).
-- `frontend/` — Aplicación web (Vite/React).
+- `frontend/` — Aplicación web (Next.js/React).
+- `docs/` — Guías operativas de entorno, QA e integración con WhatsApp.
+
+## Inicio rápido (Desarrollo y QA)
+
+1. **Configurar variables de entorno:** Crear `backend/.env` con las credenciales compartidas del equipo y `frontend/.env.local` apuntando a `BACKEND_API_URL=http://localhost:3001/api` (ver detalle completo en `docs/GUIA_ENTORNO_QA.md`).
+2. **Levantar el Backend (puerto `3001`):**
+   ```bash
+   cd backend
+   npm install
+   npm run dev
+   ```
+3. **Levantar el Frontend (puerto `3000`):**
+   ```bash
+   cd frontend
+   pnpm install
+   pnpm dev
+   ```
 
 ## Documentación adicional
 
-ver docs externas
+- [Guía de Entorno, QA y Pruebas por WhatsApp](docs/GUIA_ENTORNO_QA.md)
+- Documentación técnica del servidor en `backend/README.md`
+- Documentación de la aplicación web en `frontend/README.md`
 
 ## Licencia
 

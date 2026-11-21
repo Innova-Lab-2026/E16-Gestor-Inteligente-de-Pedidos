@@ -37,7 +37,7 @@ npm install
 npm run dev
 ```
 
-Completá en `backend/.env` las credenciales de Supabase. Express escucha en `http://localhost:3001`; comprobá que esté disponible con `http://localhost:3001/api/health`. La configuración completa está en [backend/readme.md](../backend/readme.md).
+Completá `backend/.env` con el archivo compartido por el equipo (incluye las credenciales de Supabase y las claves de Meta WhatsApp; **no modifiques `WHATSAPP_ENCRYPTION_KEY`**). Express escucha en `http://localhost:3001`; comprobá que esté disponible con `http://localhost:3001/api/health`. La configuración completa está en [backend/README.md](../backend/README.md) y en [docs/GUIA_ENTORNO_QA.md](../docs/GUIA_ENTORNO_QA.md).
 
 ### 3. Configurar y levantar Next.js
 
@@ -53,6 +53,14 @@ pnpm dev
 Abrí **http://localhost:3000**. El `.env.example` define `BACKEND_API_URL=http://localhost:3001/api`; es una variable privada de servidor, no lleva el prefijo `NEXT_PUBLIC_`, e incluye `/api`.
 
 > `.env.local` contiene configuración propia de cada persona y **no se sube al repositorio**.
+
+### Pruebas de pedidos entrantes por WhatsApp (QA)
+
+Para visualizar en el panel web (`/pedidos` y `/dashboard`) los pedidos generados automáticamente desde WhatsApp:
+
+1. Mantené activo el backend en el puerto `3001` junto con el túnel público HTTPS (pestaña **Puertos** de VS Code en visibilidad **Pública**).
+2. Verificá que el producto a pedir exista activo en el catálogo/Supabase del emprendimiento.
+3. Seguí el paso a paso completo de envío y validación en [docs/GUIA_ENTORNO_QA.md](../docs/GUIA_ENTORNO_QA.md).
 
 ### Opción: ejecutar el frontend con Docker
 
@@ -136,7 +144,7 @@ Reiniciá limpio: `docker compose down -v && docker compose up --build`.
 `.env.local`, `node_modules/`, `.next/` y `.pnpm-store/` deben estar en el `.gitignore`. El `.env.example` **sí** se sube (agregá `!.env.example` al final del `.gitignore` si Next lo está ignorando).
 
 # Estructura de carpetas
-Todo dentro de frontend/src/:
+Todo dentro de `frontend/src/`:
 ```bash
 src/
 ├─ app/                          # Solo rutas y layouts. Sin lógica de negocio.

@@ -30,7 +30,8 @@ src/
   middlewares/ auth, tenant, validator, error
   adapters/    interfaces/ + telegram/ whatsapp/ web/ + channel-adapter.factory.js
   modules/     auth, emprendimientos, usuarios, canales, productos, variantes,
-               clientes, pedidos, stock, eventos-canal, dashboard
+               clientes, pedidos, stock, eventos-canal, dashboard,
+               whatsapp-conexion, whatsapp-pedidos
   routes/      index.js + un archivo por recurso + webhooks.routes.js
   webhooks/    webhook.controller.js, webhook.service.js
   utils/       logger.js
@@ -57,14 +58,19 @@ SUPABASE_SECRET_KEY=sb_secret_...
 WEB_CHANNEL_IDENTIFIER=web
 TELEGRAM_WEBHOOK_SECRET=
 VERIFY_TOKEN=
+WHATSAPP_APP_ID=
+WHATSAPP_APP_SECRET=
+WHATSAPP_CONFIG_ID=
+WHATSAPP_ENCRYPTION_KEY=
 ```
 
 Copia comentada en `.env.example`.
 
 ### Desarrollo local: frontend y backend juntos
 
-1. En `backend/`, copiá `.env.example` a `.env`, completá las variables de
-   Supabase con los valores del proyecto de QA y levantá Express:
+1. En `backend/`, copiá `.env.example` a `.env` (o usá el `.env` compartido
+   por el equipo para QA), completá las variables de Supabase y Meta, y
+   levantá Express:
 
    ```bash
    npm install
@@ -107,11 +113,13 @@ Copia comentada en `.env.example`.
 - **Render/Railway (backend):** el proveedor define `PORT`; configurá
   `CORS_ORIGINS=https://<dominio-del-frontend>.vercel.app`,
   `SUPABASE_URL=https://<proyecto>.supabase.co`,
-  `SUPABASE_PUBLISHABLE_KEY=sb_publishable_<clave-publicable>` y
-  `SUPABASE_SECRET_KEY=sb_secret_<clave-secreta>`. Los valores entre
-  `<...>` son marcadores: reemplazalos por los datos reales del equipo.
-  `CORS_ORIGINS` acepta varios orígenes separados por comas. Agregá dominios
-  de preview solo si necesitás peticiones directas desde el navegador.
+  `SUPABASE_PUBLISHABLE_KEY=sb_publishable_<clave-publicable>`,
+  `SUPABASE_SECRET_KEY=sb_secret_<clave-secreta>` y las credenciales de
+  WhatsApp (`VERIFY_TOKEN`, `WHATSAPP_APP_ID`, `WHATSAPP_APP_SECRET`,
+  `WHATSAPP_ENCRYPTION_KEY`). Los valores entre `<...>` son marcadores:
+  reemplazalos por los datos reales del equipo. `CORS_ORIGINS` acepta varios
+  orígenes separados por comas. Agregá dominios de preview solo si necesitás
+  peticiones directas desde el navegador.
 
 ### Las claves: publishable y secret
 
@@ -142,6 +150,28 @@ Si tu proyecto todavia tiene las claves viejas, el backend sigue
 funcionando: `SUPABASE_SERVICE_ROLE_KEY` se lee como fallback del nombre
 nuevo y aparece un aviso pidiendo el renombre.
 
+## Integración con WhatsApp (Meta Cloud API)
+
+- **Almacenamiento cifrado del token:** El token permanente de acceso de Meta
+  no se lee en texto plano desde `.env`; vive cifrado en la tabla
+  `whatsapp_conexiones` de Supabase (vinculado al canal mediante
+  `canales.whatsapp_conexion_id`). `WhatsAppConexionService` lo descifra en
+  tiempo de ejecución usando `WHATSAPP_ENCRYPTION_KEY`. Por este motivo,
+  todo el equipo y QA deben conservar **exactamente la misma**
+  `WHATSAPP_ENCRYPTION_KEY` en su `.env` local.
+- **Exposición del puerto `3001` en desarrollo/QA:** Para recibir eventos
+  entrantes en `POST /webhooks/whatsapp` y validar el challenge en
+  `GET /webhooks/whatsapp`, el puerto `3001` debe exponerse mediante un túnel
+  público `https://` (VS Code Ports / DevTunnels, `ngrok` o `cloudflared`).
+- **Flujo de pedido automatizado:** El bot no responde mensajes genéricos;
+  `IntentDetector` reconoce expresiones de compra (como
+  `"Quiero hacer un pedido"`), devuelve la plantilla estructurada y valida
+  la respuesta del cliente contra los registros activos de `productos` y
+  `variantes` antes de crear el pedido.
+- **Guía operativa paso a paso:** Consultar `../docs/GUIA_ENTORNO_QA.md`
+  para el procedimiento completo de túnel, whitelist de números en Meta y
+  pruebas de QA.
+
 ## Migracion de la base
 
 Ejecutar en este orden en el SQL Editor de Supabase:
@@ -153,7 +183,6 @@ Ejecutar en este orden en el SQL Editor de Supabase:
    `GRANT` sobre las tablas. Sin la 002, la API responde
    `42501 permission denied for table ...` y ninguna politica RLS llega a
    evaluarse.
-
 3. `db/migrations/003_crear_emprendimiento_rpc.sql` -- alta atomica de
    emprendimiento. Sin ella, `POST /api/emprendimientos` falla con
    `new row violates row-level security policy`; el `INSERT ... RETURNING` que genera `.insert().select()`
@@ -164,12 +193,10 @@ Ejecutar en este orden en el SQL Editor de Supabase:
    identidad en una funcion `security definer` es un bypass de
    autorizacion. Reejecutala si ya tenias una version anterior: borra la
    firma vieja `crear_emprendimiento(text, uuid)`.
-
 4. `db/migrations/004_stock_tenant_check.sql` -- `ajustar_stock_*` son
    security definer (saltan RLS), asi que el chequeo de tenant va
    adentro de la funcion. Sin la 004, un usuario autenticado podria
    descontar stock del emprendimiento de otro llamando la RPC directo.
-
 5. `db/migrations/005_membresias_sin_autoalta.sql` -- cierra la escalada
    de tenant en las membresias. La policy de INSERT de
    `usuarios_emprendimientos` dejaba `emprendimiento_id` libre: cualquier
@@ -183,7 +210,7 @@ Ejecutar en este orden en el SQL Editor de Supabase:
    aplicada.
 
 > **Si ya corriste la 001 antes, volve a ejecutarla.** Agrega el trigger
-> `on_auth_user_created` sobre `auth.users` y un _backfill_ que repara las
+> `on_auth_user_created` sobre `auth.users` y un *backfill* que repara las
 > cuentas que ya existen en Auth sin fila en `public.usuarios`. Ver
 > "El espejo `usuarios`" mas abajo.
 
@@ -199,7 +226,7 @@ Ejecutar en este orden en el SQL Editor de Supabase:
 usuario que existe en Auth pero no en `usuarios` es un estado invalido, y
 su sintoma no aparece donde se origino:
 
-```
+```text
 insert or update on table "usuarios_emprendimientos" violates foreign key
 constraint "usuarios_emprendimientos_usuario_id_fkey"
 Key (usuario_id)=(...) is not present in table "usuarios".   -- 23503
@@ -325,7 +352,6 @@ curl -X POST http://localhost:3001/api/pedidos \
         "estadoCobro": "PENDIENTE",
         "modalidadEntrega": "RETIRO"
       }'
-      ']}
 ```
 
 Se crea con `origen_tipo = MANUAL`, `canal_id = NULL` y reserva stock.
