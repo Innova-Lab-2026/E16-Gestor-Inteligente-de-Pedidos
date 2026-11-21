@@ -49,9 +49,10 @@ npm install
 Variables de entorno (`.env`):
 
 ```env
-PORT=3000
-VITE_SUPABASE_URL=https://tu-proyecto.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+PORT=3001
+CORS_ORIGINS=http://localhost:3000
+SUPABASE_URL=https://<proyecto>.supabase.co
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_<clave-publicable>
 SUPABASE_SECRET_KEY=sb_secret_...
 WEB_CHANNEL_IDENTIFIER=web
 TELEGRAM_WEBHOOK_SECRET=
@@ -60,6 +61,58 @@ VERIFY_TOKEN=
 
 Copia comentada en `.env.example`.
 
+### Desarrollo local: frontend y backend juntos
+
+1. En `backend/`, copiá `.env.example` a `.env`, completá las variables de
+   Supabase con los valores del proyecto de QA y levantá Express:
+
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+   En local, el backend escucha en `http://localhost:3001`; verificá
+   `http://localhost:3001/api/health`.
+
+2. En otra terminal, desde `frontend/`, copiá `.env.example` a `.env.local`.
+   Confirmá que contiene:
+
+   ```env
+   BACKEND_API_URL=http://localhost:3001/api
+   ```
+
+   Luego instalá y levantá Next.js:
+
+   ```bash
+   pnpm install
+   pnpm dev
+   ```
+
+   Next.js escucha en `http://localhost:3000`. Las llamadas del frontend al
+   backend salen de Server Actions/servidor de Next, no directamente del
+   navegador. Por eso el flujo actual no depende de CORS; `CORS_ORIGINS`
+   sigue limitado al origen local de Next para eventuales llamadas directas.
+
+3. Para ejecutar el frontend con Docker, el contenedor debe apuntar al host:
+   `BACKEND_API_URL=http://host.docker.internal:3001/api`. La UI queda
+   publicada en `http://localhost:4000`. Si en el futuro el navegador llama
+   directamente al backend desde ese origen, agregá `http://localhost:4000`
+   a `CORS_ORIGINS`.
+
+### Variables para despliegue
+
+- **Vercel (frontend):** `BACKEND_API_URL=https://<servicio-backend>/api`.
+  Es privada del servidor de Next; no uses `NEXT_PUBLIC_` ni cargues claves
+  de Supabase en Vercel.
+- **Render/Railway (backend):** el proveedor define `PORT`; configurá
+  `CORS_ORIGINS=https://<dominio-del-frontend>.vercel.app`,
+  `SUPABASE_URL=https://<proyecto>.supabase.co`,
+  `SUPABASE_PUBLISHABLE_KEY=sb_publishable_<clave-publicable>` y
+  `SUPABASE_SECRET_KEY=sb_secret_<clave-secreta>`. Los valores entre
+  `<...>` son marcadores: reemplazalos por los datos reales del equipo.
+  `CORS_ORIGINS` acepta varios orígenes separados por comas. Agregá dominios
+  de preview solo si necesitás peticiones directas desde el navegador.
+
 ### Las claves: publishable y secret
 
 Supabase esta retirando `anon` y `service_role` (fines de 2026) y el
@@ -67,7 +120,7 @@ proyecto usa los nombres nuevos:
 
 | Clave                | Donde vive                    | Para que                                   |
 | -------------------- | ----------------------------- | ------------------------------------------ |
-| `sb_publishable_...` | `.env`, y tambien el frontend | todo lo que corre con identidad de usuario |
+| `sb_publishable_...` | solo el `.env` del backend    | autenticación y datos con identidad de usuario |
 | `sb_secret_...`      | solo el `.env` del backend    | el flujo de webhooks, que no tiene usuario |
 
 Reglas que sigue el codigo:
@@ -227,11 +280,11 @@ stock y creacion de pedidos. Para eso, el ciclo completo es:
 # 1. Aplicar db/migrations/001_schema_v2.sql en Supabase
 # 2. Crear un usuario (password min. 8 caracteres; el nombre del
 #    emprendimiento va anidado en "emprendimiento")
-curl -X POST http://localhost:3000/api/auth/register -H "Content-Type: application/json" \
+curl -X POST http://localhost:3001/api/auth/register -H "Content-Type: application/json" \
   -d '{"email":"yo@emprendimiento.com","password":"clave12345",
        "emprendimiento":{"nombre":"Mi emprendimiento"}}'
 # 3. Login y seguir con el token
-curl -X POST http://localhost:3000/api/auth/login -H "Content-Type: application/json" \
+curl -X POST http://localhost:3001/api/auth/login -H "Content-Type: application/json" \
   -d '{"email":"yo@emprendimiento.com","password":"clave12345"}'
 ```
 
@@ -264,7 +317,7 @@ resuelve solo.
 ## Ejemplo: pedido manual
 
 ```bash
-curl -X POST http://localhost:3000/api/pedidos \
+curl -X POST http://localhost:3001/api/pedidos \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -280,7 +333,7 @@ Se crea con `origen_tipo = MANUAL`, `canal_id = NULL` y reserva stock.
 ## Ejemplo: webhook de Telegram
 
 ```bash
-curl -X POST http://localhost:3000/webhooks/telegram \
+curl -X POST http://localhost:3001/webhooks/telegram \
   -H "Content-Type: application/json" \
   -d '{"update_id":1,"message":{"message_id":42,
        "from":{"id":987,"first_name":"Juan"},
@@ -290,7 +343,7 @@ curl -X POST http://localhost:3000/webhooks/telegram \
 Para que funcione, el canal debe estar registrado:
 
 ```bash
-curl -X POST http://localhost:3000/api/canales \
+curl -X POST http://localhost:3001/api/canales \
   -H "Authorization: Bearer <token>" -H "Content-Type: application/json" \
   -d '{"tipo":"TELEGRAM","identificadorExterno":"tg_987","nombre":"Bot principal"}'
 ```

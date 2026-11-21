@@ -1,76 +1,78 @@
 # Frontend — Gestor Inteligente de Pedidos, Ventas y Stock
 
 Aplicación web (Next.js) para que emprendedores centralicen pedidos, ventas, clientes y stock.
-Esta carpeta (`frontend/`) contiene todo el código del frontend y se ejecuta **con Docker**: no hace falta instalar Node, pnpm ni ninguna otra herramienta.
+Esta carpeta (`frontend/`) contiene todo el código del frontend. Se puede ejecutar localmente con pnpm o, de forma opcional, con Docker.
 
 ## Stack
 
 - Next.js (App Router) + TypeScript
 - Tailwind CSS
-- pnpm (dentro del contenedor)
-- Docker + Docker Compose
+- pnpm
+- Docker + Docker Compose (opcional)
 
 ## Requisitos
 
-- [Docker](https://docs.docker.com/get-docker/) con Docker Compose v2 (`docker compose version` debe funcionar)
+- Node.js 20.9 o posterior y pnpm (se puede habilitar con `corepack enable`)
+- Docker Compose v2 solo si se elige la opción Docker
 - Git
-
-No se necesita nada más.
 
 ## Puesta en marcha local
 
-Todos los comandos se ejecutan desde la carpeta `frontend/`.
+Para probar el flujo completo, levantá primero Express y luego Next.js. Los comandos de frontend se ejecutan desde `frontend/`.
 
-### 1. Clonar el repositorio y entrar a la carpeta
+### 1. Clonar el repositorio
 
 ```bash
 git clone https://github.com/Innova-Lab-2026/E16-Gestor-Inteligente-de-Pedidos.git
 cd E16-Gestor-Inteligente-de-Pedidos
-git checkout <tu-rama>        # o la rama que corresponda
-cd frontend
 ```
 
-### 2. Crear el archivo de variables de entorno
+### 2. Configurar y levantar el backend
+
+En una terminal:
+```bash
+cd backend
+cp .env.example .env
+npm install
+npm run dev
+```
+
+Completá en `backend/.env` las credenciales de Supabase. Express escucha en `http://localhost:3001`; comprobá que esté disponible con `http://localhost:3001/api/health`. La configuración completa está en [backend/readme.md](../backend/readme.md).
+
+### 3. Configurar y levantar Next.js
+
+En otra terminal, desde la raíz del repositorio:
 
 ```bash
+cd frontend
 cp .env.example .env.local
+pnpm install
+pnpm dev
 ```
 
-Contenido por defecto:
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3000
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-```
-
-| Variable | Descripción |
-|---|---|
-| `NEXT_PUBLIC_API_URL` | URL del backend, vista desde el navegador. Por defecto, el backend corre en el puerto 3000. |
-| `NEXT_PUBLIC_SUPABASE_URL` | URL del proyecto de Supabase (completar cuando el equipo la defina). |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clave pública de Supabase (completar cuando el equipo la defina). |
+Abrí **http://localhost:3000**. El `.env.example` define `BACKEND_API_URL=http://localhost:3001/api`; es una variable privada de servidor, no lleva el prefijo `NEXT_PUBLIC_`, e incluye `/api`.
 
 > `.env.local` contiene configuración propia de cada persona y **no se sube al repositorio**.
-> Si agregás una variable nueva, sumala también a `.env.example`.
 
-### 3. Levantar la aplicación
+### Opción: ejecutar el frontend con Docker
 
 ```bash
 docker compose up --build
 ```
 
-La primera vez tarda unos minutos porque descarga la imagen e instala las dependencias.
-Cuando veas que Next.js quedó listo, abrí:
+Docker publica Next.js en **http://localhost:4000**. En este modo, editá `frontend/.env.local` para que el servidor de Next llegue al backend del host:
 
-**http://localhost:4000**
-
-> El frontend usa el puerto **4000** de tu máquina (el contenedor escucha en el 3000 internamente),
+```env
+BACKEND_API_URL=http://host.docker.internal:3001/api
+```
 
 ### 4. Apagar
 
 ```bash
 docker compose down
 ```
+
+Para la ejecución local con pnpm, detené cada servidor con `Ctrl+C` en su terminal.
 
 ## Comandos útiles
 
@@ -87,21 +89,28 @@ docker compose down
 
 Los cambios que hagas en el código se reflejan automáticamente en el navegador (hot reload).
 
-## Conexión con el backend
+## Conexión con el backend y CORS
 
-- Con el backend corriendo en `http://localhost:3000`, el frontend lo consulta desde el navegador usando `NEXT_PUBLIC_API_URL`.
-- El backend debe permitir el origen `http://localhost:4000` en su configuración de **CORS**; si no, el navegador bloquea las llamadas y verás errores de CORS en la consola.
-- Dentro del contenedor, `localhost` es el propio contenedor y no tu máquina. Esto no afecta a las llamadas hechas desde el navegador, pero sí a las que haga el servidor de Next (Server Components, Server Actions). Si llegara ese caso, hay que usar `host.docker.internal` y agregar al servicio `web` del `docker-compose.yml`:
+- Los únicos `fetch` al backend están en Server Actions y en `getSession`; el navegador habla con Next.js y Next.js llama a Express desde el servidor. Por eso esas llamadas son server-to-server y no están sujetas a CORS.
+- `CORS_ORIGINS` en el backend restringe las llamadas que sí provengan de un navegador. Su valor local por defecto es `http://localhost:3000` (Next.js en desarrollo); no se usa `*`.
+- En Docker, `localhost` dentro del contenedor es el propio contenedor. Por eso `BACKEND_API_URL` debe apuntar a `host.docker.internal` como se indica arriba. Si en el futuro el navegador llama directamente a Express desde la UI publicada por Docker, agregá también `http://localhost:4000` a `CORS_ORIGINS`.
 
-  ```yaml
-  extra_hosts:
-    - "host.docker.internal:host-gateway"
-  ```
+## Despliegue en Vercel
+
+En la configuración del proyecto de Vercel, cargá esta variable privada:
+
+```env
+BACKEND_API_URL=https://<servicio-backend>.onrender.com/api
+```
+
+Reemplazá el host por la URL real de Render o Railway. No cargues claves de Supabase en Vercel: el frontend se comunica con Supabase a través del backend.
+
+Para dominios de preview de Vercel, configurá `CORS_ORIGINS` en el backend solo si alguna ruta comienza a ser llamada directamente desde el navegador. El flujo actual de autenticación no requiere CORS para hablar con Express.
 
 ## Problemas frecuentes
 
 **`env file ... .env.local not found`**
-Falta crear el archivo de variables. Ejecutá `cp .env.example .env.local` (paso 2).
+Falta crear el archivo de variables. Ejecutá `cp .env.example .env.local` en `frontend/`.
 
 **`port is already allocated` / `address already in use`**
 El puerto 4000 está ocupado por otro programa. Cerralo o cambiá el primer número en `docker-compose.yml` (por ejemplo `"4001:3000"`) y accedé por ese puerto.

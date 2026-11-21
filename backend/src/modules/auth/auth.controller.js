@@ -27,6 +27,7 @@ export class AuthController {
       user: resultado.user,
       session: resultado.session,
       emprendimiento: resultado.emprendimiento,
+      pendienteConfirmacion: resultado.pendienteConfirmacion,
     });
   };
 

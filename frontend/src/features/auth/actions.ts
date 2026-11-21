@@ -5,8 +5,13 @@ import { redirect } from "next/navigation";
 import { ROUTES } from "@/config/router";
 import { SESSION_COOKIE } from "./constants";
 
-export async function login(_previousState: { error?: string }, formData: FormData) {
-  const apiUrl = process.env.API_URL?.replace(/\/+$/, "");
+export type LoginState = { error?: string };
+
+export async function login(
+  _previousState: LoginState,
+  formData: FormData,
+): Promise<LoginState> {
+  const apiUrl = process.env.BACKEND_API_URL?.replace(/\/+$/, "");
   if (!apiUrl) {
     return { error: "No pudimos conectar con el servidor. Intentá nuevamente." };
   }

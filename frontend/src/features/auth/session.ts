@@ -13,7 +13,7 @@ export const getSession = cache(async (): Promise<Session | null> => {
     return null;
   }
 
-  const apiUrl = process.env.API_URL?.replace(/\/+$/, "");
+  const apiUrl = process.env.BACKEND_API_URL?.replace(/\/+$/, "");
   if (!apiUrl) return null;
 
   try {
