@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useActionState, useEffect, useState, type FormEvent } from "react";
 import { ROUTES } from "@/config/router";
-import { register } from "@/features/auth/register-action";
+import { register, type RegisterState } from "@/features/auth/register-action";
 import styles from "./RegisterScreen.module.css";
 
-const initialState = {};
+const initialState: RegisterState = {};
 const productOptions = ["Facturas", "Farmacia", "Flores", "Otro"];
 const channelOptions = ["WhatsApp", "Telegram", "Texto"] as const;
 
@@ -259,7 +259,7 @@ export default function RegisterScreen() {
           )}
 
           {state.error && <p className={styles.error} role="alert">{state.error}</p>}
-          {state.success && <p className={styles.success} role="status">{state.success} <Link href={ROUTES.login}>Iniciar sesión</Link></p>}
+          {state.success && <p className={styles.success} role="status">{state.success}{!state.pendienteConfirmacion && <> <Link href={ROUTES.login}>Iniciar sesión</Link></>}</p>}
           <input type="hidden" name="productType" value={productType} />
           <button className={styles.submitButton} type="submit" disabled={!businessValid}>
             Siguiente
@@ -359,7 +359,7 @@ export default function RegisterScreen() {
 
           <div className={styles.deliveryActions}>
             {state.error && <p className={styles.error} role="alert">{state.error}</p>}
-            {state.success && <p className={styles.success} role="status">{state.success} <Link href={ROUTES.login}>Iniciar sesión</Link></p>}
+            {state.success && <p className={styles.success} role="status">{state.success}{!state.pendienteConfirmacion && <> <Link href={ROUTES.login}>Iniciar sesión</Link></>}</p>}
             <input type="hidden" name="deliveryModes" value={JSON.stringify(deliveryModes)} />
             <button className={styles.submitButton} type="submit" disabled={!deliveryValid || isPending || Boolean(state.success)}>
               {isPending ? "Creando cuenta..." : state.success ? "Cuenta creada" : "Siguiente"}
@@ -415,7 +415,7 @@ export default function RegisterScreen() {
           </div>
 
           {state.error && <p className={styles.error} role="alert">{state.error}</p>}
-          {state.success && <p className={styles.success} role="status">{state.success} <Link href={ROUTES.login}>Iniciar sesión</Link></p>}
+          {state.success && <p className={styles.success} role="status">{state.success}{!state.pendienteConfirmacion && <> <Link href={ROUTES.login}>Iniciar sesión</Link></>}</p>}
           <div className={styles.deliveryActions}>
             <button className={styles.submitButton} type="submit" disabled={!verificationValid || isPending || Boolean(state.success)}>
               {isPending ? "Creando cuenta..." : state.success ? "Cuenta creada" : "Siguiente"}

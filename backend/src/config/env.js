@@ -31,7 +31,11 @@ export const clasificarClave = (clave) => {
 
 export const env = {
   NODE_ENV: read("NODE_ENV", "development"),
-  PORT: Number(read("PORT", 3000)),
+  PORT: Number(read("PORT", 3001)),
+  CORS_ORIGINS: read("CORS_ORIGINS", "http://localhost:3000")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
 
   SUPABASE_URL: read("SUPABASE_URL", read("VITE_SUPABASE_URL")),
 

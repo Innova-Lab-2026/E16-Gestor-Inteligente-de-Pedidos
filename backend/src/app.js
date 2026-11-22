@@ -6,11 +6,12 @@ import {
   errorMiddleware,
   notFoundMiddleware,
 } from "./middlewares/error.middleware.js";
+import { env } from "./config/env.js";
 
 const app = express();
 
 // Middlewares globales
-app.use(cors());
+app.use(cors({ origin: env.CORS_ORIGINS }));
 app.use(
   express.json({
     limit: "1mb",

@@ -1,9 +1,9 @@
 ﻿import "dotenv/config";
 import app from "./app.js";
-import { advertenciasDeEntorno, validateEnv } from "./config/env.js";
+import { env, advertenciasDeEntorno, validateEnv } from "./config/env.js";
 import { logger } from "./utils/logger.js";
 
-const PORT = process.env.PORT || 3000;
+const PORT = env.PORT;
 
 try {
   validateEnv();

@@ -30,7 +30,8 @@ src/
   middlewares/ auth, tenant, validator, error
   adapters/    interfaces/ + telegram/ whatsapp/ web/ + channel-adapter.factory.js
   modules/     auth, emprendimientos, usuarios, canales, productos, variantes,
-               clientes, pedidos, stock, eventos-canal, dashboard
+               clientes, pedidos, stock, eventos-canal, dashboard,
+               whatsapp-conexion, whatsapp-pedidos
   routes/      index.js + un archivo por recurso + webhooks.routes.js
   webhooks/    webhook.controller.js, webhook.service.js
   utils/       logger.js
@@ -49,16 +50,76 @@ npm install
 Variables de entorno (`.env`):
 
 ```env
-PORT=3000
-VITE_SUPABASE_URL=https://tu-proyecto.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+PORT=3001
+CORS_ORIGINS=http://localhost:3000
+SUPABASE_URL=https://<proyecto>.supabase.co
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_<clave-publicable>
 SUPABASE_SECRET_KEY=sb_secret_...
 WEB_CHANNEL_IDENTIFIER=web
 TELEGRAM_WEBHOOK_SECRET=
 VERIFY_TOKEN=
+WHATSAPP_APP_ID=
+WHATSAPP_APP_SECRET=
+WHATSAPP_CONFIG_ID=
+WHATSAPP_ENCRYPTION_KEY=
 ```
 
 Copia comentada en `.env.example`.
+
+### Desarrollo local: frontend y backend juntos
+
+1. En `backend/`, copiá `.env.example` a `.env` (o usá el `.env` compartido
+   por el equipo para QA), completá las variables de Supabase y Meta, y
+   levantá Express:
+
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+   En local, el backend escucha en `http://localhost:3001`; verificá
+   `http://localhost:3001/api/health`.
+
+2. En otra terminal, desde `frontend/`, copiá `.env.example` a `.env.local`.
+   Confirmá que contiene:
+
+   ```env
+   BACKEND_API_URL=http://localhost:3001/api
+   ```
+
+   Luego instalá y levantá Next.js:
+
+   ```bash
+   pnpm install
+   pnpm dev
+   ```
+
+   Next.js escucha en `http://localhost:3000`. Las llamadas del frontend al
+   backend salen de Server Actions/servidor de Next, no directamente del
+   navegador. Por eso el flujo actual no depende de CORS; `CORS_ORIGINS`
+   sigue limitado al origen local de Next para eventuales llamadas directas.
+
+3. Para ejecutar el frontend con Docker, el contenedor debe apuntar al host:
+   `BACKEND_API_URL=http://host.docker.internal:3001/api`. La UI queda
+   publicada en `http://localhost:4000`. Si en el futuro el navegador llama
+   directamente al backend desde ese origen, agregá `http://localhost:4000`
+   a `CORS_ORIGINS`.
+
+### Variables para despliegue
+
+- **Vercel (frontend):** `BACKEND_API_URL=https://<servicio-backend>/api`.
+  Es privada del servidor de Next; no uses `NEXT_PUBLIC_` ni cargues claves
+  de Supabase en Vercel.
+- **Render/Railway (backend):** el proveedor define `PORT`; configurá
+  `CORS_ORIGINS=https://<dominio-del-frontend>.vercel.app`,
+  `SUPABASE_URL=https://<proyecto>.supabase.co`,
+  `SUPABASE_PUBLISHABLE_KEY=sb_publishable_<clave-publicable>`,
+  `SUPABASE_SECRET_KEY=sb_secret_<clave-secreta>` y las credenciales de
+  WhatsApp (`VERIFY_TOKEN`, `WHATSAPP_APP_ID`, `WHATSAPP_APP_SECRET`,
+  `WHATSAPP_ENCRYPTION_KEY`). Los valores entre `<...>` son marcadores:
+  reemplazalos por los datos reales del equipo. `CORS_ORIGINS` acepta varios
+  orígenes separados por comas. Agregá dominios de preview solo si necesitás
+  peticiones directas desde el navegador.
 
 ### Las claves: publishable y secret
 
@@ -67,7 +128,7 @@ proyecto usa los nombres nuevos:
 
 | Clave                | Donde vive                    | Para que                                   |
 | -------------------- | ----------------------------- | ------------------------------------------ |
-| `sb_publishable_...` | `.env`, y tambien el frontend | todo lo que corre con identidad de usuario |
+| `sb_publishable_...` | solo el `.env` del backend    | autenticación y datos con identidad de usuario |
 | `sb_secret_...`      | solo el `.env` del backend    | el flujo de webhooks, que no tiene usuario |
 
 Reglas que sigue el codigo:
@@ -89,6 +150,28 @@ Si tu proyecto todavia tiene las claves viejas, el backend sigue
 funcionando: `SUPABASE_SERVICE_ROLE_KEY` se lee como fallback del nombre
 nuevo y aparece un aviso pidiendo el renombre.
 
+## Integración con WhatsApp (Meta Cloud API)
+
+- **Almacenamiento cifrado del token:** El token permanente de acceso de Meta
+  no se lee en texto plano desde `.env`; vive cifrado en la tabla
+  `whatsapp_conexiones` de Supabase (vinculado al canal mediante
+  `canales.whatsapp_conexion_id`). `WhatsAppConexionService` lo descifra en
+  tiempo de ejecución usando `WHATSAPP_ENCRYPTION_KEY`. Por este motivo,
+  todo el equipo y QA deben conservar **exactamente la misma**
+  `WHATSAPP_ENCRYPTION_KEY` en su `.env` local.
+- **Exposición del puerto `3001` en desarrollo/QA:** Para recibir eventos
+  entrantes en `POST /webhooks/whatsapp` y validar el challenge en
+  `GET /webhooks/whatsapp`, el puerto `3001` debe exponerse mediante un túnel
+  público `https://` (VS Code Ports / DevTunnels, `ngrok` o `cloudflared`).
+- **Flujo de pedido automatizado:** El bot no responde mensajes genéricos;
+  `IntentDetector` reconoce expresiones de compra (como
+  `"Quiero hacer un pedido"`), devuelve la plantilla estructurada y valida
+  la respuesta del cliente contra los registros activos de `productos` y
+  `variantes` antes de crear el pedido.
+- **Guía operativa paso a paso:** Consultar `../docs/GUIA_ENTORNO_QA.md`
+  para el procedimiento completo de túnel, whitelist de números en Meta y
+  pruebas de QA.
+
 ## Migracion de la base
 
 Ejecutar en este orden en el SQL Editor de Supabase:
@@ -100,7 +183,6 @@ Ejecutar en este orden en el SQL Editor de Supabase:
    `GRANT` sobre las tablas. Sin la 002, la API responde
    `42501 permission denied for table ...` y ninguna politica RLS llega a
    evaluarse.
-
 3. `db/migrations/003_crear_emprendimiento_rpc.sql` -- alta atomica de
    emprendimiento. Sin ella, `POST /api/emprendimientos` falla con
    `new row violates row-level security policy`; el `INSERT ... RETURNING` que genera `.insert().select()`
@@ -111,12 +193,10 @@ Ejecutar en este orden en el SQL Editor de Supabase:
    identidad en una funcion `security definer` es un bypass de
    autorizacion. Reejecutala si ya tenias una version anterior: borra la
    firma vieja `crear_emprendimiento(text, uuid)`.
-
 4. `db/migrations/004_stock_tenant_check.sql` -- `ajustar_stock_*` son
    security definer (saltan RLS), asi que el chequeo de tenant va
    adentro de la funcion. Sin la 004, un usuario autenticado podria
    descontar stock del emprendimiento de otro llamando la RPC directo.
-
 5. `db/migrations/005_membresias_sin_autoalta.sql` -- cierra la escalada
    de tenant en las membresias. La policy de INSERT de
    `usuarios_emprendimientos` dejaba `emprendimiento_id` libre: cualquier
@@ -130,7 +210,7 @@ Ejecutar en este orden en el SQL Editor de Supabase:
    aplicada.
 
 > **Si ya corriste la 001 antes, volve a ejecutarla.** Agrega el trigger
-> `on_auth_user_created` sobre `auth.users` y un _backfill_ que repara las
+> `on_auth_user_created` sobre `auth.users` y un *backfill* que repara las
 > cuentas que ya existen en Auth sin fila en `public.usuarios`. Ver
 > "El espejo `usuarios`" mas abajo.
 
@@ -146,7 +226,7 @@ Ejecutar en este orden en el SQL Editor de Supabase:
 usuario que existe en Auth pero no en `usuarios` es un estado invalido, y
 su sintoma no aparece donde se origino:
 
-```
+```text
 insert or update on table "usuarios_emprendimientos" violates foreign key
 constraint "usuarios_emprendimientos_usuario_id_fkey"
 Key (usuario_id)=(...) is not present in table "usuarios".   -- 23503
@@ -227,11 +307,11 @@ stock y creacion de pedidos. Para eso, el ciclo completo es:
 # 1. Aplicar db/migrations/001_schema_v2.sql en Supabase
 # 2. Crear un usuario (password min. 8 caracteres; el nombre del
 #    emprendimiento va anidado en "emprendimiento")
-curl -X POST http://localhost:3000/api/auth/register -H "Content-Type: application/json" \
+curl -X POST http://localhost:3001/api/auth/register -H "Content-Type: application/json" \
   -d '{"email":"yo@emprendimiento.com","password":"clave12345",
        "emprendimiento":{"nombre":"Mi emprendimiento"}}'
 # 3. Login y seguir con el token
-curl -X POST http://localhost:3000/api/auth/login -H "Content-Type: application/json" \
+curl -X POST http://localhost:3001/api/auth/login -H "Content-Type: application/json" \
   -d '{"email":"yo@emprendimiento.com","password":"clave12345"}'
 ```
 
@@ -264,7 +344,7 @@ resuelve solo.
 ## Ejemplo: pedido manual
 
 ```bash
-curl -X POST http://localhost:3000/api/pedidos \
+curl -X POST http://localhost:3001/api/pedidos \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -272,7 +352,6 @@ curl -X POST http://localhost:3000/api/pedidos \
         "estadoCobro": "PENDIENTE",
         "modalidadEntrega": "RETIRO"
       }'
-      ']}
 ```
 
 Se crea con `origen_tipo = MANUAL`, `canal_id = NULL` y reserva stock.
@@ -280,7 +359,7 @@ Se crea con `origen_tipo = MANUAL`, `canal_id = NULL` y reserva stock.
 ## Ejemplo: webhook de Telegram
 
 ```bash
-curl -X POST http://localhost:3000/webhooks/telegram \
+curl -X POST http://localhost:3001/webhooks/telegram \
   -H "Content-Type: application/json" \
   -d '{"update_id":1,"message":{"message_id":42,
        "from":{"id":987,"first_name":"Juan"},
@@ -290,7 +369,7 @@ curl -X POST http://localhost:3000/webhooks/telegram \
 Para que funcione, el canal debe estar registrado:
 
 ```bash
-curl -X POST http://localhost:3000/api/canales \
+curl -X POST http://localhost:3001/api/canales \
   -H "Authorization: Bearer <token>" -H "Content-Type: application/json" \
   -d '{"tipo":"TELEGRAM","identificadorExterno":"tg_987","nombre":"Bot principal"}'
 ```

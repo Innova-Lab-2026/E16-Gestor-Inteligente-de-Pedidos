@@ -3,14 +3,20 @@
 export type RegisterState = {
   error?: string;
   success?: string;
+  pendienteConfirmacion?: boolean;
 };
 
 export async function register(
   _previousState: RegisterState,
   formData: FormData,
 ): Promise<RegisterState> {
+  const apiUrl = process.env.BACKEND_API_URL?.replace(/\/+$/, "");
+  if (!apiUrl) {
+    return { error: "No pudimos conectar con el servidor. Intentá nuevamente." };
+  }
+
   try {
-    const response = await fetch(`${process.env.API_URL}/auth/register`, {
+    const response = await fetch(`${apiUrl}/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -53,8 +59,17 @@ export async function register(
       };
     }
 
+    const resultado = await response.json();
+    if (resultado.pendienteConfirmacion) {
+      return {
+        success: "Cuenta creada. Revisá tu email y confirmá la cuenta antes de iniciar sesión.",
+        pendienteConfirmacion: true,
+      };
+    }
+
     return {
       success: "Cuenta creada. Ya podés iniciar sesión con tu email y contraseña.",
+      pendienteConfirmacion: false,
     };
   } catch {
     return { error: "No pudimos conectar con el servidor. Intentá nuevamente." };

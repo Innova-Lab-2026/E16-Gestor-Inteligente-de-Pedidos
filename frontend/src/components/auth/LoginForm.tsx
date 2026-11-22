@@ -2,14 +2,16 @@
 
 import { useActionState, useState } from "react";
 import Link from "next/link";
-import { login } from "@/features/auth/actions";
+import { login, type LoginState } from "@/features/auth/actions";
 import { ROUTES } from "@/config/router";
 import styles from "./LoginScreen.module.css";
+
+const initialState: LoginState = {};
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [emailInvalid, setEmailInvalid] = useState(false);
-  const [state, formAction, isPending] = useActionState(login, {});
+  const [state, formAction, isPending] = useActionState(login, initialState);
 
   function validateEmail(form: HTMLFormElement) {
     const email = new FormData(form).get("email")?.toString().trim() ?? "";
