@@ -10,11 +10,16 @@ const router = Router();
 const controller = new AuthController();
 
 // Público: alta de usuario (Supabase Auth) y login.
-router.post("/register", validate({ body: registerSchema }), controller.register);
+router.post(
+  "/register",
+  validate({ body: registerSchema }),
+  controller.register,
+);
 router.post("/login", validate({ body: loginSchema }), controller.login);
 
 // Protegido: perfil del usuario autenticado.
 router.get("/me", authMiddleware, controller.me);
+
 router.put(
   "/me",
   authMiddleware,
@@ -28,7 +33,7 @@ router.put(
         message: "Debe enviarse 'metadata' o 'password'",
       }),
   }),
-  controller.updateMe
+  controller.updateMe,
 );
 
 export default router;

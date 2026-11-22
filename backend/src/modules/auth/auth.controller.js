@@ -34,30 +34,39 @@ export class AuthController {
   /** POST /api/auth/login */
   login = async (req, res) => {
     const { email, password } = req.validated.body;
+
     const resultado = await this.authService.login({ email, password });
+
     return res.status(200).json(resultado);
   };
 
   /** GET /api/auth/me (protegido) */
   me = async (req, res) => {
     const user = await this.authService.me(req.userToken);
-    return res.status(200).json({
-      id: user.id,
-      email: user.email,
-      user_metadata: user.user_metadata,
-      created_at: user.created_at,
-    });
+
+    const response = {
+      userId: user.id,
+      nombre: user.nombre || user.email,
+      role: user.user_metadata?.role === "admin" ? "admin" : "cliente",
+    };
+
+    return res.status(200).json(response);
   };
 
   /** PUT /api/auth/me (protegido) */
   updateMe = async (req, res) => {
     const { metadata, password } = req.validated.body;
+
     const user = await this.authService.update({
       userToken: req.userToken,
       metadata,
       password,
     });
-    return res.status(200).json({ message: "Usuario actualizado", user });
+
+    return res.status(200).json({
+      message: "Usuario actualizado",
+      user,
+    });
   };
 }
 

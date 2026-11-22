@@ -150,7 +150,29 @@ export class AuthService {
     if (error || !data?.user) {
       throw new UnauthorizedError("Token inválido o expirado");
     }
-    return data.user;
+    const user = data.user;
+
+    // Resolver nombre según la jerarquía:
+    // 1) user_metadata.nombre (dato personal en Supabase Auth)
+    // 2) perfil.public.usuarios.nombre (espejo de base de datos)
+    // 3) fallback: email del usuario (razonable y siempre disponible)
+    let nombre = user.user_metadata?.nombre;
+    if (!nombre) {
+      const usuarioDao = this.usuarioDaoFactory ?? ((token) => new UsuarioDao(token));
+      const perfil = await usuarioDao(userToken).findById(user.id);
+      if (perfil && perfil.nombre) {
+        nombre = perfil.nombre;
+      }
+    }
+    if (!nombre) {
+      nombre = user.email;
+    }
+
+    // Construir objeto de respuesta parcialmente enriquecido para el controller
+    return {
+      ...user,
+      nombre,
+    };
   }
 
   /** Actualiza metadatos o contraseña del usuario autenticado. */
