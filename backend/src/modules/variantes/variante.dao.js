@@ -23,7 +23,7 @@ export class VarianteDao {
       : createSecretClient();
   }
 
-  async create({ productoId, nombre, stock_disponible = 0, stock_minimo = 0, activo = true }) {
+  async create({ productoId, nombre, stock_disponible = 0, stock_minimo = 0, activo = true, atributos = {} }) {
     const { data, error } = await this.#client()
       .from("variantes")
       .insert({
@@ -32,6 +32,8 @@ export class VarianteDao {
         stock_disponible,
         stock_minimo,
         activo,
+        // Atributos de la variante (talle/color, etc.) — migración 009
+        atributos,
       })
       .select()
       .single();

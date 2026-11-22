@@ -21,15 +21,21 @@ export class ClienteDao {
       : createSecretClient();
   }
 
-  async create({ emprendimientoId, nombre, telefono, direccion, observaciones }) {
+  async create({ emprendimientoId, nombre, apellido, telefono, direccion, observaciones, tipo_documento, numero_documento, email, foto_url, condicion }) {
     const { data, error } = await this.#client()
       .from("clientes")
       .insert({
         emprendimiento_id: emprendimientoId,
         nombre,
+        apellido: apellido ?? null,
         telefono: telefono ?? null,
         direccion: direccion ?? null,
         observaciones: observaciones ?? null,
+        tipo_documento: tipo_documento ?? null,
+        numero_documento: numero_documento ?? null,
+        email: email ?? null,
+        foto_url: foto_url ?? null,
+        condicion: condicion ?? "OK",
       })
       .select()
       .single();

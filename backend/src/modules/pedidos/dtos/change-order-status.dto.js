@@ -6,6 +6,8 @@ export const changeOrderStatusSchema = z.object({
   estado: z.enum(Object.values(ORDER_STATUS), {
     errorMap: () => ({ message: "Estado de pedido inválido" }),
   }),
+  /** Motivo de cancelación; solo se usa cuando estado = CANCELADO. */
+  motivo: z.string().trim().max(500).optional(),
 });
 
 export const changePaymentStatusSchema = z.object({

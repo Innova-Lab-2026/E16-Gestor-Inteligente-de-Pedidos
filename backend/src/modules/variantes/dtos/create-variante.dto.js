@@ -5,6 +5,8 @@ export const createVarianteSchema = z.object({
   stock_disponible: z.coerce.number().int().min(0).default(0),
   stock_minimo: z.coerce.number().int().min(0).default(0),
   activo: z.boolean().default(true),
+  // Atributos de la variante, ej. { talle: "L", color: "Azul" } (migración 009)
+  atributos: z.record(z.string()).optional().default({}),
 });
 
 export const updateVarianteSchema = z.object({
@@ -12,6 +14,7 @@ export const updateVarianteSchema = z.object({
   stock_disponible: z.coerce.number().int().min(0).optional(),
   stock_minimo: z.coerce.number().int().min(0).optional(),
   activo: z.boolean().optional(),
+  atributos: z.record(z.string()).optional(),
 });
 
 export default createVarianteSchema;

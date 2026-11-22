@@ -1,4 +1,3 @@
-// modules/productos/dtos/create-producto.dto.js
 import { z } from "zod";
 
 export const createProductoSchema = z.object({
@@ -13,6 +12,12 @@ export const createProductoSchema = z.object({
   stock_minimo: z.coerce.number().int().min(0).default(0),
   identificador_externo: z.string().trim().max(100).optional(),
   sku_o_identificador: z.string().trim().max(100).optional(),
+  // Nuevos campos del catálogo (migración 009)
+  foto_url: z.string().url().optional().nullable(),
+  marca: z.string().trim().max(100).optional().nullable(),
+  modelo: z.string().trim().max(100).optional().nullable(),
+  genero: z.string().trim().max(30).optional().nullable(),
+  tipos_variante: z.array(z.string()).optional().default([]),
 });
 
 export const updateProductoSchema = z.object({
@@ -24,4 +29,11 @@ export const updateProductoSchema = z.object({
   stock_disponible: z.coerce.number().int().min(0).nullable().optional(),
   stock_minimo: z.coerce.number().int().min(0).optional(),
   identificador_externo: z.string().trim().max(100).optional(),
+  sku_o_identificador: z.string().trim().max(100).optional(),
+  // Nuevos campos del catálogo (migración 009)
+  foto_url: z.string().url().optional().nullable(),
+  marca: z.string().trim().max(100).optional().nullable(),
+  modelo: z.string().trim().max(100).optional().nullable(),
+  genero: z.string().trim().max(30).optional().nullable(),
+  tipos_variante: z.array(z.string()).optional(),
 });

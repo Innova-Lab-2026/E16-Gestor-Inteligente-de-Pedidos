@@ -202,7 +202,7 @@ export class PedidoService {
    * transiciones no toca inventario.
    * @param {{ emprendimientoId: string, id: string, estado: string }} params
    */
-  async changeStatus({ emprendimientoId, id, estado }) {
+  async changeStatus({ emprendimientoId, id, estado, motivo }) {
     const pedido = await this.pedidoDao.findByIdOrFail(
       emprendimientoId,
       id
@@ -211,12 +211,9 @@ export class PedidoService {
     const actualizado = await this.pedidoDao.updateEstado(
       emprendimientoId,
       id,
-      estado
+      estado,
+      motivo
     );
-
-    if (estado === ORDER_STATUS.CANCELADO) {
-      await this.#restituirSiCorresponde(emprendimientoId, pedido);
-    }
 
     return actualizado;
   }
@@ -255,31 +252,6 @@ export class PedidoService {
       conItems: false,
     });
     return this.pedidoDao.eventosDe(id);
-  }
-
-  /**
-   * Devuelve el stock de un pedido cancelado exactamente una vez.
-   * @param {string} emprendimientoId
-   * @param {object} pedido
-   */
-  async #restituirSiCorresponde(emprendimientoId, pedido) {
-    const { reservado, restituido } =
-      await this.pedidoDao.estadoStock(pedido.id);
-
-    if (!reservado || restituido) return [];
-
-    const items = await this.pedidoDao.itemsDe(pedido.id);
-
-    return this.stockService.restituirPedido({
-      emprendimientoId,
-      pedidoId: pedido.id,
-      items: items.map((item) => ({
-        productoId: item.producto_id,
-        varianteId: item.variante_id,
-        cantidad: item.cantidad,
-      })),
-      motivo: `Restitución por cancelación del pedido ${pedido.id}`,
-    });
   }
 
 }

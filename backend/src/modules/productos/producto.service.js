@@ -35,6 +35,12 @@ export class ProductoService {
       stock_minimo: Number(dto.stock_minimo) || 0,
       identificador_externo: dto.identificador_externo ?? null,
       sku_o_identificador: dto.sku_o_identificador ?? null,
+      // Nuevos campos del catálogo (migración 009)
+      foto_url: dto.foto_url ?? null,
+      marca: dto.marca ?? null,
+      modelo: dto.modelo ?? null,
+      genero: dto.genero ?? null,
+      tipos_variante: dto.tipos_variante ?? [],
     };
 
     return this.productoDao.create(payloadParaDao);

@@ -25,6 +25,12 @@ export class ProductoDao {
       stock_minimo: data.stock_minimo,
       identificador_externo: data.identificador_externo,
       sku_o_identificador: data.sku_o_identificador,
+      // Nuevos campos del catálogo (migración 009)
+      foto_url: data.foto_url ?? null,
+      marca: data.marca ?? null,
+      modelo: data.modelo ?? null,
+      genero: data.genero ?? null,
+      tipos_variante: data.tipos_variante ?? [],
     };
 
     const { data: result, error } = await this.#client()

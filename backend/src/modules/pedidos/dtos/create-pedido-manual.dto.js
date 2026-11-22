@@ -17,6 +17,12 @@ const itemSchema = z.object({
 export const createPedidoManualSchema = z.object({
   cliente_id: z.string().uuid().nullable().optional(),
   modalidad_entrega: z.enum(Object.values(DELIVERY_MODE)).optional(),
+  /** Dirección de entrega para envíos (migración 008). */
+  direccion_entrega: z.string().max(500).optional(),
+  /** Fecha/hora prevista de entrega (migración 009). */
+  hora_prevista_entrega: z.string().time().optional(),
+  /** Medio(s) de pago elegidos (migración 009). */
+  medios_pago: z.array(z.string()).optional(),
   fecha_prevista_entrega: z.string().date().optional(),
   estado_cobro: z.enum(Object.values(PAYMENT_STATUS)).default(PAYMENT_STATUS.PENDIENTE),
   observaciones: z.string().max(2000).optional(),
@@ -35,6 +41,12 @@ export const createPedidoChannelSchema = z.object({
   requiere_revision: z.boolean().default(false),
   motivo_revision: z.string().max(2000).optional(),
   modalidad_entrega: z.enum(Object.values(DELIVERY_MODE)).optional(),
+  /** Dirección de entrega para envíos (migración 008). */
+  direccion_entrega: z.string().max(500).optional(),
+  /** Fecha/hora prevista de entrega (migración 009). */
+  hora_prevista_entrega: z.string().time().optional(),
+  /** Medio(s) de pago elegidos (migración 009). */
+  medios_pago: z.array(z.string()).optional(),
   fecha_prevista_entrega: z.string().date().optional(),
   estado_cobro: z.enum(Object.values(PAYMENT_STATUS)).default(PAYMENT_STATUS.PENDIENTE),
   observaciones: z.string().max(2000).optional(),

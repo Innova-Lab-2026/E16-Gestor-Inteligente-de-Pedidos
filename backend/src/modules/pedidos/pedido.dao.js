@@ -143,6 +143,7 @@ export class PedidoDao {
       p_emprendimiento_id: emprendimientoId,
       p_pedido_id: id,
       p_nuevo_estado: nuevoEstado,
+      p_motivo: motivo,
     });
     if (error) throw error;
     return data;
