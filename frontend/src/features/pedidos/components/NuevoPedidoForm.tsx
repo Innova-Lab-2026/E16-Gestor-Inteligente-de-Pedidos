@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { Producto, Variante } from "@/features/catalogo/types";
+import type { Producto, Variante } from "@/app/(app)/catalogo/types";
 import type { Cliente } from "@/features/clientes/types";
 import { crearClienteAction } from "@/features/clientes/actions";
 import { crearPedidoManualAction } from "../actions";
@@ -226,7 +226,7 @@ export default function NuevoPedidoForm({
                   className="h-10 w-full rounded-full border-2 border-[#102a39] bg-white px-3 text-xs focus:outline-none"
                 >
                   <option value="">Elegir variante...</option>
-                  {(prod.variantes ?? []).map((v) => (
+                  {(prod.variantes ?? []).map((v: Variante) => (
                     <option key={v.id} value={v.id}>
                       {v.nombre} ({v.stock_disponible} disp.)
                     </option>
