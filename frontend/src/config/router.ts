@@ -13,6 +13,7 @@ export const PROTECTED_PREFIXES = [
   "/catalogo",
   "/stock",
   "/clientes",
+  "/numeros",
   "/configuracion",
 ];
 

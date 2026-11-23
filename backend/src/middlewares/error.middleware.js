@@ -1,45 +1,26 @@
-import { AppError } from "../errors/app-error.js";
-import { logger } from "../utils/logger.js";
+export function notFoundMiddleware(req, res, _next) {
+  const msg = `Ruta no encontrada: ${req.method} ${req.originalUrl}`;
+  return res.status(404).json({ error: msg, message: msg });
+}
 
-/** 404 para rutas no registradas. */
-export const notFoundMiddleware = (req, res) => {
-  res.status(404).json({
-    error: { code: "NOT_FOUND", message: `Ruta no encontrada: ${req.method} ${req.originalUrl}` },
-  });
-};
+export function errorMiddleware(err, req, res, _next) {
+  console.error("[Backend Error]", req.method, req.originalUrl, err);
 
-/**
- * Middleware centralizado de errores.
- * Los AppError se serializan con su statusCode; el resto es 500
- * y no se filtra el detalle al cliente.
- */
-// eslint-disable-next-line no-unused-vars -- Express detecta el handler por aridad 4
-export const errorMiddleware = (error, req, res, next) => {
-  if (error instanceof AppError) {
-    logger.warn(`[${error.code}] ${error.message}`);
-    return res.status(error.statusCode).json({
-      error: { code: error.code, message: error.message, details: error.details },
-    });
+  if (err?.name === "ZodError") {
+    const detalle = (err.issues || err.errors || [])
+      .map((i) => i.message)
+      .join(", ");
+    const msg = detalle || "Datos de entrada inválidos";
+    return res.status(400).json({ error: msg, message: msg });
   }
 
-  logger.error("Error no controlado", error);
+  const status = err?.statusCode || err?.status || 500;
+  const msg =
+    status < 500 || process.env.NODE_ENV !== "production"
+      ? err?.message || "Error interno del servidor"
+      : "Error interno del servidor";
 
-  return res.status(500).json({
-    error: {
-      code: "INTERNAL_ERROR",
-      message: "Error interno del servidor",
-      details: process.env.NODE_ENV === "development" ? error.message : undefined,
-    },
-  });
-};
-
-/**
- * Envuelve un handler async para que los rechazos lleguen a Express 5
- * (que ya soporta promesas, pero mantenemos el helper para handlers
- * compuestos y para tests unitarios).
- * @param {Function} handler
- */
-export const asyncHandler = (handler) => (req, res, next) =>
-  Promise.resolve(handler(req, res, next)).catch(next);
+  return res.status(status).json({ error: msg, message: msg });
+}
 
 export default errorMiddleware;

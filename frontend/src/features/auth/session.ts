@@ -6,18 +6,24 @@ import type { Session } from "./types";
 // cache() avoids repeated backend calls within one request.
 export const getSession = cache(async (): Promise<Session | null> => {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
-  if (!token) return null;
-  if (process.env.AUTH_MOCK === "true") {
+  //console.log(token)
+  /*if (!token) return null;
+    return {
+      userId: "1",
+      nombre: "Admin Test",
+      role: "admin",
+    };*/
+  /*if (process.env.AUTH_MOCK === "true") {
     if (token === "admin") return { userId: "1", nombre: "Admin Test", role: "admin" };
     if (token === "cliente") return { userId: "2", nombre: "Cliente Test", role: "cliente" };
     return null;
-  }
+  }*/
 
   const apiUrl = process.env.BACKEND_API_URL?.replace(/\/+$/, "");
   if (!apiUrl) return null;
 
   try {
-    const res = await fetch(`${apiUrl}/auth/me`, {
+    const res = await fetch(`${apiUrl}/api/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     });
