@@ -15,11 +15,16 @@ export default async function AppLayout({
   const nombreEmprendimiento = data?.[0]?.nombre ?? "Mi emprendimiento";
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-white text-[#102a39] shadow-sm">
-      <header
-        className="flex items-center justify-between bg-cover bg-top px-5 pt-5 pb-4"
-        style={{ backgroundImage: 'url("/images/cuadricula-bg.png")' }}
-      >
+    <div
+      className="mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-white text-[#102a39] shadow-sm"
+      style={{
+        backgroundImage: 'url("/images/cuadricula-bg.png")',
+        backgroundPosition: "top",
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "100% 260px",
+      }}
+    >
+      <header className="flex items-center justify-between px-5 pt-5 pb-4">
         <Link
           href="/dashboard"
           className="font-[family-name:var(--font-bungee-shade)] text-2xl text-[#7622ed]"

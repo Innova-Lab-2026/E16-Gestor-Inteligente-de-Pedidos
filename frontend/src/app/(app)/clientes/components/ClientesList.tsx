@@ -81,8 +81,20 @@ export default function ClientesList({ clientes }: { clientes: Cliente[] }) {
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           placeholder="Buscar por nombre, teléfono o DNI..."
-          className="h-11 w-full rounded-full border-2 border-[#102a39] bg-white px-4 text-sm text-[#102a39] placeholder:text-[#586574] focus:outline-none"
+          className="h-11 w-full rounded-full border-2 border-[#102a39] bg-white px-4 pr-11 text-sm text-[#102a39] placeholder:text-[#586574] focus:outline-none"
         />
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          className="pointer-events-none absolute top-1/2 right-4 h-4 w-4 -translate-y-1/2 text-[#586574]"
+        >
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-4-4" />
+        </svg>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -116,25 +128,34 @@ export default function ClientesList({ clientes }: { clientes: Cliente[] }) {
             .join(" ");
           const badge =
             BADGE_CONDICION[cliente.condicion] ?? BADGE_CONDICION.OK;
+          const iniciales = `${cliente.nombre.trim().charAt(0)}${
+            cliente.apellido?.trim().charAt(0) ?? ""
+          }`.toUpperCase();
 
           return (
             <Link
               key={cliente.id}
               href={`/clientes/${cliente.id}`}
-              className="flex items-center justify-between rounded-2xl border border-[#e2e8f0] bg-white p-4 shadow-xs transition hover:border-[#7622ed]"
+              className="flex items-start gap-3 rounded-2xl border border-[#e2e8f0] bg-white p-4 shadow-xs transition hover:border-[#7622ed]"
             >
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#7622ed]/10 text-sm font-bold text-[#7622ed]">
+                {iniciales}
+              </div>
+              <div className="min-w-0 flex-1 space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
                   <h2 className="font-bold text-[#102a39]">{nombreCompleto}</h2>
-                  {cliente.condicion !== "OK" && (
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${badge.className}`}
-                    >
-                      {badge.label}
-                    </span>
-                  )}
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${badge.className}`}
+                  >
+                    {badge.label === "OK" ? "Ok" : badge.label}
+                  </span>
                 </div>
 
+                {cliente.observaciones && (
+                  <p className="text-xs text-[#586574]">
+                    {cliente.observaciones}
+                  </p>
+                )}
                 {cliente.telefono && (
                   <p className="text-xs text-[#586574]">
                     Tel: {cliente.telefono}
@@ -148,7 +169,7 @@ export default function ClientesList({ clientes }: { clientes: Cliente[] }) {
                 )}
               </div>
 
-              <span className="text-lg font-bold text-[#586574]">›</span>
+              <span className="pt-1 text-lg font-bold text-[#586574]">›</span>
             </Link>
           );
         })}

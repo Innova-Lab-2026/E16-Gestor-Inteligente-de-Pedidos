@@ -62,8 +62,20 @@ export default function CatalogoList({ productos }: { productos: Producto[] }) {
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           placeholder="Buscar producto..."
-          className="h-11 w-full rounded-full border-2 border-[#102a39] bg-white px-4 text-sm text-[#102a39] placeholder:text-[#586574] focus:outline-none"
+          className="h-11 w-full rounded-full border-2 border-[#102a39] bg-white px-4 pr-11 text-sm text-[#102a39] placeholder:text-[#586574] focus:outline-none"
         />
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          className="pointer-events-none absolute top-1/2 right-4 h-4 w-4 -translate-y-1/2 text-[#586574]"
+        >
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-4-4" />
+        </svg>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -102,20 +114,55 @@ export default function CatalogoList({ productos }: { productos: Producto[] }) {
             !producto.tiene_variantes &&
             stock > 0 &&
             stock <= (producto.stock_minimo ?? 0);
+          const cantidadVariantes = producto.variantes?.length ?? 0;
 
           return (
             <Link
               key={producto.id}
               href={`/catalogo/${producto.id}`}
-              className="flex items-center justify-between rounded-2xl border border-[#e2e8f0] bg-white p-4 shadow-xs transition hover:border-[#7622ed]"
+              className="flex items-center gap-3 rounded-2xl border border-[#e2e8f0] bg-white p-4 shadow-xs transition hover:border-[#7622ed]"
             >
-              <div className="space-y-1">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-[#586574]">
+                {producto.activo ? (
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-6 w-6"
+                  >
+                    <path d="m12 3 9 5-9 5-9-5 9-5Z" />
+                    <path d="M3 8v9l9 5 9-5V8M12 13v9" />
+                  </svg>
+                ) : (
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-6 w-6"
+                  >
+                    <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="m4 4 16 16" />
+                  </svg>
+                )}
+              </div>
+              <div className="min-w-0 flex-1 space-y-1">
                 <h2 className="font-bold text-[#102a39]">{producto.nombre}</h2>
                 <p className="text-xs text-[#586574]">
                   ${Number(producto.precio).toLocaleString("es-AR")}
-                  {producto.tiene_variantes
-                    ? " · Con variantes"
-                    : " · Sin variantes"}
+                  {producto.activo
+                    ? producto.tiene_variantes
+                      ? ` · ${cantidadVariantes} variantes`
+                      : " · Sin variantes"
+                    : " / no se vende"}
                 </p>
                 <div className="flex flex-wrap gap-1.5 pt-1">
                   {!producto.activo && (
@@ -136,7 +183,7 @@ export default function CatalogoList({ productos }: { productos: Producto[] }) {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex shrink-0 items-center gap-2">
                 {!producto.tiene_variantes && (
                   <span className="text-sm font-bold text-[#102a39]">{stock} u.</span>
                 )}

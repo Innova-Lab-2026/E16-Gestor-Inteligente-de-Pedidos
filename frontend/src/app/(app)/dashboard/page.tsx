@@ -271,75 +271,84 @@ export default async function DashboardPage() {
               </div>
             )}
 
-            {/* Últimos pedidos */}
-            <div className="space-y-3 rounded-2xl border border-[#e2e8f0] bg-white p-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-bold text-[#102a39]">
-                  Últimos pedidos
-                </h2>
-                <Link
-                  href="/pedidos"
-                  className="text-xs font-bold text-[#7622ed]"
-                >
-                  Gestionar ›
-                </Link>
-              </div>
-
-              {resumen.ultimosPedidos.length === 0 ? (
-                <p className="py-4 text-center text-xs text-[#586574]">
-                  Todavía no hay pedidos registrados.
+            {resumen.cantidadPedidos === 0 ? (
+              <div className="flex min-h-48 flex-col items-center justify-center rounded-2xl border border-[#e2e8f0] bg-white p-6 text-center">
+                <p className="max-w-sm text-sm leading-6 text-[#586574]">
+                  No tenés pedidos para hoy. Cuando ingrese uno nuevo por
+                  WhatsApp, lo vas a ver acá. Si te piden algo en persona,
+                  cargalo con el botón +.
                 </p>
-              ) : (
-                <div className="divide-y divide-[#e2e8f0]">
-                  {resumen.ultimosPedidos.map((pedido) => {
-                    const num = pedido.numero ?? pedido.numero_pedido;
-                    return (
-                      <Link
-                        key={pedido.id}
-                        href={`/pedidos/${pedido.id}`}
-                        className="flex items-center justify-between py-2.5 text-sm transition hover:opacity-80"
-                      >
-                        <div className="space-y-0.5">
-                          <p className="font-bold text-[#102a39]">
-                            {num ? `Pedido #${num}` : "Pedido"}
-                            {pedido.cliente?.nombre
-                              ? ` · ${pedido.cliente.nombre}`
-                              : ""}
-                          </p>
-                          <div className="flex items-center gap-1.5">
-                            <span className="rounded-full bg-[#7622ed]/10 px-2 py-0.5 text-[11px] font-bold text-[#7622ed]">
-                              {ETIQUETA_ESTADO[pedido.estado] ?? pedido.estado}
-                            </span>
-                            {pedido.estado_cobro && (
-                              <span
-                                className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                                  pedido.estado_cobro === "PAGADO"
-                                    ? "bg-emerald-100 text-emerald-800"
-                                    : "bg-amber-100 text-amber-800"
-                                }`}
-                              >
-                                {pedido.estado_cobro === "PAGADO"
-                                  ? "Cobrado"
-                                  : "Pendiente"}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-extrabold text-[#102a39]">
-                            ${Number(pedido.total).toLocaleString("es-AR")}
-                          </span>
-                          <span className="text-base font-bold text-[#586574]">
-                            ›
-                          </span>
-                        </div>
-                      </Link>
-                    );
-                  })}
+              </div>
+            ) : (
+              <div className="space-y-3 rounded-2xl border border-[#e2e8f0] bg-white p-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-bold text-[#102a39]">
+                    Últimos pedidos
+                  </h2>
+                  <Link
+                    href="/pedidos"
+                    className="text-xs font-bold text-[#7622ed]"
+                  >
+                    Gestionar ›
+                  </Link>
                 </div>
-              )}
-            </div>
+
+                {resumen.ultimosPedidos.length === 0 ? (
+                  <p className="py-4 text-center text-xs text-[#586574]">
+                    Todavía no hay pedidos registrados.
+                  </p>
+                ) : (
+                  <div className="divide-y divide-[#e2e8f0]">
+                    {resumen.ultimosPedidos.map((pedido) => {
+                      const num = pedido.numero ?? pedido.numero_pedido;
+                      return (
+                        <Link
+                          key={pedido.id}
+                          href={`/pedidos/${pedido.id}`}
+                          className="flex items-center justify-between py-2.5 text-sm transition hover:opacity-80"
+                        >
+                          <div className="space-y-0.5">
+                            <p className="font-bold text-[#102a39]">
+                              {num ? `Pedido #${num}` : "Pedido"}
+                              {pedido.cliente?.nombre
+                                ? ` · ${pedido.cliente.nombre}`
+                                : ""}
+                            </p>
+                            <div className="flex items-center gap-1.5">
+                              <span className="rounded-full bg-[#7622ed]/10 px-2 py-0.5 text-[11px] font-bold text-[#7622ed]">
+                                {ETIQUETA_ESTADO[pedido.estado] ?? pedido.estado}
+                              </span>
+                              {pedido.estado_cobro && (
+                                <span
+                                  className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                                    pedido.estado_cobro === "PAGADO"
+                                      ? "bg-emerald-100 text-emerald-800"
+                                      : "bg-amber-100 text-amber-800"
+                                  }`}
+                                >
+                                  {pedido.estado_cobro === "PAGADO"
+                                    ? "Cobrado"
+                                    : "Pendiente"}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-extrabold text-[#102a39]">
+                              ${Number(pedido.total).toLocaleString("es-AR")}
+                            </span>
+                            <span className="text-base font-bold text-[#586574]">
+                              ›
+                            </span>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </>
         )
       )}

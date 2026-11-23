@@ -9,7 +9,7 @@ export default async function CatalogoPage() {
       <div>
         <h1 className="text-2xl font-bold text-[#102a39]">Catálogo</h1>
         <p className="text-sm text-[#586574]">
-          Listado de productos. Controlá precios y stock.
+          Listado de productos. Editalos con un solo click.
         </p>
       </div>
 
