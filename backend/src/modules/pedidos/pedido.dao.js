@@ -16,11 +16,6 @@ export class PedidoDao {
   }
 
   #client() {
-    // Unico lugar del backend que usa la clave secreta: un webhook llega
-    // de Telegram/Meta, sin JWT, asi que RLS no tiene identidad que
-    // evaluar. El emprendimiento sale del canal registrado
-    // (canales.identificador_externo), nunca de un dato del request; los
-    // DAOs filtran siempre por ese id. Todo otro flujo llega con token.
     return this.token
       ? createSupabaseClient(this.token)
       : createSecretClient();
@@ -124,7 +119,7 @@ export class PedidoDao {
    * Cambia el estado validando la transición contra la máquina de estados.
    * @returns {Promise<object>} el pedido actualizado
    */
-  async updateEstado(emprendimientoId, id, nuevoEstado) {
+  async updateEstado(emprendimientoId, id, nuevoEstado, motivo = null) {
     const pedido = await this.findById(emprendimientoId, id, { conItems: false });
     if (!pedido) throw new NotFoundError(`Pedido ${id} no encontrado`);
 
@@ -139,13 +134,29 @@ export class PedidoDao {
       );
     }
 
-    const { data, error } = await this.#client().rpc("cambiar_estado_pedido", {
+    const client = this.#client();
+    let { data, error } = await client.rpc("cambiar_estado_pedido", {
       p_emprendimiento_id: emprendimientoId,
       p_pedido_id: id,
       p_nuevo_estado: nuevoEstado,
-      p_motivo: motivo,
+      p_motivo: motivo ?? null,
     });
-    if (error) throw error;
+
+    if (error?.code === "PGRST202") {
+      ({ data, error } = await client.rpc("cambiar_estado_pedido", {
+        p_emprendimiento_id: emprendimientoId,
+        p_pedido_id: id,
+        p_nuevo_estado: nuevoEstado,
+      }));
+    }
+
+    if (error) {
+      console.error("[PedidoDao.updateEstado] Error en Supabase:", error);
+      throw new BadRequestError(
+        error.message || "Error de base de datos al actualizar el estado"
+      );
+    }
+
     return data;
   }
 
@@ -186,10 +197,6 @@ export class PedidoDao {
     return data || [];
   }
 
-  /**
-   * Estado del stock de un pedido, para no reservar ni restituir dos veces.
-   * @param {string} pedidoId
-   */
   async estadoStock(pedidoId) {
     const { data, error } = await this.#client()
       .from("movimientos_stock")

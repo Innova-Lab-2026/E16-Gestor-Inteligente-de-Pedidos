@@ -36,11 +36,12 @@ export class PedidoController {
   /** PATCH /api/pedidos/:id/estado */
   changeStatus = async (req, res) => {
     const { id } = req.validated.params;
-    const { estado } = req.validated.body;
+    const { estado, motivo } = req.validated.body;
     const result = await this.#service(req).changeStatus({
       emprendimientoId: req.tenant.id,
       id,
       estado,
+      motivo,
     });
     return res.status(200).json(result);
   };
@@ -48,11 +49,11 @@ export class PedidoController {
   /** PATCH /api/pedidos/:id/cobro */
   changePaymentStatus = async (req, res) => {
     const { id } = req.validated.params;
-    const { estadoCobro } = req.validated.body;
+    const { estado_cobro } = req.validated.body;
     const result = await this.#service(req).changePaymentStatus({
       emprendimientoId: req.tenant.id,
       id,
-      estadoCobro,
+      estado_cobro,
     });
     return res.status(200).json(result);
   };
