@@ -75,4 +75,4 @@ Un panel operativo que centraliza pedidos (manuales y provenientes de WhatsApp),
 
 ## Licencia
 
-TBA
+Ver 0.0.0.1
