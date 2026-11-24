@@ -269,6 +269,12 @@ export default async function DashboardPage() {
                   WhatsApp, lo vas a ver acá. Si te piden algo en persona,
                   cargalo con el botón +.
                 </p>
+                <Link
+                  href="/pedidos/nuevo"
+                  className="mt-4 rounded-full bg-[#056184] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#044d69]"
+                >
+                  Cargar pedido
+                </Link>
               </div>
             ) : (
               <div className="space-y-3 rounded-2xl border border-[#e2e8f0] bg-white p-4">
