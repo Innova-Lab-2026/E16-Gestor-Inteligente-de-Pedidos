@@ -1,13 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { logout } from "@/features/auth/actions";
 import { useEmprendimiento } from "./EmprendimientoProvider";
 
 export default function EmprendimientoSelector() {
-  const router = useRouter();
   const {
     emprendimientos,
     emprendimientoActivo,
@@ -109,13 +107,18 @@ export default function EmprendimientoSelector() {
             <button
               type="button"
               role="menuitem"
-              onClick={() => {
-                setOpen(false);
-                router.push("/configuracion");
-              }}
-              className="block w-full rounded-xl px-3 py-3 text-left text-sm text-[#102a39] transition hover:bg-[#6D28D9]/5"
+              aria-disabled="true"
+              aria-label="Configuración (próximamente)"
+              title="Configuración (próximamente)"
+              className="flex w-full cursor-not-allowed items-center justify-between gap-3 rounded-xl px-3 py-3 text-left text-sm text-[#586574] opacity-75"
             >
-              Configuración
+              <span>Configuración</span>
+              <span
+                aria-hidden="true"
+                className="shrink-0 rounded-full bg-[#7622ed]/10 px-2 py-1 text-[10px] font-semibold text-[#7622ed]"
+              >
+                Próximamente
+              </span>
             </button>
             <form action={logout}>
               <button
