@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import styles from "@/components/auth/RegisterScreen.module.css";
 
-const productOptions = ["Facturas", "Farmacia", "Flores", "Otro"];
+const productOptions = ["Artesanía", "Indumentaria", "Comida", "Otro"];
 const channelOptions = ["WhatsApp", "Telegram", "Texto"] as const;
 const deliveryOptions = ["Retiro", "Envío"] as const;
 
@@ -51,7 +51,6 @@ export default function EmprendimientoSetupWizard({
   const [especialidad, setEspecialidad] = useState(
     initialValues?.especialidad ?? "",
   );
-  const [productSearch, setProductSearch] = useState("");
   const [productMenuOpen, setProductMenuOpen] = useState(false);
   const [canales, setCanales] = useState<string[]>(
     initialValues?.canales ?? [],
@@ -67,9 +66,6 @@ export default function EmprendimientoSetupWizard({
     initialValues?.direccionRetiro ?? "",
   );
 
-  const filteredProducts = productOptions.filter((option) =>
-    option.toLocaleLowerCase("es").includes(productSearch.toLocaleLowerCase("es")),
-  );
   const stepOneValid =
     nombre.trim().length > 0 &&
     rubro.length > 0 &&
@@ -160,75 +156,58 @@ export default function EmprendimientoSetupWizard({
             <div
               className={`${styles.productPicker} ${productMenuOpen ? styles.productPickerOpen : ""}`}
             >
-              <input
+              <button
                 id="product-type"
+                type="button"
                 role="combobox"
-                aria-autocomplete="list"
+                aria-haspopup="listbox"
                 aria-expanded={productMenuOpen}
                 aria-controls="product-options"
-                aria-label="Buscar tipo de producto"
-                placeholder="Escribí tu tipo de producto"
-                value={productSearch || rubro}
-                required
-                onFocus={() => {
-                  setProductSearch(rubro);
-                  setProductMenuOpen(true);
-                }}
-                onChange={(event) => {
-                  setRubro("");
-                  setEspecialidad("");
-                  setProductSearch(event.currentTarget.value);
-                  setProductMenuOpen(true);
-                }}
+                aria-label="¿Qué vendés?"
+                aria-required="true"
+                className={styles.productPickerButton}
+                onClick={() => setProductMenuOpen((open) => !open)}
                 onKeyDown={(event) => {
                   if (event.key === "Escape") setProductMenuOpen(false);
-                  if (event.key === "Enter" && filteredProducts.length === 1) {
-                    event.preventDefault();
-                    setRubro(filteredProducts[0]);
-                    setProductSearch("");
-                    setProductMenuOpen(false);
-                  }
                 }}
-              />
-              <SearchIcon />
+              >
+                <span className={rubro ? undefined : styles.productPlaceholder}>
+                  {rubro || "Seleccioná una opción"}
+                </span>
+                <ChevronDownIcon />
+              </button>
               {productMenuOpen && (
-                <ul
+                <div
                   className={styles.productOptions}
                   id="product-options"
                   role="listbox"
                 >
-                  {filteredProducts.map((option) => (
-                    <li
+                  {productOptions.map((option) => (
+                    <button
                       key={option}
+                      type="button"
                       role="option"
                       aria-selected={rubro === option}
+                      onClick={() => {
+                        setRubro(option);
+                        if (option !== "Otro") setEspecialidad("");
+                        setProductMenuOpen(false);
+                      }}
                     >
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setRubro(option);
-                          setProductSearch("");
-                          setProductMenuOpen(false);
-                        }}
-                      >
-                        {option}
-                      </button>
-                    </li>
+                      {option}
+                    </button>
                   ))}
-                  {filteredProducts.length === 0 && (
-                    <li className={styles.noOptions}>Sin resultados</li>
-                  )}
-                </ul>
+                </div>
               )}
             </div>
           </div>
 
           {rubro === "Otro" && (
             <label className={`${styles.businessField} ${styles.customProductField}`}>
-              <span>Contanos cuál es tu producto</span>
+              <span>Contanos la especialidad de tu emprendimiento</span>
               <input
                 name="customProduct"
-                placeholder="Ej: Ferretería"
+                placeholder="Ej: Cerámica artesanal"
                 required
                 value={especialidad}
                 onChange={(event) => setEspecialidad(event.currentTarget.value)}
@@ -412,15 +391,14 @@ function ArrowIcon() {
   );
 }
 
-function SearchIcon() {
+function ChevronDownIcon() {
   return (
     <svg
-      className={styles.searchIcon}
+      className={styles.productPickerChevron}
       viewBox="0 0 24 24"
       aria-hidden="true"
     >
-      <circle cx="10.8" cy="10.8" r="7.3" />
-      <path d="m16.2 16.2 5 5" />
+      <path d="m6 9 6 6 6-6" />
     </svg>
   );
 }

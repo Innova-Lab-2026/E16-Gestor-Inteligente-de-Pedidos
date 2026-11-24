@@ -302,8 +302,7 @@
   font-weight: 600;
 }
 
-.businessField > input,
-.productPicker > input {
+.businessField > input {
   width: 100%;
   height: 52px;
   border: 2px solid #102a39;
@@ -316,8 +315,7 @@
   outline-offset: 2px;
 }
 
-.businessField > input::placeholder,
-.productPicker > input::placeholder {
+.businessField > input::placeholder {
   color: #586574;
   opacity: 1;
 }
@@ -332,26 +330,44 @@
   position: relative;
 }
 
-.productPicker > input {
-  padding-right: 54px;
+.productPickerButton {
+  display: flex;
+  width: 100%;
+  height: 52px;
+  align-items: center;
+  justify-content: space-between;
+  border: 2px solid #102a39;
+  border-radius: 28px;
+  padding: 0 20px;
+  background: #fff;
+  color: #102a39;
+  font-size: 17px;
+  font-weight: 400;
+  text-align: left;
+  cursor: pointer;
 }
 
-.productPickerOpen > input {
+.productPickerButton:focus-visible {
+  outline: 2px solid #7622ed;
+  outline-offset: 2px;
+}
+
+.productPlaceholder {
+  color: #586574;
+}
+
+.productPickerOpen .productPickerButton {
   border-color: #7622ed;
 }
 
-.searchIcon {
-  position: absolute;
-  top: 50%;
-  right: 18px;
-  width: 25px;
-  height: 25px;
-  transform: translateY(-50%);
+.productPickerChevron {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
   fill: none;
-  stroke: #111;
+  stroke: #102a39;
   stroke-linecap: round;
   stroke-width: 1.8;
-  pointer-events: none;
 }
 
 .productOptions {
@@ -367,7 +383,6 @@
   border-top: 0;
   border-radius: 0 0 22px 22px;
   background: #fff;
-  list-style: none;
 }
 
 .productOptions button {
@@ -388,13 +403,6 @@
 .productOptions button:focus-visible {
   background: #7622ed;
   color: #fff;
-}
-
-.noOptions {
-  padding: 10px 20px;
-  color: #586574;
-  font-size: 14px;
-  font-weight: 400;
 }
 
 .customProductField {
