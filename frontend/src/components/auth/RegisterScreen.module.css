@@ -214,6 +214,18 @@
   padding-bottom: 0;
 }
 
+.appSetupWizard .businessStep {
+  min-height: calc(100dvh - 230px);
+}
+
+.appSetupWizard .businessStep > .submitButton {
+  margin-top: 24px;
+}
+
+.appSetupWizard .deliveryActions {
+  margin-top: 24px;
+}
+
 .businessScreen {
   padding-top: 10px;
   padding-bottom: 8px;

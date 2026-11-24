@@ -21,7 +21,7 @@ function testDb(nombre, sql, opciones = {}) {
 }
 
 testDb(
-  "las migraciones 001 a 009 y sus RPC previas se pueden ejecutar dos veces",
+  "las migraciones 001 a 010 y sus RPC previas se pueden ejecutar dos veces",
   "",
   { sinDatosBase: true, repetirMigraciones: true }
 );

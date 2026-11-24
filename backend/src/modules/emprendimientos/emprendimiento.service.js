@@ -38,11 +38,23 @@ export class EmprendimientoService {
    * `emp_select` (el vinculo todavia no existe) y, aun si pasara, quedaria
    * un emprendimiento huerfano si el link fallara despues.
    */
-  async create({ nombre }) {
+  async create({
+    nombre,
+    rubro,
+    especialidad,
+    canales_venta,
+    modalidades_entrega,
+  }) {
     // El dueño lo resuelve la RPC con auth.uid(): no se pasa por
     // parámetro a propósito. Si no hay sesión, la RPC responde 42501 y
     // el error sube tal cual, en vez de crear un tenant huérfano.
-    return this.emprendimientoDao.create({ nombre });
+    return this.emprendimientoDao.create({
+      nombre,
+      rubro,
+      especialidad,
+      canales_venta,
+      modalidades_entrega,
+    });
   }
 
   /** Emprendimientos del usuario autenticado. */
@@ -71,6 +83,12 @@ export class EmprendimientoService {
     const normalizados = { ...cambios };
     if (typeof normalizados.nombre === "string") {
       normalizados.nombre = normalizados.nombre.trim();
+    }
+    if (typeof normalizados.rubro === "string") {
+      normalizados.rubro = normalizados.rubro.trim();
+    }
+    if (typeof normalizados.especialidad === "string") {
+      normalizados.especialidad = normalizados.especialidad.trim() || null;
     }
     return this.emprendimientoDao.update(id, normalizados);
   }

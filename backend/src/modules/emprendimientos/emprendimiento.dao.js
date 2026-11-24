@@ -48,9 +48,19 @@ export class EmprendimientoDao {
    * 2. La RPC inserta el emprendimiento y el vinculo en la misma
    *    transaccion: no queda un emprendimiento huerfano si el link falla.
    */
-  async create({ nombre }) {
+  async create({
+    nombre,
+    rubro,
+    especialidad,
+    canales_venta,
+    modalidades_entrega,
+  }) {
     const { data, error } = await this.#client().rpc("crear_emprendimiento", {
       p_nombre: nombre,
+      p_rubro: rubro ?? null,
+      p_especialidad: especialidad ?? null,
+      p_canales_venta: canales_venta,
+      p_modalidades_entrega: modalidades_entrega,
     });
     if (error) throw mapNombreDuplicado(error, nombre);
     return data;

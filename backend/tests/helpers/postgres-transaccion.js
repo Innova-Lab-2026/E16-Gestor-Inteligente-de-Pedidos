@@ -145,6 +145,7 @@ const todasLasMigraciones = [
   ...rpcs,
   "db/migrations/008_completar_modelo.sql",
   "db/migrations/009_ajustes_segun_diseno.sql",
+  "db/migrations/010_emprendimientos_canales_venta.sql",
 ];
 
 // Las migraciones se aplican CONFIRMADAS (sin transacción envolvente), una vez

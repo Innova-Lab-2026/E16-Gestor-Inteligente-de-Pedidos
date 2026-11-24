@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { requireSession } from "@/features/auth/guards";
-import { logout } from "@/features/auth/actions";
 import { getProductos } from "@/app/(app)/catalogo/api";
 import { getDashboardResumen } from "@/app/(app)/hoy/api";
 import type { EstadoPedido } from "@/app/(app)/hoy/types";
@@ -108,7 +107,7 @@ export default async function DashboardPage() {
       className="space-y-4 pt-2 pb-24"
       aria-labelledby="dashboard-title"
     >
-      {/* Cabecera con saludo, cerrar sesión y acceso rápido a nuevo pedido */}
+      {/* Cabecera con saludo y acceso rápido a nuevo pedido */}
       <div className="flex items-start justify-between gap-2">
         <div>
           <h1 id="dashboard-title" className="text-xl font-bold text-[#102a39]">
@@ -124,14 +123,6 @@ export default async function DashboardPage() {
           >
             + Pedido
           </Link>
-          <form action={logout}>
-            <button
-              type="submit"
-              className="rounded-full border border-[#cbd5e1] bg-white px-3 py-2 text-xs font-semibold text-[#586574] transition hover:border-[#102a39] hover:text-[#102a39]"
-            >
-              Salir
-            </button>
-          </form>
         </div>
       </div>
 

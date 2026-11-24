@@ -43,7 +43,37 @@ describe("EmprendimientoDao.mapNombreDuplicado", () => {
   });
 });
 
-describe("EmprendimientoService.rename: normaliza y delega unicidad al indice", () => {
+describe("EmprendimientoService", () => {
+  test("create persiste todos los datos del onboarding", async () => {
+    let guardado = null;
+    const fakeDao = {
+      async create(input) {
+        guardado = input;
+        return { id: "emp-1", ...input };
+      },
+    };
+    const service = new EmprendimientoService({
+      emprendimientoDao: fakeDao,
+      usuarioEmprendimientoDao: {},
+    });
+
+    await service.create({
+      nombre: "Kiosco",
+      rubro: "Otro",
+      especialidad: "Ferretería",
+      canales_venta: ["WHATSAPP", "EN_PERSONA"],
+      modalidades_entrega: ["RETIRO", "ENVIO"],
+    });
+
+    assert.deepEqual(guardado, {
+      nombre: "Kiosco",
+      rubro: "Otro",
+      especialidad: "Ferretería",
+      canales_venta: ["WHATSAPP", "EN_PERSONA"],
+      modalidades_entrega: ["RETIRO", "ENVIO"],
+    });
+  });
+
   test("recorta espacios antes de actualizar", async () => {
     let guardado = null;
     const fakeDao = {

@@ -30,7 +30,12 @@ Antes de probar el webhook, crear el tenant, el canal WhatsApp y (opcional) cat√
 {
   "email": "yo@emprendimiento.com",
   "password": "clave12345",
-  "emprendimiento": { "nombre": "Mi emprendimiento" }
+  "emprendimiento": {
+    "nombre": "Mi emprendimiento",
+    "rubro": "Flores",
+    "canales_venta": ["WHATSAPP"],
+    "modalidades_entrega": ["RETIRO"]
+  }
 }
 ```
 
@@ -40,7 +45,10 @@ Antes de probar el webhook, crear el tenant, el canal WhatsApp y (opcional) cat√
 
 ```json
 {
-  "nombre": "Nombre del emprendimiento"
+  "nombre": "Nombre del emprendimiento",
+  "rubro": "Flores",
+  "canales_venta": ["WHATSAPP"],
+  "modalidades_entrega": ["RETIRO"]
 }
 ```
 

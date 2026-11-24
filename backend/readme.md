@@ -37,7 +37,7 @@ src/
   utils/       logger.js
   app.js       configuracion de Express
   server.js    entry point
-db/migrations/ 001_schema_v2.sql
+db/migrations/ 001_schema_v2.sql ... 010_emprendimientos_canales_venta.sql
 tests/         unit/ + integration/
 ```
 
@@ -208,6 +208,15 @@ Ejecutar en este orden en el SQL Editor de Supabase:
    UPDATE de `emprendimientos` revalida con `WITH CHECK`. La 001 ya trae
    estas mismas policies: la 005 es para una base que ya tiene la 001
    aplicada.
+6. `db/migrations/006_emprendimientos_nombre_unico.sql` — nombre global
+   único ignorando mayúsculas y espacios de borde.
+7. `db/migrations/007_whatsapp_conexiones.sql` — conexiones de WhatsApp.
+8. `db/migrations/008_completar_modelo.sql` — completa el modelo de datos.
+9. `db/migrations/009_ajustes_segun_diseno.sql` — rubro y modalidades de
+   entrega del emprendimiento, entre otros ajustes del diseño.
+10. `db/migrations/010_emprendimientos_canales_venta.sql` — persiste los
+    canales de pedido por emprendimiento y actualiza la RPC de creación
+    para recibir toda la configuración inicial.
 
 > **Si ya corriste la 001 antes, volve a ejecutarla.** Agrega el trigger
 > `on_auth_user_created` sobre `auth.users` y un *backfill* que repara las
@@ -309,7 +318,8 @@ stock y creacion de pedidos. Para eso, el ciclo completo es:
 #    emprendimiento va anidado en "emprendimiento")
 curl -X POST http://localhost:3001/api/auth/register -H "Content-Type: application/json" \
   -d '{"email":"yo@emprendimiento.com","password":"clave12345",
-       "emprendimiento":{"nombre":"Mi emprendimiento"}}'
+       "emprendimiento":{"nombre":"Mi emprendimiento","rubro":"Flores",
+       "canales_venta":["WHATSAPP"],"modalidades_entrega":["RETIRO"]}}'
 # 3. Login y seguir con el token
 curl -X POST http://localhost:3001/api/auth/login -H "Content-Type: application/json" \
   -d '{"email":"yo@emprendimiento.com","password":"clave12345"}'

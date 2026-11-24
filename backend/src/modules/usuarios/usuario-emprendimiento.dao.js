@@ -25,21 +25,26 @@ export class UsuarioEmprendimientoDao {
 
   /**
    * @param {string} usuarioId
-   * @returns {Promise<Array<{emprendimiento_id: string, nombre: string|null, created_at: string}>>}
+   * @returns {Promise<Array<{id: string, emprendimiento_id: string, nombre: string|null, rubro: string|null, especialidad: string|null, canales_venta: string[], modalidades_entrega: string[], created_at: string}>>}
    */
   async listByUser(usuarioId) {
     if (!usuarioId) throw new BadRequestError("usuarioId es obligatorio");
 
     const { data, error } = await this.#client()
       .from("usuarios_emprendimientos")
-      .select("emprendimiento_id, created_at, emprendimientos(nombre)")
+      .select("emprendimiento_id, created_at, emprendimientos(*)")
       .eq("usuario_id", usuarioId);
 
     if (error) throw error;
 
     return (data || []).map((row) => ({
+      id: row.emprendimiento_id,
       emprendimiento_id: row.emprendimiento_id,
       nombre: row.emprendimientos?.nombre ?? null,
+      rubro: row.emprendimientos?.rubro ?? null,
+      especialidad: row.emprendimientos?.especialidad ?? null,
+      canales_venta: row.emprendimientos?.canales_venta ?? [],
+      modalidades_entrega: row.emprendimientos?.modalidades_entrega ?? [],
       created_at: row.created_at,
     }));
   }

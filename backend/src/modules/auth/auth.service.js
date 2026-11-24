@@ -101,13 +101,28 @@ export class AuthService {
 
     const nombreEmprendimiento =
       emprendimiento?.nombre || metadata?.emprendimiento?.nombre;
+    const datosEmprendimiento = {
+      nombre: nombreEmprendimiento,
+      ...(emprendimiento?.rubro !== undefined
+        ? { rubro: emprendimiento.rubro }
+        : {}),
+      ...(emprendimiento?.especialidad !== undefined
+        ? { especialidad: emprendimiento.especialidad }
+        : {}),
+      ...(emprendimiento?.canales_venta !== undefined
+        ? { canales_venta: emprendimiento.canales_venta }
+        : {}),
+      ...(emprendimiento?.modalidades_entrega !== undefined
+        ? { modalidades_entrega: emprendimiento.modalidades_entrega }
+        : {}),
+    };
 
     // El dueño lo resuelve la RPC con auth.uid(): nunca se manda por
     // parámetro, así nadie puede crear un emprendimiento a nombre de otro.
     const created = nombreEmprendimiento
-      ? await this.emprendimientoServiceFactory(token).create({
-          nombre: nombreEmprendimiento,
-        })
+      ? await this.emprendimientoServiceFactory(token).create(
+          datosEmprendimiento,
+        )
       : null;
 
     return {

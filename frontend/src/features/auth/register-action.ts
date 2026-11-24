@@ -16,6 +16,20 @@ export async function register(
   }
 
   try {
+    const canalesVenta = {
+      WhatsApp: "WHATSAPP",
+      Telegram: "TELEGRAM",
+      Texto: "EN_PERSONA",
+    };
+    const modalidadesEntrega = {
+      Retiro: "RETIRO",
+      "Envío": "ENVIO",
+    };
+    const selectedChannels = formData.getAll("channels").map(String);
+    const selectedDeliveryModes = JSON.parse(
+      String(formData.get("deliveryModes") ?? "[]"),
+    ) as string[];
+
     const response = await fetch(`${apiUrl}/api/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -46,6 +60,17 @@ export async function register(
         },
         emprendimiento: {
           nombre: formData.get("businessName"),
+          rubro: formData.get("productType"),
+          especialidad: formData.get("customProduct"),
+          canales_venta: selectedChannels
+            .map((channel) => canalesVenta[channel as keyof typeof canalesVenta])
+            .filter(Boolean),
+          modalidades_entrega: selectedDeliveryModes
+            .map(
+              (mode) =>
+                modalidadesEntrega[mode as keyof typeof modalidadesEntrega],
+            )
+            .filter(Boolean),
         },
       }),
     });

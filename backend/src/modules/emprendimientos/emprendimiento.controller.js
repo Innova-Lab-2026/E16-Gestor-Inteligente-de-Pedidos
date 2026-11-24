@@ -27,8 +27,7 @@ export class EmprendimientoController {
 
   /** POST /api/emprendimientos */
   create = async (req, res) => {
-    const { nombre } = req.validated.body;
-    const creado = await this.#service(req).create({ nombre });
+    const creado = await this.#service(req).create(req.validated.body);
     return res.status(201).json(creado);
   };
 

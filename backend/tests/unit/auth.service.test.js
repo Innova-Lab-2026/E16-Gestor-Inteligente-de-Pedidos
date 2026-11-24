@@ -30,9 +30,9 @@ const buildServicio = ({ sesion = null, perfil = { id: "u-1" } } = {}) => {
   });
 
   const emprendimientoServiceFactory = (token) => ({
-    async create({ nombre }) {
-      llamados.creaciones.push({ token, nombre });
-      return { id: "emp-1", nombre };
+    async create(emprendimiento) {
+      llamados.creaciones.push({ token, ...emprendimiento });
+      return { id: "emp-1", ...emprendimiento };
     },
   });
 
@@ -55,14 +55,27 @@ describe("AuthService.register", () => {
     const res = await service.register({
       email: USUARIO.email,
       password: PASSWORD,
-      emprendimiento: { nombre: "Kiosco del Barrio" },
+      emprendimiento: {
+        nombre: "Kiosco del Barrio",
+        rubro: "Otro",
+        especialidad: "Ferretería",
+        canales_venta: ["WHATSAPP", "EN_PERSONA"],
+        modalidades_entrega: ["RETIRO"],
+      },
     });
 
     assert.equal(res.pendienteConfirmacion, false);
     assert.equal(res.emprendimiento.id, "emp-1");
     assert.deepEqual(llamados.lecturas, [{ token: "jwt-de-a", id: "u-1" }]);
     assert.deepEqual(llamados.creaciones, [
-      { token: "jwt-de-a", nombre: "Kiosco del Barrio" },
+      {
+        token: "jwt-de-a",
+        nombre: "Kiosco del Barrio",
+        rubro: "Otro",
+        especialidad: "Ferretería",
+        canales_venta: ["WHATSAPP", "EN_PERSONA"],
+        modalidades_entrega: ["RETIRO"],
+      },
     ]);
   });
 
