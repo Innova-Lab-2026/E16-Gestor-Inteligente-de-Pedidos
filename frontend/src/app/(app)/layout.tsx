@@ -46,11 +46,11 @@ export default async function AppLayout({
             E
           </Link>
           <div className="flex items-center gap-2">
-            <div className="relative shrink-0">
+            <div className="group relative shrink-0">
               <button
                 type="button"
-                aria-label="Modo oscuro (próximamente)"
-                title="Modo oscuro (próximamente)"
+                aria-label="Modo oscuro"
+                aria-describedby="theme-tooltip"
                 className="grid h-9 w-9 place-items-center rounded-full border border-[#e2e8f0] bg-white text-[#586574] transition hover:border-[#7622ed] hover:text-[#7622ed]"
               >
                 <svg
@@ -75,8 +75,9 @@ export default async function AppLayout({
                 </svg>
               </button>
               <span
-                aria-hidden="true"
-                className="absolute top-full left-1/2 z-10 mt-0.5 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#7622ed] px-1.5 py-0.5 text-[8px] leading-none font-semibold text-white"
+                id="theme-tooltip"
+                role="tooltip"
+                className="pointer-events-none absolute top-full left-1/2 z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-[#102a39] px-2.5 py-1.5 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
               >
                 Próximamente
               </span>
