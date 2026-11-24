@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import EmptyState from "@/components/EmptyState";
 import type { Producto } from "../types";
 
 type FiltroStock = "stock_bajo" | "sin_stock" | "inactivos" | null;
 
 export default function CatalogoList({ productos }: { productos: Producto[] }) {
+  const router = useRouter();
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState<FiltroStock>(null);
 
@@ -37,20 +40,12 @@ export default function CatalogoList({ productos }: { productos: Producto[] }) {
 
   if (productos.length === 0) {
     return (
-      <div className="mt-10 flex flex-col items-center text-center">
-        <h2 className="text-lg font-bold text-[#102a39]">
-          No tenés productos cargados
-        </h2>
-        <p className="mt-2 max-w-xs text-sm text-[#586574]">
-          Cuando ingreses tus productos los verás listados en orden alfabético.
-        </p>
-        <Link
-          href="/catalogo/nuevo"
-          className="mt-6 rounded-full bg-[#056184] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#044d69]"
-        >
-          Cargá tu primer producto
-        </Link>
-      </div>
+      <EmptyState
+        titulo="No tenés productos cargados"
+        descripcion="Cuando ingreses tus productos los verás listados en orden alfabético."
+        textoBoton="Cargá tu primer producto"
+        onAccion={() => router.push("/catalogo/nuevo")}
+      />
     );
   }
 

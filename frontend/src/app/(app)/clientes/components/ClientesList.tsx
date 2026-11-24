@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import EmptyState from "@/components/EmptyState";
 import type { Cliente, CondicionCliente } from "../types";
 
 const BADGE_CONDICION: Record<
@@ -23,6 +25,7 @@ const BADGE_CONDICION: Record<
 };
 
 export default function ClientesList({ clientes }: { clientes: Cliente[] }) {
+  const router = useRouter();
   const [busqueda, setBusqueda] = useState("");
   const [filtroCondicion, setFiltroCondicion] =
     useState<CondicionCliente | null>(null);
@@ -55,21 +58,12 @@ export default function ClientesList({ clientes }: { clientes: Cliente[] }) {
 
   if (clientes.length === 0) {
     return (
-      <div className="mt-10 flex flex-col items-center text-center">
-        <h2 className="text-lg font-bold text-[#102a39]">
-          Todavía no tenés clientes cargados
-        </h2>
-        <p className="mt-2 max-w-xs text-sm text-[#586574]">
-          Guardá los datos de tus clientes habituales para agilizar tus
-          pedidos y envíos.
-        </p>
-        <Link
-          href="/clientes/nuevo"
-          className="mt-6 rounded-full bg-[#056184] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#044d69]"
-        >
-          Agregar primer cliente
-        </Link>
-      </div>
+      <EmptyState
+        titulo="Todavía no tenés clientes cargados"
+        descripcion="Guardá los datos de tus clientes habituales para agilizar tus pedidos y envíos."
+        textoBoton="Agregar primer cliente"
+        onAccion={() => router.push("/clientes/nuevo")}
+      />
     );
   }
 

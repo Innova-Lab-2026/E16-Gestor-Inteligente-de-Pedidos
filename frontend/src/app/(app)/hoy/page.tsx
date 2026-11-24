@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getProductos } from "@/app/(app)/catalogo/api";
 import { getDashboardResumen } from "./api";
 import type { EstadoPedido } from "./types";
+import HoyEmptyState from "./components/HoyEmptyState";
 
 const ESTADOS_ORDEN: Array<{ key: EstadoPedido; label: string; color: string }> = [
   { key: "RECIBIDO", label: "Recibidos", color: "bg-slate-100 text-[#102a39]" },
@@ -265,9 +266,7 @@ export default async function HoyPage() {
               </div>
 
               {resumen.ultimosPedidos.length === 0 ? (
-                <p className="py-4 text-center text-xs text-[#586574]">
-                  Todavía no hay pedidos registrados.
-                </p>
+                <HoyEmptyState />
               ) : (
                 <div className="divide-y divide-[#e2e8f0]">
                   {resumen.ultimosPedidos.map((pedido) => {

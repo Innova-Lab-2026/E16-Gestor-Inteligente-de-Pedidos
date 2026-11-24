@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import EmptyState from "@/components/EmptyState";
 import type { EstadoPedido, Pedido } from "../types";
 
 type TabPedidos = "vigentes" | "cancelados" | "entregados";
@@ -34,6 +36,7 @@ export default function PedidosList({
 }: {
   pedidos: PedidoConCliente[];
 }) {
+  const router = useRouter();
   const [tab, setTab] = useState<TabPedidos>("vigentes");
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState<FiltroPedido>(null);
@@ -254,7 +257,14 @@ export default function PedidosList({
         </div>
       )}
 
-      {filtrados.length === 0 ? (
+      {pedidos.length === 0 ? (
+        <EmptyState
+          titulo="Todavía no tenés pedidos cargados"
+          descripcion="Cuando ingrese uno nuevo por WhatsApp o cargues uno manual, lo vas a ver acá."
+          textoBoton="Cargar nuevo pedido"
+          onAccion={() => router.push("/pedidos/nuevo")}
+        />
+      ) : filtrados.length === 0 ? (
         <div className="mt-10 flex flex-col items-center pb-24 text-center">
           <h2 className="text-lg font-bold text-[#102a39]">
             {tab === "vigentes"
