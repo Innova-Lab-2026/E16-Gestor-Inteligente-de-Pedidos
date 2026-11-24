@@ -8,6 +8,7 @@ import EmprendimientoSelector from "@/features/emprendimientos/EmprendimientoSel
 import { backendFetch } from "@/lib/api";
 import BottomNav from "@/components/layout/BottomNav";
 import FloatingNewOrderButton from "@/components/layout/FloatingNewOrderButton";
+import OnboardingModal from "@/components/OnboardingModal";
 
 export default async function AppLayout({
   children,
@@ -80,6 +81,7 @@ export default async function AppLayout({
 
         <FloatingNewOrderButton />
         <BottomNav />
+        <OnboardingModal />
       </div>
     </EmprendimientoProvider>
   );
