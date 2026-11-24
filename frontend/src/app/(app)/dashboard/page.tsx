@@ -265,9 +265,10 @@ export default async function DashboardPage() {
             {resumen.cantidadPedidos === 0 ? (
               <div className="flex min-h-48 flex-col items-center justify-center rounded-2xl border border-[#e2e8f0] bg-white p-6 text-center">
                 <p className="max-w-sm text-sm leading-6 text-[#586574]">
-                  No tenés pedidos para hoy. Cuando ingrese uno nuevo por
+                  <p>No tenés pedidos para hoy. </p>
+                  <p>Cuando ingrese uno nuevo por
                   WhatsApp, lo vas a ver acá. Si te piden algo en persona,
-                  cargalo con el botón +.
+                  cargalo con el botón +.</p>
                 </p>
                 <Link
                   href="/pedidos/nuevo"
