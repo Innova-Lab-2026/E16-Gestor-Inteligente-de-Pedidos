@@ -11,7 +11,7 @@ export class DashboardService {
 
   /**
    * @param {string} emprendimientoId
-   * @param {{ desde?: string, hasta?: string }} [rango]
+   * @param {{ desde?: string, hasta?: string, fechaDespacho?: string }} [rango]
    */
   async resumen(emprendimientoId, rango = {}) {
     const [pedidos, revisar, ultimos, productos] = await Promise.all([

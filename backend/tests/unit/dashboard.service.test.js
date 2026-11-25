@@ -2,9 +2,21 @@ import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 
 import { DashboardService } from "../../src/modules/dashboard/dashboard.service.js";
+import { buildPeriodoPedidosFilter } from "../../src/modules/dashboard/dashboard.dao.js";
 import { ORDER_STATUS } from "../../src/constants/order-status.enum.js";
 
 describe("DashboardService", () => {
+  test("filtra períodos por fecha prevista y usa created_at solo si falta", () => {
+    assert.equal(
+      buildPeriodoPedidosFilter({
+        desde: "2026-11-24T03:00:00.000Z",
+        hasta: "2026-11-25T02:59:59.999Z",
+      }),
+      "and(fecha_prevista_entrega.gte.2026-11-24,fecha_prevista_entrega.lte.2026-11-24),and(fecha_prevista_entrega.is.null,created_at.gte.2026-11-24T03:00:00.000Z,created_at.lte.2026-11-25T02:59:59.999Z)",
+    );
+    assert.equal(buildPeriodoPedidosFilter(), null);
+  });
+
   test("pasa la fecha de despacho a los pedidos, revisiones y últimos pedidos", async () => {
     const fechas = [];
     const dashboardDao = {
