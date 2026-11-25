@@ -1,16 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import type { FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import EmptyState from "@/components/EmptyState";
-import type { EstadoPedido, Pedido } from "../types";
+import type { EstadoCobro, EstadoPedido, Pedido } from "../types";
 
 type TabPedidos = "vigentes" | "cancelados" | "entregados";
-type FiltroPedido = "revision" | "no_cobrados" | null;
 
 type PedidoConCliente = Pedido & {
   clientes?: { nombre: string } | null;
+};
+
+type FiltrosPedidos = {
+  tab: TabPedidos;
+  busqueda: string;
+  clienteId: string;
+  desde: string;
+  hasta: string;
+  estadoCobro: EstadoCobro | "";
+  requiereRevision: boolean;
+  offset: number;
 };
 
 const ESTADO_LABEL: Record<EstadoPedido, string> = {
@@ -33,47 +43,56 @@ const ESTADO_BADGE: Record<EstadoPedido, string> = {
 
 export default function PedidosList({
   pedidos,
+  filtros,
+  hasNext,
 }: {
   pedidos: PedidoConCliente[];
+  filtros: FiltrosPedidos;
+  hasNext: boolean;
 }) {
   const router = useRouter();
-  const [tab, setTab] = useState<TabPedidos>("vigentes");
-  const [busqueda, setBusqueda] = useState("");
-  const [filtro, setFiltro] = useState<FiltroPedido>(null);
+  const navegarConFiltros = (cambios: Partial<FiltrosPedidos>) => {
+    const siguiente = { ...filtros, ...cambios };
+    const params = new URLSearchParams();
+    params.set("tab", siguiente.tab);
+    if (siguiente.busqueda) params.set("busqueda", siguiente.busqueda);
+    if (siguiente.clienteId) params.set("cliente_id", siguiente.clienteId);
+    if (siguiente.desde) params.set("desde", siguiente.desde);
+    if (siguiente.hasta) params.set("hasta", siguiente.hasta);
+    if (siguiente.estadoCobro) {
+      params.set("estado_cobro", siguiente.estadoCobro);
+    }
+    if (siguiente.requiereRevision) {
+      params.set("requiere_revision", "true");
+    }
+    params.set("offset", String(siguiente.offset));
+    router.push(`/pedidos?${params.toString()}`);
+  };
 
-  const toggleFiltro = (valor: Exclude<FiltroPedido, null>) => {
-    setFiltro((prev) => (prev === valor ? null : valor));
+  const aplicarFiltros = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    navegarConFiltros({
+      busqueda: String(formData.get("busqueda") ?? "").trim(),
+      desde: String(formData.get("desde") ?? ""),
+      hasta: String(formData.get("hasta") ?? ""),
+      estadoCobro: String(formData.get("estado_cobro") ?? "") as EstadoCobro | "",
+      offset: 0,
+    });
   };
 
   const getNombreCliente = (p: PedidoConCliente) =>
     p.cliente?.nombre ?? p.clientes?.nombre ?? "Cliente sin asignar";
 
-  const filtrados = pedidos.filter((p) => {
-    if (tab === "vigentes" && (p.estado === "CANCELADO" || p.estado === "ENTREGADO")) {
-      return false;
-    }
-    if (tab === "cancelados" && p.estado !== "CANCELADO") return false;
-    if (tab === "entregados" && p.estado !== "ENTREGADO") return false;
-
-    if (filtro === "revision" && !p.requiere_revision) return false;
-    if (filtro === "no_cobrados" && p.estado_cobro !== "PENDIENTE") return false;
-
-    if (busqueda.trim()) {
-      const q = busqueda.toLowerCase();
-      const cliente = getNombreCliente(p).toLowerCase();
-      const numero = p.numero ? `#${p.numero}` : "";
-      if (!cliente.includes(q) && !numero.includes(q)) return false;
-    }
-
-    return true;
-  });
-
-  const paraPreparar = filtrados.filter(
+  const paraPreparar = pedidos.filter(
     (p) => p.estado === "RECIBIDO" || p.estado === "EN_PREPARACION",
   );
-  const paraEntregar = filtrados.filter(
+  const paraEntregar = pedidos.filter(
     (p) => p.estado === "LISTO" || p.estado === "EN_VIAJE",
   );
+  const tieneFiltros =
+    Boolean(filtros.busqueda || filtros.clienteId || filtros.desde || filtros.hasta) ||
+    Boolean(filtros.estadoCobro || filtros.requiereRevision);
 
   const renderCard = (pedido: PedidoConCliente) => {
     const cobrado = pedido.estado_cobro === "PAGADO";
@@ -195,9 +214,9 @@ export default function PedidosList({
           <button
             key={item.key}
             type="button"
-            onClick={() => setTab(item.key)}
+            onClick={() => navegarConFiltros({ tab: item.key, offset: 0 })}
             className={`border-b-2 py-2.5 transition ${
-              tab === item.key
+              filtros.tab === item.key
                 ? "border-[#7622ed] font-bold text-[#7622ed]"
                 : "border-transparent font-medium text-[#586574] hover:text-[#102a39]"
             }`}
@@ -207,50 +226,122 @@ export default function PedidosList({
         ))}
       </div>
 
-      <div className="relative">
-        <input
-          type="search"
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-          placeholder="Buscar por cliente o # de pedido..."
-          className="h-11 w-full rounded-full border-2 border-[#102a39] bg-white px-4 pr-11 text-sm text-[#102a39] placeholder:text-[#586574] focus:outline-none"
-        />
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          className="pointer-events-none absolute top-1/2 right-4 h-4 w-4 -translate-y-1/2 text-[#586574]"
-        >
-          <circle cx="11" cy="11" r="7" />
-          <path d="m20 20-4-4" />
-        </svg>
-      </div>
+      <form
+        key={JSON.stringify(filtros)}
+        onSubmit={aplicarFiltros}
+        className="space-y-3 rounded-2xl border border-[#e2e8f0] bg-white p-3"
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="space-y-1 text-xs font-semibold text-[#102a39]">
+            Cliente o número de pedido
+            <input
+              name="busqueda"
+              type="search"
+              defaultValue={filtros.busqueda}
+              placeholder="Nombre del cliente o # de pedido"
+              className="h-10 w-full rounded-xl border border-[#cbd5e1] px-3 text-sm font-normal"
+            />
+          </label>
+          <label className="space-y-1 text-xs font-semibold text-[#102a39]">
+            Estado de cobro
+            <select
+              name="estado_cobro"
+              defaultValue={filtros.estadoCobro}
+              className="h-10 w-full rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm font-normal"
+            >
+              <option value="">Todos</option>
+              <option value="PAGADO">Pagado</option>
+              <option value="PENDIENTE">Pendiente</option>
+            </select>
+          </label>
+          <label className="space-y-1 text-xs font-semibold text-[#102a39]">
+            Fecha desde
+            <input
+              name="desde"
+              type="date"
+              defaultValue={filtros.desde}
+              className="h-10 w-full rounded-xl border border-[#cbd5e1] px-3 text-sm font-normal"
+            />
+          </label>
+          <label className="space-y-1 text-xs font-semibold text-[#102a39]">
+            Fecha hasta
+            <input
+              name="hasta"
+              type="date"
+              defaultValue={filtros.hasta}
+              className="h-10 w-full rounded-xl border border-[#cbd5e1] px-3 text-sm font-normal"
+            />
+          </label>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="submit"
+            className="rounded-full bg-[#056184] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#044d69]"
+          >
+            Aplicar filtros
+          </button>
+          {tieneFiltros && (
+            <button
+              type="button"
+              onClick={() =>
+                navegarConFiltros({
+                  busqueda: "",
+                  clienteId: "",
+                  desde: "",
+                  hasta: "",
+                  estadoCobro: "",
+                  requiereRevision: false,
+                  offset: 0,
+                })
+              }
+              className="rounded-full border border-[#cbd5e1] px-4 py-2 text-xs font-semibold text-[#102a39]"
+            >
+              Limpiar filtros
+            </button>
+          )}
+        </div>
+      </form>
 
-      {tab === "vigentes" && (
+      {filtros.tab === "vigentes" && (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-semibold text-[#102a39]">Filtrar por:</span>
           {(
             [
-              { key: "revision", label: "Para revisar" },
-              { key: "no_cobrados", label: "No cobrados" },
+              {
+                key: "revision",
+                label: "Para revisar",
+                active: filtros.requiereRevision,
+                action: () =>
+                  navegarConFiltros({
+                    requiereRevision: !filtros.requiereRevision,
+                    offset: 0,
+                  }),
+              },
+              {
+                key: "no_cobrados",
+                label: "No cobrados",
+                active: filtros.estadoCobro === "PENDIENTE",
+                action: () =>
+                  navegarConFiltros({
+                    estadoCobro:
+                      filtros.estadoCobro === "PENDIENTE" ? "" : "PENDIENTE",
+                    offset: 0,
+                  }),
+              },
             ] as const
           ).map((item) => {
-            const activo = filtro === item.key;
             return (
               <button
                 key={item.key}
                 type="button"
-                onClick={() => toggleFiltro(item.key)}
+                onClick={item.action}
                 className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
-                  activo
+                  item.active
                     ? "border-[#7622ed] bg-[#7622ed] text-white"
                     : "border-[#cbd5e1] bg-white text-[#102a39]"
                 }`}
               >
-                {activo ? `✓ ${item.label}` : item.label}
+                {item.active ? `✓ ${item.label}` : item.label}
               </button>
             );
           })}
@@ -258,34 +349,32 @@ export default function PedidosList({
       )}
 
       {pedidos.length === 0 ? (
-        <EmptyState
-          titulo="Todavía no tenés pedidos cargados"
-          descripcion="Cuando ingrese uno nuevo por WhatsApp o cargues uno manual, lo vas a ver acá."
-          textoBoton="Cargar nuevo pedido"
-          onAccion={() => router.push("/pedidos/nuevo")}
-        />
-      ) : filtrados.length === 0 ? (
-        <div className="mt-10 flex flex-col items-center pb-24 text-center">
-          <h2 className="text-lg font-bold text-[#102a39]">
-            {tab === "vigentes"
-              ? "No tenés pedidos vigentes"
-              : tab === "cancelados"
-                ? "No tenés pedidos cancelados"
-                : "No tenés pedidos entregados"}
-          </h2>
-          <p className="mt-2 max-w-xs text-sm text-[#586574]">
-            Cuando ingrese uno nuevo por WhatsApp o cargues uno manual, lo vas a ver acá.
-          </p>
-          {tab === "vigentes" && (
-            <Link
-              href="/pedidos/nuevo"
-              className="mt-6 rounded-full bg-[#056184] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#044d69]"
-            >
-              Cargar nuevo pedido
-            </Link>
-          )}
-        </div>
-      ) : tab === "vigentes" ? (
+        !tieneFiltros && filtros.tab === "vigentes" && filtros.offset === 0 ? (
+          <EmptyState
+            titulo="No tenés pedidos vigentes"
+            descripcion="Cargá un pedido nuevo para verlo en esta pestaña."
+            textoBoton="Cargar nuevo pedido"
+            onAccion={() => router.push("/pedidos/nuevo")}
+          />
+        ) : (
+          <div className="mt-10 flex flex-col items-center pb-24 text-center">
+            <h2 className="text-lg font-bold text-[#102a39]">
+              {tieneFiltros
+                ? "No encontramos pedidos con esos filtros"
+                : filtros.tab === "vigentes"
+                  ? "No tenés pedidos vigentes"
+                  : filtros.tab === "cancelados"
+                    ? "No tenés pedidos cancelados"
+                    : "No tenés pedidos entregados"}
+            </h2>
+            <p className="mt-2 max-w-xs text-sm text-[#586574]">
+              {tieneFiltros
+                ? "Probá cambiar o limpiar los filtros para ver otros pedidos."
+                : "Cuando ingrese uno nuevo por WhatsApp o cargues uno manual, lo vas a ver acá."}
+            </p>
+          </div>
+        )
+      ) : filtros.tab === "vigentes" ? (
         <div className="space-y-5 pb-24">
           {paraPreparar.length > 0 && (
             <div className="space-y-2.5">
@@ -306,9 +395,41 @@ export default function PedidosList({
           )}
         </div>
       ) : (
-        <div className="space-y-3 pb-24">{filtrados.map(renderCard)}</div>
+        <div className="space-y-3 pb-24">{pedidos.map(renderCard)}</div>
       )}
 
+      {(filtros.offset > 0 || hasNext) && (
+        <nav
+          aria-label="Paginación de pedidos"
+          className="flex items-center justify-between border-t border-[#e2e8f0] pt-3"
+        >
+          <button
+            type="button"
+            disabled={filtros.offset === 0}
+            onClick={() =>
+              navegarConFiltros({
+                offset: Math.max(0, filtros.offset - 50),
+              })
+            }
+            className="rounded-full border border-[#cbd5e1] px-4 py-2 text-xs font-semibold text-[#102a39] disabled:opacity-40"
+          >
+            Anterior
+          </button>
+          <span className="text-xs text-[#586574]">
+            Página {Math.floor(filtros.offset / 50) + 1}
+          </span>
+          <button
+            type="button"
+            disabled={!hasNext}
+            onClick={() =>
+              navegarConFiltros({ offset: filtros.offset + 50 })
+            }
+            className="rounded-full border border-[#cbd5e1] px-4 py-2 text-xs font-semibold text-[#102a39] disabled:opacity-40"
+          >
+            Siguiente
+          </button>
+        </nav>
+      )}
     </div>
   );
 }

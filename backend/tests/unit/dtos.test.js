@@ -2,7 +2,10 @@
 import assert from "node:assert/strict";
 
 import { createPedidoManualSchema } from "../../src/modules/pedidos/dtos/create-pedido-manual.dto.js";
-import { changeOrderStatusSchema } from "../../src/modules/pedidos/dtos/change-order-status.dto.js";
+import {
+  changeOrderStatusSchema,
+  listPedidosQuerySchema,
+} from "../../src/modules/pedidos/dtos/change-order-status.dto.js";
 import { createProductoSchema } from "../../src/modules/productos/dtos/create-producto.dto.js";
 import { createCanalSchema } from "../../src/modules/canales/dtos/create-canal.dto.js";
 import { loginSchema } from "../../src/modules/auth/dtos/login.dto.js";
@@ -46,6 +49,40 @@ describe("DTO de estado de pedido", () => {
 
   test("rechaza un estado inexistente", () => {
     assert.throws(() => changeOrderStatusSchema.parse({ estado: "VOLANDO" }), /inválido/);
+  });
+});
+
+describe("DTO de filtros de listado de pedidos", () => {
+  test("normaliza estados, pago, cliente, rango de fecha y paginación", () => {
+    const filtros = listPedidosQuerySchema.parse({
+      estado: ["RECIBIDO", "LISTO"],
+      estado_pago: "pagado",
+      desde: "2026-11-24",
+      hasta: "2026-11-25",
+      cliente_id: UUID,
+      cliente: " Ana ",
+      limite: "51",
+      offset: "50",
+    });
+
+    assert.deepEqual(filtros.estado, ["RECIBIDO", "LISTO"]);
+    assert.equal(filtros.estado_cobro, "PAGADO");
+    assert.equal(filtros.desde, "2026-11-24");
+    assert.equal(filtros.hasta, "2026-11-25");
+    assert.equal(filtros.cliente_id, UUID);
+    assert.equal(filtros.cliente, "Ana");
+    assert.equal(filtros.limite, 51);
+    assert.equal(filtros.offset, 50);
+  });
+
+  test("acepta el filtro exacto por fecha prevista y estado de cobro", () => {
+    const filtros = listPedidosQuerySchema.parse({
+      fecha_prevista_entrega: "2026-11-24",
+      estado_cobro: "PENDIENTE",
+    });
+
+    assert.equal(filtros.fecha_prevista_entrega, "2026-11-24");
+    assert.equal(filtros.estado_cobro, "PENDIENTE");
   });
 });
 

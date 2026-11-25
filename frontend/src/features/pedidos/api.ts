@@ -7,14 +7,38 @@ import type {
 } from "./types";
 
 export async function getPedidos(filtros?: {
-  estado?: EstadoPedido;
+  estado?: EstadoPedido | EstadoPedido[];
   requiere_revision?: boolean;
+  fecha_prevista_entrega?: string;
+  desde?: string;
+  hasta?: string;
+  cliente_id?: string;
+  cliente?: string;
+  busqueda?: string;
+  estado_cobro?: EstadoCobro;
+  limite?: number;
+  offset?: number;
 }) {
   const params = new URLSearchParams();
-  if (filtros?.estado) params.set("estado", filtros.estado);
+  if (Array.isArray(filtros?.estado)) {
+    filtros.estado.forEach((estado) => params.append("estado", estado));
+  } else if (filtros?.estado) {
+    params.set("estado", filtros.estado);
+  }
   if (filtros?.requiere_revision !== undefined) {
     params.set("requiere_revision", String(filtros.requiere_revision));
   }
+  if (filtros?.fecha_prevista_entrega) {
+    params.set("fecha_prevista_entrega", filtros.fecha_prevista_entrega);
+  }
+  if (filtros?.desde) params.set("desde", filtros.desde);
+  if (filtros?.hasta) params.set("hasta", filtros.hasta);
+  if (filtros?.cliente_id) params.set("cliente_id", filtros.cliente_id);
+  if (filtros?.cliente) params.set("cliente", filtros.cliente);
+  if (filtros?.busqueda) params.set("busqueda", filtros.busqueda);
+  if (filtros?.estado_cobro) params.set("estado_cobro", filtros.estado_cobro);
+  if (filtros?.limite) params.set("limite", String(filtros.limite));
+  if (filtros?.offset !== undefined) params.set("offset", String(filtros.offset));
   const qs = params.toString() ? `?${params.toString()}` : "";
   return backendFetch<Pedido[]>(`/pedidos${qs}`);
 }

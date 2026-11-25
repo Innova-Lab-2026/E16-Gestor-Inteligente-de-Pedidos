@@ -96,16 +96,50 @@ export class PedidoDao {
     return pedido;
   }
 
-  async list(emprendimientoId, { estado, requiere_revision, limite = 50, offset = 0 } = {}) {
+  async list(
+    emprendimientoId,
+    {
+      estado,
+      requiere_revision,
+      fecha_prevista_entrega,
+      desde,
+      hasta,
+      cliente_id,
+      cliente,
+      busqueda,
+      estado_cobro,
+      limite = 50,
+      offset = 0,
+    } = {},
+  ) {
+    const numeroBusqueda = busqueda?.replace(/^#\s*/, "");
+    const esNumeroPedido = numeroBusqueda && /^\d+$/.test(numeroBusqueda);
+    const buscarCliente = cliente || (busqueda && !esNumeroPedido);
     let query = this.#client()
       .from("pedidos")
-      .select("*, clientes(nombre)")
+      .select(buscarCliente ? "*, clientes!inner(nombre)" : "*, clientes(nombre)")
       .eq("emprendimiento_id", emprendimientoId);
 
-    if (estado) query = query.eq("estado", estado);
+    if (estado?.length) query = query.in("estado", estado);
     if (requiere_revision !== undefined) {
       query = query.eq("requiere_revision", requiere_revision);
     }
+    if (fecha_prevista_entrega) {
+      query = query.eq("fecha_prevista_entrega", fecha_prevista_entrega);
+    } else {
+      if (desde) query = query.gte("fecha_prevista_entrega", desde);
+      if (hasta) query = query.lte("fecha_prevista_entrega", hasta);
+    }
+    if (cliente_id) query = query.eq("cliente_id", cliente_id);
+    if (cliente) query = query.ilike("clientes.nombre", `%${cliente}%`);
+    if (busqueda) {
+      if (esNumeroPedido) {
+        query = query.eq("numero", Number(numeroBusqueda));
+      } else {
+        query = query.ilike("clientes.nombre", `%${busqueda}%`);
+      }
+    }
+    if (estado_cobro) query = query.eq("estado_cobro", estado_cobro);
 
     const { data, error } = await query
       .order("created_at", { ascending: false })
