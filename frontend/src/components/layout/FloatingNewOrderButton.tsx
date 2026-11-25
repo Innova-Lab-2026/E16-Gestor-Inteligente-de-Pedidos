@@ -6,8 +6,16 @@ import { usePathname } from "next/navigation";
 export default function FloatingNewOrderButton() {
   const pathname = usePathname();
   const isCreatePage = /(?:^|\/)(?:nuevo|crear)(?:\/|$)/.test(pathname);
+  const hasSectionCreateButton =
+    pathname === "/catalogo" || pathname === "/clientes";
 
-  if (pathname.startsWith("/configuracion") || isCreatePage) return null;
+  if (
+    pathname.startsWith("/configuracion") ||
+    isCreatePage ||
+    hasSectionCreateButton
+  ) {
+    return null;
+  }
 
   return (
     <div className="pointer-events-none fixed bottom-20 left-1/2 z-20 flex w-full max-w-[430px] -translate-x-1/2 justify-end px-5">
