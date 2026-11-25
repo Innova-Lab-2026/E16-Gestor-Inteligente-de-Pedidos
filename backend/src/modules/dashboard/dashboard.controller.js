@@ -9,10 +9,11 @@ export class DashboardController {
 
   /** GET /api/dashboard */
   resumen = async (req, res) => {
-    const { desde, hasta } = req.query;
+    const { desde, hasta, fechaDespacho } = req.query;
     const result = await this.serviceFactory(req.userToken).resumen(req.tenant.id, {
       desde,
       hasta,
+      fechaDespacho,
     });
     return res.status(200).json(result);
   };

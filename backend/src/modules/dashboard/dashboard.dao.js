@@ -17,7 +17,10 @@ export class DashboardDao {
     return createSupabaseClient(this.token);
   }
 
-  async pedidosPorEstado(emprendimientoId, { desde, hasta } = {}) {
+  async pedidosPorEstado(
+    emprendimientoId,
+    { desde, hasta, fechaDespacho } = {},
+  ) {
     let query = this.#client()
       .from("pedidos")
       .select(
@@ -25,8 +28,12 @@ export class DashboardDao {
       )
       .eq("emprendimiento_id", emprendimientoId);
 
-    if (desde) query = query.gte("created_at", desde);
-    if (hasta) query = query.lte("created_at", hasta);
+    if (fechaDespacho) {
+      query = query.eq("fecha_prevista_entrega", fechaDespacho);
+    } else {
+      if (desde) query = query.gte("created_at", desde);
+      if (hasta) query = query.lte("created_at", hasta);
+    }
 
     const { data, error } = await query;
     if (error) throw error;
@@ -45,23 +52,35 @@ export class DashboardDao {
     return data || [];
   }
 
-  async countPedidosRequiriendoRevision(emprendimientoId) {
-    const { count, error } = await this.#client()
+  async countPedidosRequiriendoRevision(
+    emprendimientoId,
+    { fechaDespacho } = {},
+  ) {
+    let query = this.#client()
       .from("pedidos")
       .select("id", { count: "exact", head: true })
       .eq("emprendimiento_id", emprendimientoId)
       .eq("requiere_revision", true);
+    if (fechaDespacho) {
+      query = query.eq("fecha_prevista_entrega", fechaDespacho);
+    }
+
+    const { count, error } = await query;
     if (error) throw error;
     return count ?? 0;
   }
 
-  async ultimosPedidos(emprendimientoId, limite = 10) {
-    const { data, error } = await this.#client()
+  async ultimosPedidos(emprendimientoId, limite = 10, { fechaDespacho } = {}) {
+    let query = this.#client()
       .from("pedidos")
       .select("id, estado, estado_cobro, total, created_at, clientes(nombre)")
       .eq("emprendimiento_id", emprendimientoId)
-      .order("created_at", { ascending: false })
-      .limit(limite);
+      .order("created_at", { ascending: false });
+    if (fechaDespacho) {
+      query = query.eq("fecha_prevista_entrega", fechaDespacho);
+    }
+
+    const { data, error } = await query.limit(limite);
     if (error) throw error;
     return data || [];
   }

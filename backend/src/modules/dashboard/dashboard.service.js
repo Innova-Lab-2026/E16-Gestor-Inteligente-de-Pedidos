@@ -16,8 +16,8 @@ export class DashboardService {
   async resumen(emprendimientoId, rango = {}) {
     const [pedidos, revisar, ultimos, productos] = await Promise.all([
       this.dashboardDao.pedidosPorEstado(emprendimientoId, rango),
-      this.dashboardDao.countPedidosRequiriendoRevision(emprendimientoId),
-      this.dashboardDao.ultimosPedidos(emprendimientoId),
+      this.dashboardDao.countPedidosRequiriendoRevision(emprendimientoId, rango),
+      this.dashboardDao.ultimosPedidos(emprendimientoId, 10, rango),
       this.dashboardDao.productosParaStock(emprendimientoId),
     ]);
 

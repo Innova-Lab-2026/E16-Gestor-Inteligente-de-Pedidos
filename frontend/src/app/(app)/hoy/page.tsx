@@ -47,17 +47,16 @@ function getRangoHoyArgentina() {
   }).format(ahora);
 
   return {
-    desde: new Date(`${fechaIso}T00:00:00.000-03:00`).toISOString(),
-    hasta: new Date(`${fechaIso}T23:59:59.999-03:00`).toISOString(),
+    fechaDespacho: fechaIso,
     fechaLegible: fechaLegible.charAt(0).toUpperCase() + fechaLegible.slice(1),
   };
 }
 
 export default async function HoyPage() {
-  const { desde, hasta, fechaLegible } = getRangoHoyArgentina();
+  const { fechaDespacho, fechaLegible } = getRangoHoyArgentina();
 
   const [resumenRes, productosRes] = await Promise.all([
-    getDashboardResumen({ desde, hasta }),
+    getDashboardResumen({ fechaDespacho }),
     getProductos(false),
   ]);
 

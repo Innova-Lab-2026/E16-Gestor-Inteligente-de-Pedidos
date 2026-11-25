@@ -5,6 +5,37 @@ import { DashboardService } from "../../src/modules/dashboard/dashboard.service.
 import { ORDER_STATUS } from "../../src/constants/order-status.enum.js";
 
 describe("DashboardService", () => {
+  test("pasa la fecha de despacho a los pedidos, revisiones y últimos pedidos", async () => {
+    const fechas = [];
+    const dashboardDao = {
+      async pedidosPorEstado(_emprendimientoId, rango) {
+        fechas.push(rango.fechaDespacho);
+        return [];
+      },
+      async countPedidosRequiriendoRevision(_emprendimientoId, rango) {
+        fechas.push(rango.fechaDespacho);
+        return 0;
+      },
+      async ultimosPedidos(_emprendimientoId, _limite, rango) {
+        fechas.push(rango.fechaDespacho);
+        return [];
+      },
+      async productosParaStock() {
+        return [];
+      },
+    };
+
+    await new DashboardService({ dashboardDao }).resumen("tenant", {
+      fechaDespacho: "2026-11-24",
+    });
+
+    assert.deepEqual(fechas, [
+      "2026-11-24",
+      "2026-11-24",
+      "2026-11-24",
+    ]);
+  });
+
   test("agrega ventas válidas, stock bajo y estados incluyendo cancelados", async () => {
     const dashboardDao = {
       async pedidosPorEstado() {
