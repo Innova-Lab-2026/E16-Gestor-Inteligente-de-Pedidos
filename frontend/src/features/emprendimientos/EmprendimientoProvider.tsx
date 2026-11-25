@@ -6,9 +6,9 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
-import { useRouter } from "next/navigation";
 import {
   persistActiveEmprendimiento,
   type Emprendimiento,
@@ -36,10 +36,10 @@ export function EmprendimientoProvider({
   initialActiveId: string | null;
   children: React.ReactNode;
 }) {
-  const router = useRouter();
   const [businesses, setBusinesses] = useState(emprendimientos);
   const [activeId, setActiveId] = useState(initialActiveId);
   const [error, setError] = useState<string | null>(null);
+  const persistingId = useRef<string | null>(null);
 
   const seleccionarEmprendimiento = useCallback(
     async (id: string) => {
@@ -47,6 +47,11 @@ export function EmprendimientoProvider({
       if (!selected) {
         setError("El emprendimiento seleccionado ya no está disponible.");
         return false;
+      }
+
+      if (id === activeId) {
+        setError(null);
+        return true;
       }
 
       const result = await persistActiveEmprendimiento(id);
@@ -58,10 +63,9 @@ export function EmprendimientoProvider({
       window.localStorage.setItem(EMPRENDIMIENTO_STORAGE_KEY, id);
       setActiveId(id);
       setError(null);
-      router.refresh();
       return true;
     },
-    [businesses, router],
+    [activeId, businesses],
   );
 
   const agregarEmprendimiento = useCallback((emprendimiento: Emprendimiento) => {
@@ -96,17 +100,25 @@ export function EmprendimientoProvider({
     const selectedId = savedEmprendimiento?.id ?? initialActiveId;
 
     if (!selectedId) return;
+    if (selectedId === initialActiveId) {
+      if (savedId !== selectedId) {
+        window.localStorage.setItem(EMPRENDIMIENTO_STORAGE_KEY, selectedId);
+      }
+      return;
+    }
+    if (persistingId.current === selectedId) return;
 
+    persistingId.current = selectedId;
     void persistActiveEmprendimiento(selectedId).then((result) => {
       if (result.error) {
+        persistingId.current = null;
         setError(result.error);
         return;
       }
       window.localStorage.setItem(EMPRENDIMIENTO_STORAGE_KEY, selectedId);
       setActiveId(selectedId);
-      if (selectedId !== initialActiveId) router.refresh();
     });
-  }, [emprendimientos, initialActiveId, router]);
+  }, [emprendimientos, initialActiveId]);
 
   const value = useMemo(
     () => ({

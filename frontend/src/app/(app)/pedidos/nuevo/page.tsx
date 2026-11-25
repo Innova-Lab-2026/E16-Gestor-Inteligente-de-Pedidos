@@ -26,6 +26,7 @@ export default async function NuevoPedidoPage() {
       <div className="flex items-center gap-3">
         <Link
           href="/pedidos"
+          prefetch={false}
           className="text-lg font-bold text-[#102a39]"
           aria-label="Volver a pedidos"
         >

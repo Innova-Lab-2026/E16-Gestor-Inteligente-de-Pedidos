@@ -76,6 +76,7 @@ export default function BottomNav() {
           <Link
             key={item.href}
             href={item.href}
+            prefetch={false}
             className={`flex flex-col items-center gap-1 rounded-full px-3 py-1 text-[10px] font-semibold transition ${
               active
                 ? "bg-[#7622ed]/10 text-[#7622ed]"

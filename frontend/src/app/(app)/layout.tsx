@@ -41,6 +41,7 @@ export default async function AppLayout({
         <header className="flex items-center justify-between px-5 pt-5 pb-4">
           <Link
             href="/dashboard"
+            prefetch={false}
             className="font-[family-name:var(--font-bungee-shade)] text-2xl text-[#7622ed]"
           >
             E

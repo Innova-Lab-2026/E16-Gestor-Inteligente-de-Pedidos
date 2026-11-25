@@ -21,6 +21,7 @@ export default function FloatingNewOrderButton() {
     <div className="pointer-events-none fixed bottom-20 left-1/2 z-20 flex w-full max-w-[430px] -translate-x-1/2 justify-end px-5">
       <Link
         href="/pedidos/nuevo"
+        prefetch={false}
         aria-label="Cargar nuevo pedido"
         className="pointer-events-auto grid h-12 w-12 place-items-center rounded-full bg-[#056184] text-white shadow-lg transition hover:bg-[#044d69]"
       >

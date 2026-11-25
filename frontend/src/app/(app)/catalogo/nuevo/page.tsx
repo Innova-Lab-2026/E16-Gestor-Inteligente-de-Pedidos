@@ -118,6 +118,7 @@ export default function NuevoProductoPage() {
       <div className="flex items-center gap-3">
         <Link
           href="/catalogo"
+          prefetch={false}
           className="text-lg font-bold text-[#102a39]"
           aria-label="Volver al catálogo"
         >
