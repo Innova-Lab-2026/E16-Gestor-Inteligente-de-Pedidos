@@ -26,4 +26,11 @@ export type DashboardResumen = {
   pendienteCobro: number;
   pedidosRequiriendoRevision: number;
   ultimosPedidos: UltimoPedidoItem[];
+  productosMasVendidos: Array<{
+    productoId: string;
+    nombre: string;
+    unidadesVendidas: number;
+  }>;
+  unidadesVendidas: number;
+  productosBajoStock: number;
 };

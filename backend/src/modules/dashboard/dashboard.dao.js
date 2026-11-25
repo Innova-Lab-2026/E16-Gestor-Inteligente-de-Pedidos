@@ -1,5 +1,4 @@
 import { createSupabaseClient } from "../../config/database.js";
-import { ORDER_STATUS } from "../../constants/order-status.enum.js";
 
 /**
  * Agregaciones para el panel del emprendedor.
@@ -21,14 +20,27 @@ export class DashboardDao {
   async pedidosPorEstado(emprendimientoId, { desde, hasta } = {}) {
     let query = this.#client()
       .from("pedidos")
-      .select("estado, total, estado_cobro, created_at")
-      .eq("emprendimiento_id", emprendimientoId)
-      .neq("estado", ORDER_STATUS.CANCELADO);
+      .select(
+        "estado, total, estado_cobro, created_at, items_pedido(cantidad, producto_id, productos(nombre))",
+      )
+      .eq("emprendimiento_id", emprendimientoId);
 
     if (desde) query = query.gte("created_at", desde);
     if (hasta) query = query.lte("created_at", hasta);
 
     const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+  }
+
+  async productosParaStock(emprendimientoId) {
+    const { data, error } = await this.#client()
+      .from("productos")
+      .select(
+        "activo, tiene_variantes, stock_disponible, stock_minimo, variantes(activo, stock_disponible, stock_minimo)",
+      )
+      .eq("emprendimiento_id", emprendimientoId)
+      .eq("activo", true);
     if (error) throw error;
     return data || [];
   }
