@@ -21,7 +21,7 @@ export class DashboardDao {
     let query = this.#client()
       .from("pedidos")
       .select(
-        "estado, total, estado_cobro, created_at, items_pedido(cantidad, producto_id, productos(nombre))",
+        "estado, total, estado_cobro, created_at, items_pedido(cantidad, producto_id, subtotal, productos(nombre))",
       )
       .eq("emprendimiento_id", emprendimientoId);
 

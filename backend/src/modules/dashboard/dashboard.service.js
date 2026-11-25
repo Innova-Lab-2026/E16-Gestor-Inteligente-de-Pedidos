@@ -56,8 +56,11 @@ export class DashboardService {
           productoId,
           nombre: producto?.nombre ?? "Producto",
           unidadesVendidas: 0,
+          totalVendido: 0,
         };
         venta.unidadesVendidas += cantidadItem;
+        const subtotal = Number(item.subtotal ?? 0);
+        if (Number.isFinite(subtotal)) venta.totalVendido += subtotal;
         ventasPorProducto.set(productoId, venta);
       }
     }
@@ -83,7 +86,10 @@ export class DashboardService {
       (a, b) =>
         b.unidadesVendidas - a.unidadesVendidas ||
         a.nombre.localeCompare(b.nombre, "es"),
-    );
+    ).map((producto) => ({
+      ...producto,
+      totalVendido: Number(producto.totalVendido.toFixed(2)),
+    }));
 
     return {
       cantidadPedidos: cantidad,

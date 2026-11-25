@@ -30,6 +30,7 @@ export type DashboardResumen = {
     productoId: string;
     nombre: string;
     unidadesVendidas: number;
+    totalVendido: number;
   }>;
   unidadesVendidas: number;
   productosBajoStock: number;

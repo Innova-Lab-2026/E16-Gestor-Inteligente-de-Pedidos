@@ -15,6 +15,13 @@ type DashboardResumen = {
   facturado: number;
   pendienteCobro: number;
   pedidosRequiriendoRevision: number;
+  productosMasVendidos: Array<{
+    productoId: string;
+    nombre: string;
+    unidadesVendidas: number;
+    totalVendido: number;
+  }>;
+  unidadesVendidas: number;
   ultimosPedidos: Array<{
     id: string;
     numero?: number | null;
@@ -125,7 +132,13 @@ export default async function NumerosPage({
   const totalOperado = facturado + pendiente;
   const totalPedidos = resumen?.cantidadPedidos ?? 0;
   const cancelados = resumen?.porEstado?.CANCELADO ?? 0;
-  const pedidosValidos = Math.max(0, totalPedidos - cancelados);
+  const pedidosValidos = totalPedidos;
+  const totalPedidosEnEstados = Object.values(resumen?.porEstado ?? {}).reduce(
+    (total, cantidad) => total + (cantidad ?? 0),
+    0,
+  );
+  const productosMasVendidos = resumen?.productosMasVendidos ?? [];
+  const unidadesVendidas = resumen?.unidadesVendidas ?? 0;
   const ticketPromedio =
     pedidosValidos > 0 ? Math.round(totalOperado / pedidosValidos) : 0;
   const porcentajeCobrado =
@@ -230,7 +243,7 @@ export default async function NumerosPage({
                 Pedidos por estado
               </h2>
 
-              {totalPedidos === 0 ? (
+              {totalPedidosEnEstados === 0 ? (
                 <p className="py-3 text-center text-xs text-[#586574]">
                   No hay pedidos en este período.
                 </p>
@@ -239,8 +252,8 @@ export default async function NumerosPage({
                   {ESTADOS_INFO.map((est) => {
                     const count = resumen.porEstado?.[est.key] ?? 0;
                     const pct =
-                      totalPedidos > 0
-                        ? Math.round((count / totalPedidos) * 100)
+                      totalPedidosEnEstados > 0
+                        ? Math.round((count / totalPedidosEnEstados) * 100)
                         : 0;
                     return (
                       <div key={est.key} className="space-y-1">
@@ -262,6 +275,52 @@ export default async function NumerosPage({
                     );
                   })}
                 </div>
+              )}
+            </div>
+
+            <div className="rounded-2xl border border-[#e2e8f0] bg-white p-4">
+              <p className="text-xs font-bold uppercase text-[#586574]">
+                Unidades vendidas
+              </p>
+              <p className="mt-1 text-2xl font-extrabold text-[#102a39]">
+                {unidadesVendidas.toLocaleString("es-AR")}
+              </p>
+            </div>
+
+            <div className="space-y-3 rounded-2xl border border-[#e2e8f0] bg-white p-4">
+              <h2 className="text-sm font-bold text-[#102a39]">
+                Productos más vendidos
+              </h2>
+              {productosMasVendidos.length === 0 ? (
+                <p className="py-3 text-center text-xs text-[#586574]">
+                  No hay productos vendidos en este período.
+                </p>
+              ) : (
+                <ol className="divide-y divide-[#e2e8f0]">
+                  {productosMasVendidos.map((producto, index) => (
+                    <li
+                      key={producto.productoId}
+                      className="flex items-center gap-3 py-3"
+                    >
+                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#7622ed]/10 text-xs font-bold text-[#7622ed]">
+                        {index + 1}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-[#102a39]">
+                          {producto.nombre}
+                        </p>
+                        <p className="text-xs text-[#586574]">
+                          {producto.unidadesVendidas.toLocaleString("es-AR")}{" "}
+                          {producto.unidadesVendidas === 1 ? "unidad" : "unidades"}
+                        </p>
+                      </div>
+                      <span className="shrink-0 text-sm font-bold text-[#056184]">
+                        $
+                        {Number(producto.totalVendido).toLocaleString("es-AR")}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
               )}
             </div>
           </>

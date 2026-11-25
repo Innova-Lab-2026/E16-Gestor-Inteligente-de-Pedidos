@@ -352,11 +352,12 @@ El tenant se indica con el header `x-emprendimiento-id` (o query
 resuelve solo.
 
 `GET /api/dashboard` acepta `desde` y `hasta` para limitar los indicadores de
-pedidos y ventas. Su respuesta incluye `productosMasVendidos` (ranking por
-unidades), `unidadesVendidas` y `productosBajoStock`. Las ventas y unidades
-excluyen pedidos cancelados; `porEstado` sí incluye `CANCELADO`. El conteo de
-bajo stock usa `stock_disponible <= stock_minimo` en productos activos y sus
-variantes activas, contando cada variante como una alerta independiente.
+pedidos y ventas. Su respuesta incluye `productosMasVendidos` (elementos con
+`productoId`, `nombre`, `unidadesVendidas` y `totalVendido`), `unidadesVendidas`
+y `productosBajoStock`. Las ventas y unidades excluyen pedidos cancelados;
+`porEstado` sí incluye `CANCELADO`. El conteo de bajo stock usa
+`stock_disponible <= stock_minimo` en productos activos y sus variantes
+activas, contando cada variante como una alerta independiente.
 
 ## Ejemplo: pedido manual
 

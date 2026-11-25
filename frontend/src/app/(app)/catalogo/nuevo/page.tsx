@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -12,13 +13,23 @@ type VarianteDraft = {
   nombre: string;
   stock_disponible: string;
   stock_minimo: string;
+  atributos: Record<string, string>;
 };
+
+const TIPOS_VARIANTE = [
+  { value: "talle", label: "Talle" },
+  { value: "color", label: "Color" },
+  { value: "tamaño", label: "Tamaño" },
+  { value: "sabor", label: "Sabor" },
+] as const;
+type TipoVariante = (typeof TIPOS_VARIANTE)[number]["value"];
 
 export default function NuevoProductoPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [fotoUrl, setFotoUrl] = useState("");
   const [nombre, setNombre] = useState("");
   const [precio, setPrecio] = useState("");
   const [descripcion, setDescripcion] = useState("");
@@ -28,26 +39,35 @@ export default function NuevoProductoPage() {
   const [tieneVariantes, setTieneVariantes] = useState(false);
   const [stockDisponible, setStockDisponible] = useState("");
   const [stockMinimo, setStockMinimo] = useState("");
-  const [variantes, setVariantes] = useState<VarianteDraft[]>([
-    { nombre: "", stock_disponible: "", stock_minimo: "" },
-  ]);
+  const [variantes, setVariantes] = useState<VarianteDraft[]>([]);
+  const [modalVarianteOpen, setModalVarianteOpen] = useState(false);
+  const [tipoVariante, setTipoVariante] = useState<TipoVariante>("talle");
+  const [valorVariante, setValorVariante] = useState("");
+  const [stockVariante, setStockVariante] = useState("");
+  const [stockMinimoVariante, setStockMinimoVariante] = useState("");
 
-  const addVarianteRow = () => {
-    setVariantes((prev) => [
-      ...prev,
-      { nombre: "", stock_disponible: "", stock_minimo: "" },
+  function guardarVariante(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const valor = valorVariante.trim();
+    if (!valor) return;
+
+    const tipo = TIPOS_VARIANTE.find((item) => item.value === tipoVariante);
+    if (!tipo) return;
+
+    setVariantes((current) => [
+      ...current,
+      {
+        nombre: `${tipo.label}: ${valor}`,
+        stock_disponible: stockVariante,
+        stock_minimo: stockMinimoVariante,
+        atributos: { [tipoVariante]: valor },
+      },
     ]);
-  };
-
-  const updateVariante = (
-    index: number,
-    field: keyof VarianteDraft,
-    value: string,
-  ) => {
-    setVariantes((prev) =>
-      prev.map((v, i) => (i === index ? { ...v, [field]: value } : v)),
-    );
-  };
+    setValorVariante("");
+    setStockVariante("");
+    setStockMinimoVariante("");
+    setModalVarianteOpen(false);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -58,6 +78,7 @@ export default function NuevoProductoPage() {
       nombre,
       precio: Number(precio),
       descripcion: descripcion || undefined,
+      foto_url: fotoUrl.trim() || null,
       marca: marca || null,
       modelo: modelo || null,
       genero: genero || null,
@@ -79,6 +100,7 @@ export default function NuevoProductoPage() {
           nombre: v.nombre.trim(),
           stock_disponible: Number(v.stock_disponible) || 0,
           stock_minimo: Number(v.stock_minimo) || 0,
+          atributos: v.atributos,
         });
         if (varRes.error) {
           setError(`Producto creado, pero falló una variante: ${varRes.error}`);
@@ -110,6 +132,29 @@ export default function NuevoProductoPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        <label className="block space-y-1">
+          <span className="text-sm font-semibold">Foto del producto (Opcional)</span>
+          <input
+            type="url"
+            value={fotoUrl}
+            onChange={(e) => setFotoUrl(e.target.value)}
+            placeholder="Pegá el enlace de la foto"
+            className="h-12 w-full rounded-full border-2 border-[#102a39] px-4 text-sm focus:outline-none"
+          />
+        </label>
+
+        {fotoUrl.trim() && (
+          <div className="relative h-40 w-full overflow-hidden rounded-2xl border border-[#e2e8f0] bg-slate-50">
+            <Image
+              src={fotoUrl}
+              alt={nombre ? `Foto de ${nombre}` : "Vista previa del producto"}
+              fill
+              unoptimized
+              className="object-contain"
+            />
+          </div>
+        )}
+
         <label className="block space-y-1">
           <span className="text-sm font-semibold">Nombre del producto *</span>
           <input
@@ -231,64 +276,64 @@ export default function NuevoProductoPage() {
           </div>
         ) : (
           <div className="space-y-3 rounded-2xl border border-[#e2e8f0] p-4">
-            <div className="space-y-1">
-              <p className="text-sm font-semibold text-[#102a39]">
-                Variantes y cantidades
-              </p>
-              <p className="text-xs leading-relaxed text-[#586574]">
-                Indicá cuánto tenés hoy de cada variante (<strong>Stock</strong>) y desde qué cantidad querés recibir alerta de reposición (<strong>Mínimo</strong>).
-              </p>
-            </div>
-
-            <div className="grid grid-cols-12 gap-2 text-xs font-bold text-[#102a39]">
-              <span className="col-span-6 pl-3">Variante</span>
-              <span className="col-span-3 text-center">Stock</span>
-              <span className="col-span-3 text-center">Mínimo</span>
-            </div>
-
-            {variantes.map((v, idx) => (
-              <div key={idx} className="grid grid-cols-12 items-center gap-2">
-                <input
-                  required
-                  aria-label={`Nombre de variante ${idx + 1}`}
-                  placeholder="Ej: Azul"
-                  value={v.nombre}
-                  onChange={(e) => updateVariante(idx, "nombre", e.target.value)}
-                  className="col-span-6 h-11 rounded-full border-2 border-[#102a39] px-3 text-xs focus:outline-none"
-                />
-                <input
-                  required
-                  type="number"
-                  min="0"
-                  aria-label={`Stock actual de ${v.nombre || `variante ${idx + 1}`}`}
-                  placeholder="0"
-                  value={v.stock_disponible}
-                  onChange={(e) =>
-                    updateVariante(idx, "stock_disponible", e.target.value)
-                  }
-                  className="col-span-3 h-11 rounded-full border-2 border-[#102a39] px-2 text-center text-xs focus:outline-none"
-                />
-                <input
-                  type="number"
-                  min="0"
-                  aria-label={`Stock mínimo de ${v.nombre || `variante ${idx + 1}`}`}
-                  placeholder="0"
-                  value={v.stock_minimo}
-                  onChange={(e) =>
-                    updateVariante(idx, "stock_minimo", e.target.value)
-                  }
-                  className="col-span-3 h-11 rounded-full border-2 border-[#102a39] px-2 text-center text-xs focus:outline-none"
-                />
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-1">
+                <h2 className="text-sm font-semibold text-[#102a39]">
+                  Variante
+                </h2>
+                <p className="text-xs leading-relaxed text-[#586574]">
+                  Agregá talles, colores, tamaños o sabores y su stock.
+                </p>
               </div>
-            ))}
+              <button
+                type="button"
+                onClick={() => setModalVarianteOpen(true)}
+                className="shrink-0 rounded-full border border-[#7622ed] px-3 py-2 text-xs font-bold text-[#7622ed] transition hover:bg-[#7622ed]/5"
+              >
+                + Agregar
+              </button>
+            </div>
 
-            <button
-              type="button"
-              onClick={addVarianteRow}
-              className="text-xs font-bold text-[#7622ed] underline"
-            >
-              + Agregar otra variante
-            </button>
+            <p className="text-xs text-[#586574]">
+              El precio definido arriba se aplica a todas las variantes.
+            </p>
+
+            {variantes.length > 0 ? (
+              <div className="divide-y divide-[#e2e8f0]">
+                {variantes.map((variante, index) => (
+                  <div
+                    key={`${variante.nombre}-${index}`}
+                    className="flex items-center justify-between gap-3 py-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-[#102a39]">
+                        {variante.nombre}
+                      </p>
+                      <p className="text-xs text-[#586574]">
+                        Stock: {variante.stock_disponible || "0"} · Mínimo:{" "}
+                        {variante.stock_minimo || "0"}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      aria-label={`Quitar ${variante.nombre}`}
+                      onClick={() =>
+                        setVariantes((current) =>
+                          current.filter((_, itemIndex) => itemIndex !== index),
+                        )
+                      }
+                      className="shrink-0 px-2 py-1 text-xs font-semibold text-red-600"
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="rounded-xl bg-slate-50 px-3 py-4 text-center text-xs text-[#586574]">
+                Todavía no agregaste variantes.
+              </p>
+            )}
           </div>
         )}
 
@@ -296,12 +341,122 @@ export default function NuevoProductoPage() {
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || (tieneVariantes && variantes.length === 0)}
           className="h-12 w-full rounded-full bg-[#056184] text-sm font-bold text-white transition hover:bg-[#044d69] disabled:opacity-50"
         >
           {loading ? "Guardando..." : "Guardar producto"}
         </button>
       </form>
+
+      {modalVarianteOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#102a39]/60 px-5">
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="variant-dialog-title"
+            className="w-full max-w-[390px] rounded-3xl bg-white p-6 text-[#102a39] shadow-2xl"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <h2 id="variant-dialog-title" className="text-lg font-bold">
+                Variante
+              </h2>
+              <button
+                type="button"
+                aria-label="Cerrar"
+                onClick={() => setModalVarianteOpen(false)}
+                className="grid h-9 w-9 place-items-center rounded-full text-xl text-[#586574] hover:bg-slate-100"
+              >
+                ×
+              </button>
+            </div>
+
+            <p className="mt-2 text-xs leading-relaxed text-[#586574]">
+              El precio del producto es compartido por todas las variantes.
+            </p>
+            <p className="mt-2 text-sm font-semibold text-[#102a39]">
+              Precio:{" "}
+              {precio
+                ? `$${Number(precio).toLocaleString("es-AR")}`
+                : "completá el precio del producto"}
+            </p>
+
+            <form onSubmit={guardarVariante} className="mt-5 space-y-4">
+              <label className="block space-y-1">
+                <span className="text-sm font-semibold">Tipo</span>
+                <select
+                  value={tipoVariante}
+                  onChange={(e) => {
+                    const selected = TIPOS_VARIANTE.find(
+                      (tipo) => tipo.value === e.currentTarget.value,
+                    );
+                    if (selected) setTipoVariante(selected.value);
+                  }}
+                  className="h-12 w-full rounded-full border-2 border-[#102a39] bg-white px-4 text-sm focus:outline-none"
+                >
+                  {TIPOS_VARIANTE.map((tipo) => (
+                    <option key={tipo.value} value={tipo.value}>
+                      {tipo.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="block space-y-1">
+                <span className="text-sm font-semibold">Valor</span>
+                <input
+                  required
+                  autoFocus
+                  value={valorVariante}
+                  onChange={(e) => setValorVariante(e.target.value)}
+                  placeholder={
+                    tipoVariante === "talle"
+                      ? "Ej: M"
+                      : tipoVariante === "color"
+                        ? "Ej: Azul"
+                        : tipoVariante === "tamaño"
+                          ? "Ej: Grande"
+                          : "Ej: Frutilla"
+                  }
+                  className="h-12 w-full rounded-full border-2 border-[#102a39] px-4 text-sm focus:outline-none"
+                />
+              </label>
+
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block space-y-1">
+                  <span className="text-sm font-semibold">Stock</span>
+                  <input
+                    required
+                    type="number"
+                    min="0"
+                    value={stockVariante}
+                    onChange={(e) => setStockVariante(e.target.value)}
+                    placeholder="0"
+                    className="h-12 w-full rounded-full border-2 border-[#102a39] px-4 text-sm focus:outline-none"
+                  />
+                </label>
+                <label className="block space-y-1">
+                  <span className="text-sm font-semibold">Stock mínimo</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={stockMinimoVariante}
+                    onChange={(e) => setStockMinimoVariante(e.target.value)}
+                    placeholder="0"
+                    className="h-12 w-full rounded-full border-2 border-[#102a39] px-4 text-sm focus:outline-none"
+                  />
+                </label>
+              </div>
+
+              <button
+                type="submit"
+                className="h-12 w-full rounded-full bg-[#056184] text-sm font-bold text-white transition hover:bg-[#044d69]"
+              >
+                Guardar
+              </button>
+            </form>
+          </section>
+        </div>
+      )}
     </section>
   );
 }

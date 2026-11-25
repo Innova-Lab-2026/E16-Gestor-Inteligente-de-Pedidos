@@ -11,17 +11,19 @@ describe("DashboardService", () => {
         return [
           {
             estado: ORDER_STATUS.RECIBIDO,
-            total: 30,
+            total: 50,
             estado_cobro: "PENDIENTE",
             items_pedido: [
               {
                 producto_id: "producto-a",
                 cantidad: 2,
+                subtotal: 20,
                 productos: { nombre: "Jabón" },
               },
               {
                 producto_id: "producto-b",
                 cantidad: 3,
+                subtotal: 30,
                 productos: { nombre: "Velas" },
               },
             ],
@@ -34,6 +36,7 @@ describe("DashboardService", () => {
               {
                 producto_id: "producto-a",
                 cantidad: 9,
+                subtotal: 90,
                 productos: { nombre: "Jabón" },
               },
             ],
@@ -46,6 +49,7 @@ describe("DashboardService", () => {
               {
                 producto_id: "producto-a",
                 cantidad: 4,
+                subtotal: 40,
                 productos: { nombre: "Jabón" },
               },
             ],
@@ -96,11 +100,21 @@ describe("DashboardService", () => {
     assert.equal(result.porEstado[ORDER_STATUS.CANCELADO], 1);
     assert.equal(result.cantidadPedidos, 2);
     assert.equal(result.facturado, 40);
-    assert.equal(result.pendienteCobro, 30);
+    assert.equal(result.pendienteCobro, 50);
     assert.equal(result.unidadesVendidas, 9);
     assert.deepEqual(result.productosMasVendidos, [
-      { productoId: "producto-a", nombre: "Jabón", unidadesVendidas: 6 },
-      { productoId: "producto-b", nombre: "Velas", unidadesVendidas: 3 },
+      {
+        productoId: "producto-a",
+        nombre: "Jabón",
+        unidadesVendidas: 6,
+        totalVendido: 60,
+      },
+      {
+        productoId: "producto-b",
+        nombre: "Velas",
+        unidadesVendidas: 3,
+        totalVendido: 30,
+      },
     ]);
     assert.equal(result.productosBajoStock, 3);
   });
