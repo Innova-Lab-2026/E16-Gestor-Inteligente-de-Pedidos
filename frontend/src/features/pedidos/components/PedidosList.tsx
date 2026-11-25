@@ -231,23 +231,23 @@ export default function PedidosList({
         onSubmit={aplicarFiltros}
         className="space-y-3 rounded-2xl border border-[#e2e8f0] bg-white p-3"
       >
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="space-y-1 text-xs font-semibold text-[#102a39]">
-            Cliente o número de pedido
+        <div className="grid min-w-0 items-end gap-3 sm:grid-cols-2">
+          <label className="min-w-0 space-y-1 text-xs font-semibold text-[#102a39]">
+            Cliente o # pedido
             <input
               name="busqueda"
               type="search"
               defaultValue={filtros.busqueda}
-              placeholder="Nombre del cliente o # de pedido"
-              className="h-10 w-full rounded-xl border border-[#cbd5e1] px-3 text-sm font-normal"
+              placeholder="Nombre o # pedido"
+              className="h-10 w-full min-w-0 rounded-xl border border-[#cbd5e1] px-3 text-sm font-normal"
             />
           </label>
-          <label className="space-y-1 text-xs font-semibold text-[#102a39]">
+          <label className="min-w-0 space-y-1 text-xs font-semibold text-[#102a39]">
             Estado de cobro
             <select
               name="estado_cobro"
               defaultValue={filtros.estadoCobro}
-              className="h-10 w-full rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm font-normal"
+              className="h-10 w-full min-w-0 rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm font-normal"
             >
               <option value="">Todos</option>
               <option value="PAGADO">Pagado</option>
