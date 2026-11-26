@@ -237,39 +237,53 @@ export default async function NumerosPage({
                 </p>
               </div>
 
-              <Link
-                href="/catalogo?filtro=stock_bajo"
-                className={`rounded-2xl border p-3.5 transition ${
-                  resumen.productosBajoStock > 0
-                    ? "border-orange-200 bg-orange-50 hover:border-orange-300"
-                    : "border-[#e2e8f0] bg-white hover:border-[#cbd5e1]"
-                }`}
-              >
+            </div>
+
+            <Link
+              href="/catalogo?filtro=stock_bajo"
+              className={`flex items-center justify-between gap-4 rounded-2xl border p-4 transition ${
+                resumen.productosBajoStock > 0
+                  ? "border-orange-200 bg-orange-50 hover:border-orange-300"
+                  : "border-[#e2e8f0] bg-white hover:border-[#cbd5e1]"
+              }`}
+            >
+              <div>
                 <p
-                  className={`text-[11px] font-semibold ${
+                  className={`text-sm font-bold ${
                     resumen.productosBajoStock > 0
                       ? "text-orange-800"
                       : "text-[#586574]"
                   }`}
                 >
-                  Productos con stock bajo:
-                </p>
-                <p
-                  className={`mt-1 text-xl font-extrabold ${
-                    resumen.productosBajoStock > 0
-                      ? "text-orange-700"
-                      : "text-[#102a39]"
-                  }`}
-                >
-                  {resumen.productosBajoStock}
+                  Productos con stock bajo
                 </p>
                 {resumen.productosBajoStock === 0 && (
                   <p className="mt-1 text-[11px] font-semibold text-[#586574]">
                     Todo en orden
                   </p>
                 )}
-              </Link>
-            </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <span
+                  className={`text-xl font-extrabold ${
+                    resumen.productosBajoStock > 0
+                      ? "text-orange-700"
+                      : "text-[#102a39]"
+                  }`}
+                >
+                  {resumen.productosBajoStock}
+                </span>
+                <span
+                  className={`text-[11px] font-semibold ${
+                    resumen.productosBajoStock > 0
+                      ? "text-orange-800"
+                      : "text-[#586574]"
+                  }`}
+                >
+                  Ver en catálogo →
+                </span>
+              </div>
+            </Link>
 
             {/* Distribución por estado */}
             <div className="space-y-3 rounded-2xl border border-[#e2e8f0] bg-white p-4">
