@@ -37,7 +37,7 @@ npm install
 npm run dev
 ```
 
-Completá `backend/.env` con el archivo compartido por el equipo (incluye las credenciales de Supabase y las claves de Meta WhatsApp; **no modifiques `WHATSAPP_ENCRYPTION_KEY`**). Express escucha en `http://localhost:3001`; comprobá que esté disponible con `http://localhost:3001/api/health`. La configuración completa está en [backend/README.md](../backend/README.md) y en [docs/GUIA_ENTORNO_QA.md](../docs/GUIA_ENTORNO_QA.md).
+Completá `backend/.env` con el archivo compartido por el equipo (incluye las credenciales de Supabase y las claves de Meta WhatsApp; **no modifiques `WHATSAPP_ENCRYPTION_KEY`**). Express escucha en `http://localhost:3001`; comprobá que esté disponible con `http://localhost:3001/api/health`. La configuración completa está en [backend/README.md](../backend/README.md).
 
 ### 3. Configurar y levantar Next.js
 
@@ -60,7 +60,7 @@ Para visualizar en el panel web (`/pedidos` y `/dashboard`) los pedidos generado
 
 1. Mantené activo el backend en el puerto `3001` junto con el túnel público HTTPS (pestaña **Puertos** de VS Code en visibilidad **Pública**).
 2. Verificá que el producto a pedir exista activo en el catálogo/Supabase del emprendimiento.
-3. Seguí el paso a paso completo de envío y validación en [docs/GUIA_ENTORNO_QA.md](../docs/GUIA_ENTORNO_QA.md).
+3. Seguí el circuito de pruebas de WhatsApp en [PRUEBAS_POSTMAN_CIRCUITO.md](../PRUEBAS_POSTMAN_CIRCUITO.md).
 
 ### Opción: ejecutar el frontend con Docker
 
@@ -105,13 +105,18 @@ Los cambios que hagas en el código se reflejan automáticamente en el navegador
 
 ## Despliegue en Vercel
 
-En la configuración del proyecto de Vercel, cargá esta variable privada:
+La demo está disponible en https://e16-gestor-inteligente-de-pedidos.vercel.app/.
+
+En la configuración del proyecto de Vercel, cargá la URL real del backend
+desplegado en esta variable privada, incluyendo `/api`:
 
 ```env
-BACKEND_API_URL=https://<servicio-backend>.onrender.com/api
+BACKEND_API_URL=https://e16-gestor-inteligente-de-pedidos.onrender.com/api
 ```
 
-Reemplazá el host por la URL real de Render o Railway. No cargues claves de Supabase en Vercel: el frontend se comunica con Supabase a través del backend.
+El backend de la demo corre en Render. En el plan gratuito se suspende por inactividad, así que la primera petición puede demorar cerca de un minuto.
+
+No cargues claves de Supabase en Vercel: el frontend se comunica con Supabase a través del backend.
 
 Para dominios de preview de Vercel, configurá `CORS_ORIGINS` en el backend solo si alguna ruta comienza a ser llamada directamente desde el navegador. El flujo actual de autenticación no requiere CORS para hablar con Express.
 
@@ -147,35 +152,30 @@ Reiniciá limpio: `docker compose down -v && docker compose up --build`.
 Todo dentro de `frontend/src/`:
 ```bash
 src/
-├─ app/                          # Solo rutas y layouts. Sin lógica de negocio.
-│  ├─ (public)/                  # Sin sesión (el "observador")
+├─ app/
+│  ├─ (public)/
+│  │  ├─ forgot-password/
 │  │  ├─ login/
 │  │  └─ registro/
-│  ├─ (app)/                     # Con sesión (se protege acá)
-│  │  ├─ dashboard/
-│  │  ├─ pedidos/
-│  │  ├─ catalogo/
-│  │  ├─ stock/
-│  │  ├─ clientes/
-│  │  └─ configuracion/
-│  ├─ layout.tsx
-│  └─ globals.css
-├─ features/                     # Un módulo por área del negocio
+│  └─ (app)/
+│     ├─ catalogo/
+│     ├─ clientes/
+│     ├─ configuracion/
+│     ├─ dashboard/
+│     ├─ emprendimientos/
+│     ├─ hoy/
+│     ├─ numeros/
+│     └─ pedidos/
+├─ components/
 │  ├─ auth/
-│  ├─ catalogo/
-│  ├─ pedidos/
-│  ├─ stock/
+│  ├─ emprendimientos/
+│  └─ layout/
+├─ config/
+├─ features/
+│  ├─ auth/
 │  ├─ clientes/
-│  └─ dashboard/
-│     ├─ components/             # Componentes que solo usa este módulo
-│     ├─ hooks/
-│     ├─ api.ts                  # Llamadas al backend de este módulo
-│     ├─ schemas.ts              # Validaciones de formularios
-│     └─ types.ts
-├─ components/                   # Componentes compartidos por todos
-│  ├─ ui/                        # Genéricos: Button, Input, Modal...
-│  └─ layout/                    # Marco de la app: Sidebar, Topbar, PageHeader
-├─ lib/                          # Cliente HTTP, utilidades
-├─ config/                       # Rutas, estados del pedido, constantes
-└─ types/                        # Tipos globales
+│  ├─ dashboard/
+│  ├─ emprendimientos/
+│  └─ pedidos/
+└─ lib/
 ```

@@ -2,6 +2,14 @@
 
 Plataforma web para centralizar la operación diaria de pequeños emprendimientos: pedidos, clientes, ventas y stock, con integración a WhatsApp y alertas operativas.
 
+## Demo en línea
+
+- Aplicación: https://e16-gestor-inteligente-de-pedidos.vercel.app/
+- API (backend): https://e16-gestor-inteligente-de-pedidos.onrender.com/api/health
+- Credenciales de prueba: se informan junto con el enlace de la demo.
+
+> El backend corre en el plan gratuito de Render: si estuvo inactivo, la primera carga puede demorar cerca de un minuto.
+
 ## Propósito
 
 Ayudar a emprendedores que reciben pedidos por canales digitales (especialmente WhatsApp) a ordenar su gestión diaria sin recurrir a sistemas complejos. Cada cuenta representa un emprendimiento y mantiene separados su catálogo, clientes, pedidos, ventas y stock.
@@ -26,7 +34,7 @@ Un panel operativo que centraliza pedidos (manuales y provenientes de WhatsApp),
 - Stock y movimientos: stock inicial y ajustes manuales con motivo.
 - Stock automático: reserva/descuento al confirmar y devolución al cancelar.
 - Pedidos manuales: creación desde el gestor con cliente, productos, cantidades y entrega.
-- Integración con WhatsApp: recepción automática de pedidos vía API oficial.
+- Integración con WhatsApp: recepción de pedidos vía API oficial de Meta (implementada en el backend; validación en vivo en curso).
 - Clientes: datos básicos asociados al pedido.
 - Seguimiento de pedidos: estados y modalidad/fecha de entrega.
 - Cobros: estado pagado o pendiente.
@@ -34,7 +42,7 @@ Un panel operativo que centraliza pedidos (manuales y provenientes de WhatsApp),
 - Dashboard operativo: ventas, pedidos por estado, cobros pendientes, bajo stock y más vendidos.
 - Búsqueda y filtros por cliente, fecha, estado o cobro.
 - Validaciones y trazabilidad de movimientos críticos.
-- Interfaz responsive para operar desde computadora o celular.
+- Interfaz mobile-first, pensada para operar desde el celular.
 
 ## Flujo general
 
@@ -45,22 +53,30 @@ Un panel operativo que centraliza pedidos (manuales y provenientes de WhatsApp),
 5. Gestión de preparación, entrega y cobro.
 6. Consulta de alertas e indicadores.
 
+## Stack
+
+- **Backend:** Node.js + Express (JavaScript ESM), validación con Zod.
+- **Frontend:** Next.js (App Router) + React + TypeScript + Tailwind CSS.
+- **Base de datos y autenticación:** Supabase (PostgreSQL, Auth y políticas RLS por emprendimiento).
+- **Despliegue:** Vercel (frontend) y Render (backend).
+
 ## Estructura del repositorio
 
 - `backend/` — API y lógica de negocio (Node.js/Express).
 - `frontend/` — Aplicación web (Next.js/React).
-- `docs/` — Guías operativas de entorno, QA e integración con WhatsApp.
+- `PRUEBAS_POSTMAN_CIRCUITO.md` — circuito de pruebas de la API.
 
 ## Inicio rápido (Desarrollo y QA)
 
-1. **Configurar variables de entorno:** Crear `backend/.env` con las credenciales compartidas del equipo y `frontend/.env.local` apuntando a `BACKEND_API_URL=http://localhost:3001/api` (ver detalle completo en `docs/GUIA_ENTORNO_QA.md`).
-2. **Levantar el Backend (puerto `3001`):**
+1. **Base de datos:** en el SQL Editor de Supabase, aplicar en orden las migraciones `backend/db/migrations/001` a `011` (detalle en [backend/README.md](backend/README.md#migracion-de-la-base)).
+2. **Configurar variables de entorno:** crear `backend/.env` con las credenciales compartidas del equipo y `frontend/.env.local` con `BACKEND_API_URL=http://localhost:3001/api`.
+3. **Levantar el Backend (puerto `3001`):**
    ```bash
    cd backend
    npm install
    npm run dev
    ```
-3. **Levantar el Frontend (puerto `3000`):**
+4. **Levantar el Frontend (puerto `3000`):**
    ```bash
    cd frontend
    pnpm install
@@ -69,8 +85,8 @@ Un panel operativo que centraliza pedidos (manuales y provenientes de WhatsApp),
 
 ## Documentación adicional
 
-- Documentación técnica del servidor en `backend/README.md`
-- Documentación de la aplicación web en `frontend/README.md`
+- Documentación técnica del servidor: [backend/README.md](backend/README.md)
+- Documentación de la aplicación web: [frontend/README.md](frontend/README.md)
 
 ## Licencia
 

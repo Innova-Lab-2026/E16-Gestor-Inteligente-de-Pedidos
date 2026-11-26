@@ -37,7 +37,7 @@ src/
   utils/       logger.js
   app.js       configuracion de Express
   server.js    entry point
-db/migrations/ 001_schema_v2.sql ... 010_emprendimientos_canales_venta.sql
+db/migrations/ 001_schema_v2.sql ... 011_persistir_datos_entrega_pedido.sql
 tests/         unit/ + integration/
 ```
 
@@ -110,7 +110,10 @@ Copia comentada en `.env.example`.
 - **Vercel (frontend):** `BACKEND_API_URL=https://<servicio-backend>/api`.
   Es privada del servidor de Next; no uses `NEXT_PUBLIC_` ni cargues claves
   de Supabase en Vercel.
-- **Render/Railway (backend):** el proveedor define `PORT`; configurá
+- **Render/Railway (backend):** en la demo el backend corre en Render
+  (`https://e16-gestor-inteligente-de-pedidos.onrender.com`). En el plan
+  gratuito el servicio se suspende por inactividad y la primera petición
+  puede tardar cerca de un minuto en responder. El proveedor define `PORT`; configurá
   `CORS_ORIGINS=https://<dominio-del-frontend>.vercel.app`,
   `SUPABASE_URL=https://<proyecto>.supabase.co`,
   `SUPABASE_PUBLISHABLE_KEY=sb_publishable_<clave-publicable>`,
@@ -137,8 +140,8 @@ Reglas que sigue el codigo:
   algo falla por permisos y la tentacion es "usar la clave secreta", el
   arreglo va en la politica RLS o en la RPC, no en la clave.
 - `SUPABASE_SECRET_KEY` es obligatoria **solo** para los webhooks de
-  canales (pasos 36 a 47 de `Docs/pruebas-manuales.md`). Un webhook
-  llega de Telegram o Meta: no hay sesion, `auth.uid()` es NULL y no
+  canales (ver [PRUEBAS_POSTMAN_CIRCUITO.md](../PRUEBAS_POSTMAN_CIRCUITO.md)).
+  Un webhook llega de Telegram o Meta: no hay sesion, `auth.uid()` es NULL y no
   existe politica RLS capaz de autorizar a un tercero anonimo. Es el
   caso que Supabase documenta como "codigo que corre en un servidor
   tuyo".
@@ -168,9 +171,8 @@ nuevo y aparece un aviso pidiendo el renombre.
   `"Quiero hacer un pedido"`), devuelve la plantilla estructurada y valida
   la respuesta del cliente contra los registros activos de `productos` y
   `variantes` antes de crear el pedido.
-- **Guía operativa paso a paso:** Consultar `../docs/GUIA_ENTORNO_QA.md`
-  para el procedimiento completo de túnel, whitelist de números en Meta y
-  pruebas de QA.
+- **Pruebas del circuito con Postman:** Consultar
+  [PRUEBAS_POSTMAN_CIRCUITO.md](../PRUEBAS_POSTMAN_CIRCUITO.md).
 
 ## Migracion de la base
 
@@ -217,6 +219,10 @@ Ejecutar en este orden en el SQL Editor de Supabase:
 10. `db/migrations/010_emprendimientos_canales_venta.sql` — persiste los
     canales de pedido por emprendimiento y actualiza la RPC de creación
     para recibir toda la configuración inicial.
+11. `db/migrations/011_persistir_datos_entrega_pedido.sql` — actualiza la
+    firma de la RPC `crear_pedido_con_items` para guardar dirección de
+    entrega, horario y medios de pago. **Obligatoria:** sin esta migración
+    no se puede crear ningún pedido.
 
 > **Si ya corriste la 001 antes, volve a ejecutarla.** Agrega el trigger
 > `on_auth_user_created` sobre `auth.users` y un *backfill* que repara las
@@ -225,8 +231,8 @@ Ejecutar en este orden en el SQL Editor de Supabase:
 
 > El alta de usuario y la creacion de emprendimientos **no** necesitan
 > clave privilegiada: corren con el JWT que devuelve `signUp`. La clave
-> secreta hace falta solo para los webhooks (pasos 36 a 47); sin ella,
-> esos pasos responden 500 y el resto funciona igual.
+> secreta hace falta solo para los webhooks de canales; sin ella,
+> esas solicitudes responden 500 y el resto funciona igual.
 
 ## El espejo `usuarios`
 
@@ -269,7 +275,7 @@ Se eligen por lo que la operacion necesita, no por comodidad:
 | ----------------------------- | ----------------- | -------------------------------------------------------------------- |
 | `createSupabaseClient(token)` | publishable + JWT | todo dato de un usuario: RLS decide fila por fila                    |
 | `createPublicClient()`        | publishable       | endpoints de Auth (`signUp`, `signInWithPassword`); no toca tablas   |
-| `createSecretClient()`        | **secreta**       | solo webhooks (36-47): es el unico flujo sin usuario; **saltea RLS** |
+| `createSecretClient()`        | **secreta**       | solo webhooks de canales: es el unico flujo sin usuario; **saltea RLS** |
 
 Dos invariantes que conviene no romper:
 
@@ -289,9 +295,12 @@ Dos invariantes que conviene no romper:
 ```bash
 npm run dev     # desarrollo
 npm start       # produccion
-npm test        # 73 tests (node:test, sin dependencias extra)
+npm test        # pruebas (node:test, sin dependencias extra)
 npm run smoke   # prueba de humo: arranca el server y checkea la API
 ```
+
+Algunas pruebas del flujo de canales (WhatsApp/Telegram) están pendientes
+de actualización.
 
 ## Validacion rapida
 
@@ -313,7 +322,7 @@ usuario real: login, aislamiento por emprendimiento (RLS), reserva de
 stock y creacion de pedidos. Para eso, el ciclo completo es:
 
 ```bash
-# 1. Aplicar db/migrations/001_schema_v2.sql en Supabase
+# 1. Aplicar en Supabase las migraciones db/migrations/001 a 011, en orden
 # 2. Crear un usuario (password min. 8 caracteres; el nombre del
 #    emprendimiento va anidado en "emprendimiento")
 curl -X POST http://localhost:3001/api/auth/register -H "Content-Type: application/json" \
@@ -345,7 +354,15 @@ Protegidos (`Authorization: Bearer <token>`):
 - `POST /api/stock/movimientos`, `GET /api/stock/movimientos`
 - `GET|POST /api/clientes`
 - `GET|POST /api/pedidos`, `PATCH /api/pedidos/:id/estado|cobro|revision`
+- `PATCH /api/pedidos/:id/detalles`
 - `GET /api/dashboard`
+
+`PATCH /api/pedidos/:id/detalles` permite actualizar modalidad, dirección,
+fecha y hora previstas de entrega, y medios de pago.
+
+`GET /api/pedidos` acepta estos filtros: `estado` (uno o varios), `desde`,
+`hasta`, `fecha_prevista_entrega`, `cliente_id`, `cliente`, `busqueda`,
+`estado_cobro`, `requiere_revision`, `limite` y `offset`.
 
 El tenant se indica con el header `x-emprendimiento-id` (o query
 `emprendimientoId`). Si el usuario tiene un solo emprendimiento, se
@@ -359,6 +376,18 @@ y `productosBajoStock`. Las ventas y unidades excluyen pedidos cancelados;
 `stock_disponible <= stock_minimo` en productos activos y sus variantes
 activas, contando cada variante como una alerta independiente.
 
+## Flujo de stock
+
+- Crear un pedido manual no modifica el stock.
+- Al pasar de `RECIBIDO` a `EN_PREPARACION` se reserva y descuenta el stock
+  de cada ítem (producto o variante), y se registra un movimiento
+  `RESERVA_PEDIDO`. Si no alcanza, responde `Stock insuficiente para X:
+  disponible N, requerido M` y el estado no cambia.
+- Al cancelar, el stock se restituye solo si hubo una reserva. Cancelar un
+  pedido en `RECIBIDO` no devuelve stock.
+- El cobro (`PAGADO`/`PENDIENTE`) es independiente: no condiciona el stock
+  ni los estados del pedido.
+
 ## Ejemplo: pedido manual
 
 ```bash
@@ -366,13 +395,14 @@ curl -X POST http://localhost:3001/api/pedidos \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{
-        "items": [{ "productoId": "<uuid>", "cantidad": 2 }],
-        "estadoCobro": "PENDIENTE",
-        "modalidadEntrega": "RETIRO"
+        "items": [{ "producto_id": "<uuid>", "cantidad": 2 }],
+        "estado_cobro": "PENDIENTE",
+        "modalidad_entrega": "RETIRO"
       }'
 ```
 
-Se crea con `origen_tipo = MANUAL`, `canal_id = NULL` y reserva stock.
+Se crea con `origen_tipo = MANUAL`, `canal_id = NULL` y estado `RECIBIDO`.
+La creación no reserva stock.
 
 ## Ejemplo: webhook de Telegram
 
