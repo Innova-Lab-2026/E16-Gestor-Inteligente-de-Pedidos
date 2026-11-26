@@ -63,3 +63,11 @@ export type CreatePedidoManualInput = {
     precio_unitario?: number;
   }[];
 };
+
+export type UpdatePedidoDetailsInput = {
+  modalidad_entrega?: ModalidadEntrega | null;
+  direccion_entrega?: string | null;
+  fecha_prevista_entrega?: string | null;
+  hora_prevista_entrega?: string | null;
+  medios_pago?: string[];
+};

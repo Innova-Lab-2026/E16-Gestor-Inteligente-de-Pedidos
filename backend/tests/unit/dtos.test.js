@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 
 import { createPedidoManualSchema } from "../../src/modules/pedidos/dtos/create-pedido-manual.dto.js";
+import { updatePedidoDetailsSchema } from "../../src/modules/pedidos/dtos/update-pedido-details.dto.js";
 import {
   changeOrderStatusSchema,
   listPedidosQuerySchema,
@@ -39,6 +40,39 @@ describe("DTO de pedido manual", () => {
       () => createPedidoManualSchema.parse({ items: [{ producto_id: "abc", cantidad: 1 }] }),
       /UUID/
     );
+  });
+
+  test("acepta y valida los datos de entrega y pago", () => {
+    const dto = createPedidoManualSchema.parse({
+      modalidad_entrega: "ENVIO",
+      direccion_entrega: "Av. Siempre Viva 123",
+      fecha_prevista_entrega: "2026-11-25",
+      hora_prevista_entrega: "18:30:00",
+      medios_pago: ["Transferencia"],
+      items: [{ producto_id: UUID, cantidad: 1 }],
+    });
+
+    assert.equal(dto.direccion_entrega, "Av. Siempre Viva 123");
+    assert.equal(dto.hora_prevista_entrega, "18:30:00");
+    assert.deepEqual(dto.medios_pago, ["Transferencia"]);
+  });
+});
+
+describe("DTO de edición de entrega y pago", () => {
+  test("permite limpiar campos opcionales y modificar los medios de pago", () => {
+    const dto = updatePedidoDetailsSchema.parse({
+      direccion_entrega: null,
+      hora_prevista_entrega: null,
+      medios_pago: ["Mercado Pago"],
+    });
+
+    assert.equal(dto.direccion_entrega, null);
+    assert.equal(dto.hora_prevista_entrega, null);
+    assert.deepEqual(dto.medios_pago, ["Mercado Pago"]);
+  });
+
+  test("rechaza un cuerpo vacío", () => {
+    assert.throws(() => updatePedidoDetailsSchema.parse({}), /al menos un dato/);
   });
 });
 

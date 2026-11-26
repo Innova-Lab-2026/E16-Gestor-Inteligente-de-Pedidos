@@ -132,6 +132,14 @@ export class FakePedidoDao {
     return pedido;
   }
 
+  async updateDetails(emprendimientoId, id, details) {
+    const pedido = await this.findByIdOrFail(emprendimientoId, id, {
+      conItems: false,
+    });
+    Object.assign(pedido, details);
+    return pedido;
+  }
+
   async findByIdOrFail(emprendimientoId, id, opciones) {
     const found = await this.findById(emprendimientoId, id, opciones);
     if (!found) {

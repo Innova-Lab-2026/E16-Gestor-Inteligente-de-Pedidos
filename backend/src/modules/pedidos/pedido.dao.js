@@ -36,6 +36,9 @@ export class PedidoDao {
       p_estado_cobro: pedido.estado_cobro ?? "PENDIENTE",
       p_modalidad_entrega: pedido.modalidad_entrega ?? null,
       p_fecha_prevista_entrega: pedido.fecha_prevista_entrega ?? null,
+      p_direccion_entrega: pedido.direccion_entrega ?? null,
+      p_hora_prevista_entrega: pedido.hora_prevista_entrega ?? null,
+      p_medios_pago: pedido.medios_pago ?? [],
       p_subtotal: pedido.subtotal ?? 0,
       p_total: pedido.total ?? 0,
       p_observaciones: pedido.observaciones ?? null,
@@ -198,6 +201,29 @@ export class PedidoDao {
     const { data, error } = await this.#client()
       .from("pedidos")
       .update({ estado_cobro: estadoCobro, updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .eq("emprendimiento_id", emprendimientoId)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  async updateDetails(emprendimientoId, id, details) {
+    const cambios = {};
+    for (const campo of [
+      "modalidad_entrega",
+      "direccion_entrega",
+      "fecha_prevista_entrega",
+      "hora_prevista_entrega",
+      "medios_pago",
+    ]) {
+      if (Object.hasOwn(details, campo)) cambios[campo] = details[campo];
+    }
+
+    const { data, error } = await this.#client()
+      .from("pedidos")
+      .update({ ...cambios, updated_at: new Date().toISOString() })
       .eq("id", id)
       .eq("emprendimiento_id", emprendimientoId)
       .select()

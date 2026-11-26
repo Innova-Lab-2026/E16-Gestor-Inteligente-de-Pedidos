@@ -4,6 +4,11 @@
 -- pedidos + items_pedido dentro de una misma transacción.
 -- =====================================================================
 
+drop function if exists public.crear_pedido_con_items(
+  uuid, pedido_origen, uuid, uuid, pedido_estado_cobro, entrega_modalidad,
+  date, numeric, numeric, text, boolean, jsonb
+);
+
 create or replace function public.crear_pedido_con_items(
   p_emprendimiento_id uuid,
   p_origen_tipo pedido_origen,
@@ -16,7 +21,10 @@ create or replace function public.crear_pedido_con_items(
   p_total numeric default 0,
   p_observaciones text default null,
   p_requiere_revision boolean default false,
-  p_items jsonb default '[]'::jsonb
+  p_items jsonb default '[]'::jsonb,
+  p_direccion_entrega text default null,
+  p_hora_prevista_entrega time default null,
+  p_medios_pago text[] default '{}'
 )
 returns jsonb
 language plpgsql
@@ -52,11 +60,12 @@ begin
   insert into public.pedidos (
     emprendimiento_id, cliente_id, origen_tipo, canal_id, estado, estado_cobro,
     modalidad_entrega, fecha_prevista_entrega, subtotal, total, observaciones,
-    requiere_revision
+    requiere_revision, direccion_entrega, hora_prevista_entrega, medios_pago
   ) values (
     p_emprendimiento_id, p_cliente_id, p_origen_tipo, p_canal_id, 'RECIBIDO',
     p_estado_cobro, p_modalidad_entrega, p_fecha_prevista_entrega, p_subtotal,
-    p_total, p_observaciones, p_requiere_revision
+    p_total, p_observaciones, p_requiere_revision, p_direccion_entrega,
+    p_hora_prevista_entrega, coalesce(p_medios_pago, '{}'::text[])
   )
   returning * into v_pedido;
 
@@ -82,5 +91,6 @@ end;
 $$;
 
 grant execute on function public.crear_pedido_con_items(
-  uuid, pedido_origen, uuid, uuid, pedido_estado_cobro, entrega_modalidad, date, numeric, numeric, text, boolean, jsonb
+  uuid, pedido_origen, uuid, uuid, pedido_estado_cobro, entrega_modalidad,
+  date, numeric, numeric, text, boolean, jsonb, text, time, text[]
 ) to authenticated, service_role;

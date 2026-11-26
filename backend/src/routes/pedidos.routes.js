@@ -4,6 +4,7 @@ import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { tenantMiddleware } from "../middlewares/tenant.middleware.js";
 import { PedidoController } from "../modules/pedidos/pedido.controller.js";
 import { createPedidoManualSchema } from "../modules/pedidos/dtos/create-pedido-manual.dto.js";
+import { updatePedidoDetailsSchema } from "../modules/pedidos/dtos/update-pedido-details.dto.js";
 import {
   changeOrderStatusSchema,
   changePaymentStatusSchema,
@@ -22,6 +23,12 @@ router.use(authMiddleware, tenantMiddleware());
 router.get("/", validate({ query: listPedidosQuerySchema }), controller.list);
 router.post("/", validate({ body: createPedidoManualSchema }), controller.createManual);
 
+router.patch(
+  "/:id/detalles",
+  idParams,
+  validate({ body: updatePedidoDetailsSchema }),
+  controller.updateDetails
+);
 router.get("/:id", idParams, controller.getById);
 router.patch(
   "/:id/estado",

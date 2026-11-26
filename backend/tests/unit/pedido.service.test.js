@@ -90,6 +90,55 @@ describe("PedidoService - creacion manual", () => {
     assert.equal(pedidoDao.pedidos[0].total, 3000);
   });
 
+  test("conserva los datos de entrega y pago en la cabecera creada", async () => {
+    const { service, pedidoDao } = build();
+
+    await service.createManual({
+      emprendimientoId: EMP,
+      dto: {
+        estado_cobro: PAYMENT_STATUS.PAGADO,
+        reservar_stock: false,
+        modalidad_entrega: "ENVIO",
+        direccion_entrega: "Av. Siempre Viva 123",
+        fecha_prevista_entrega: "2026-11-25",
+        hora_prevista_entrega: "18:30:00",
+        medios_pago: ["Transferencia"],
+        items: [{ producto_id: PROD, cantidad: 1 }],
+      },
+    });
+
+    assert.equal(pedidoDao.pedidos[0].direccion_entrega, "Av. Siempre Viva 123");
+    assert.equal(pedidoDao.pedidos[0].hora_prevista_entrega, "18:30:00");
+    assert.deepEqual(pedidoDao.pedidos[0].medios_pago, ["Transferencia"]);
+  });
+
+  test("permite editar datos de entrega y medios de pago", async () => {
+    const { service, pedidoDao } = build();
+    const pedido = await service.createManual({
+      emprendimientoId: EMP,
+      dto: {
+        reservar_stock: false,
+        items: [{ producto_id: PROD, cantidad: 1 }],
+      },
+    });
+
+    const actualizado = await service.updateDetails({
+      emprendimientoId: EMP,
+      id: pedido.id,
+      dto: {
+        modalidad_entrega: "ENVIO",
+        direccion_entrega: "Av. Siempre Viva 123",
+        hora_prevista_entrega: "18:30:00",
+        medios_pago: ["Mercado Pago"],
+      },
+    });
+
+    assert.equal(actualizado.direccion_entrega, "Av. Siempre Viva 123");
+    assert.equal(actualizado.hora_prevista_entrega, "18:30:00");
+    assert.deepEqual(actualizado.medios_pago, ["Mercado Pago"]);
+    assert.equal(pedidoDao.pedidos[0].modalidad_entrega, "ENVIO");
+  });
+
   test("reserva stock por defecto al crear el pedido", async () => {
     const { service, stockDao, movimientoDao } = build();
 

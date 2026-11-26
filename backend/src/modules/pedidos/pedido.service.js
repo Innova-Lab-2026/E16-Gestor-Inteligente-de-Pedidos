@@ -131,6 +131,9 @@ export class PedidoService {
       estado_cobro: dto.estado_cobro,
       modalidad_entrega: dto.modalidad_entrega ?? null,
       fecha_prevista_entrega: dto.fecha_prevista_entrega ?? null,
+      direccion_entrega: dto.direccion_entrega ?? null,
+      hora_prevista_entrega: dto.hora_prevista_entrega ?? null,
+      medios_pago: dto.medios_pago ?? [],
       subtotal,
       total,
       observaciones: requiereRevision
@@ -195,6 +198,13 @@ export class PedidoService {
   async getById(emprendimientoId, id) {
     const pedido = await this.pedidoDao.findByIdOrFail(emprendimientoId, id);
     return toPedidoResponse(pedido);
+  }
+
+  async updateDetails({ emprendimientoId, id, dto }) {
+    await this.pedidoDao.findByIdOrFail(emprendimientoId, id, {
+      conItems: false,
+    });
+    return this.pedidoDao.updateDetails(emprendimientoId, id, dto);
   }
 
   /**

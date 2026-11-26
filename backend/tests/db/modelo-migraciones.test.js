@@ -21,9 +21,45 @@ function testDb(nombre, sql, opciones = {}) {
 }
 
 testDb(
-  "las migraciones 001 a 010 y sus RPC previas se pueden ejecutar dos veces",
+  "las migraciones 001 a 011 y sus RPC previas se pueden ejecutar dos veces",
   "",
   { sinDatosBase: true, repetirMigraciones: true }
+);
+
+testDb(
+  "la RPC crea y devuelve dirección, horario y medios de pago",
+  `
+select set_config(
+  'test.pedido',
+  public.crear_pedido_con_items(
+    p_emprendimiento_id := current_setting('test.emprendimiento_a')::uuid,
+    p_origen_tipo := 'MANUAL',
+    p_estado_cobro := 'PAGADO',
+    p_modalidad_entrega := 'ENVIO',
+    p_fecha_prevista_entrega := '2026-11-25',
+    p_items := '[]'::jsonb,
+    p_direccion_entrega := 'Av. Siempre Viva 123',
+    p_hora_prevista_entrega := '18:30',
+    p_medios_pago := array['Transferencia', 'Efectivo']
+  )->'pedido'->>'id',
+  true
+);
+
+do $$
+declare
+  v_pedido public.pedidos;
+begin
+  select * into v_pedido
+  from public.pedidos
+  where id = current_setting('test.pedido')::uuid;
+
+  if v_pedido.direccion_entrega <> 'Av. Siempre Viva 123'
+     or v_pedido.hora_prevista_entrega <> '18:30'::time
+     or v_pedido.medios_pago <> array['Transferencia', 'Efectivo'] then
+    raise exception 'La RPC no persistió los datos de entrega y pago';
+  end if;
+end $$;
+`
 );
 
 testDb(

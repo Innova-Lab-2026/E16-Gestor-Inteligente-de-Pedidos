@@ -26,6 +26,17 @@ export class PedidoController {
     return res.status(201).json(pedido);
   };
 
+  /** PATCH /api/pedidos/:id/detalles */
+  updateDetails = async (req, res) => {
+    const { id } = req.validated.params;
+    const result = await this.#service(req).updateDetails({
+      emprendimientoId: req.tenant.id,
+      id,
+      dto: req.validated.body,
+    });
+    return res.status(200).json(result);
+  };
+
   /** GET /api/pedidos/:id */
   getById = async (req, res) => {
     const { id } = req.validated.params;

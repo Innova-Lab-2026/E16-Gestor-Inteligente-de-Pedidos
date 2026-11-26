@@ -7,6 +7,7 @@ import type {
   EstadoCobro,
   EstadoPedido,
   Pedido,
+  UpdatePedidoDetailsInput,
 } from "./types";
 
 export async function crearPedidoManualAction(input: CreatePedidoManualInput) {
@@ -18,6 +19,23 @@ export async function crearPedidoManualAction(input: CreatePedidoManualInput) {
   if (res.ok) {
     revalidatePath("/pedidos");
     revalidatePath("/catalogo");
+  }
+
+  return res;
+}
+
+export async function actualizarDetallesPedidoAction(
+  id: string,
+  details: UpdatePedidoDetailsInput,
+) {
+  const res = await backendFetch<Pedido>(`/pedidos/${id}/detalles`, {
+    method: "PATCH",
+    body: JSON.stringify(details),
+  });
+
+  if (res.ok) {
+    revalidatePath("/pedidos");
+    revalidatePath(`/pedidos/${id}`);
   }
 
   return res;

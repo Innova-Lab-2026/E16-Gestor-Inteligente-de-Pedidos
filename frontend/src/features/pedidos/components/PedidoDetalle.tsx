@@ -3,11 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  actualizarDetallesPedidoAction,
   cambiarCobroPedidoAction,
   cambiarEstadoPedidoAction,
   resolverRevisionPedidoAction,
 } from "../actions";
-import type { EstadoPedido, Pedido } from "../types";
+import type { EstadoPedido, ModalidadEntrega, Pedido } from "../types";
+
+const MEDIOS_PAGO = ["Transferencia", "Efectivo", "Mercado Pago", "Tarjeta"];
 
 type PedidoDetallado = Pedido & {
   items?: Array<{
@@ -35,6 +38,16 @@ export default function PedidoDetalle({ pedido }: { pedido: PedidoDetallado }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editandoDetalles, setEditandoDetalles] = useState(false);
+  const [modalidad, setModalidad] = useState<ModalidadEntrega | null>(
+    pedido.modalidad_entrega,
+  );
+  const [direccion, setDireccion] = useState(pedido.direccion_entrega ?? "");
+  const [fecha, setFecha] = useState(pedido.fecha_prevista_entrega ?? "");
+  const [hora, setHora] = useState(
+    pedido.hora_prevista_entrega?.slice(0, 5) ?? "",
+  );
+  const [mediosPago, setMediosPago] = useState(pedido.medios_pago ?? []);
 
   const siguiente =
     pedido.estado === "LISTO" && pedido.modalidad_entrega === "ENVIO"
@@ -78,6 +91,27 @@ export default function PedidoDetalle({ pedido }: { pedido: PedidoDetallado }) {
       setError(res.error);
       return;
     }
+    router.refresh();
+  }
+
+  async function handleGuardarDetalles(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setLoading(true);
+    const res = await actualizarDetallesPedidoAction(pedido.id, {
+      modalidad_entrega: modalidad,
+      direccion_entrega:
+        modalidad === "ENVIO" ? direccion.trim() || null : null,
+      fecha_prevista_entrega: fecha || null,
+      hora_prevista_entrega: hora ? `${hora}:00` : null,
+      medios_pago: mediosPago,
+    });
+    setLoading(false);
+    if (res.error) {
+      setError(res.error);
+      return;
+    }
+    setEditandoDetalles(false);
     router.refresh();
   }
 
@@ -127,12 +161,136 @@ export default function PedidoDetalle({ pedido }: { pedido: PedidoDetallado }) {
           </p>
         )}
 
+        {pedido.fecha_prevista_entrega && (
+          <p className="text-sm text-[#102a39]">
+            <strong>Fecha de entrega:</strong> {pedido.fecha_prevista_entrega}
+          </p>
+        )}
+
+        {pedido.hora_prevista_entrega && (
+          <p className="text-sm text-[#102a39]">
+            <strong>Horario:</strong> {pedido.hora_prevista_entrega.slice(0, 5)}
+          </p>
+        )}
+
+        {pedido.medios_pago?.length ? (
+          <p className="text-sm text-[#102a39]">
+            <strong>Medio de pago:</strong> {pedido.medios_pago.join(", ")}
+          </p>
+        ) : null}
+
         {pedido.observaciones && (
           <p className="rounded-xl bg-[#f8fafc] p-2.5 text-xs text-[#586574]">
             <strong>Observaciones:</strong> {pedido.observaciones}
           </p>
         )}
+
+        {!editandoDetalles && (
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => setEditandoDetalles(true)}
+            className="rounded-full border border-[#056184] px-3 py-1.5 text-xs font-bold text-[#056184] disabled:opacity-50"
+          >
+            Editar entrega y pago
+          </button>
+        )}
       </div>
+
+      {editandoDetalles && (
+        <form
+          onSubmit={handleGuardarDetalles}
+          className="space-y-3 rounded-2xl border border-[#e2e8f0] bg-white p-4"
+        >
+          <h2 className="text-sm font-bold text-[#102a39]">
+            Editar entrega y pago
+          </h2>
+          <label className="block space-y-1 text-xs font-semibold">
+            Modalidad de entrega
+            <select
+              value={modalidad ?? ""}
+              onChange={(event) => {
+                const value = event.target.value;
+                setModalidad(
+                  value === "ENVIO" || value === "RETIRO" ? value : null,
+                );
+              }}
+              className="h-11 w-full rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm font-normal"
+            >
+              <option value="">Sin especificar</option>
+              <option value="RETIRO">Retiro en local</option>
+              <option value="ENVIO">Envío</option>
+            </select>
+          </label>
+          {modalidad === "ENVIO" && (
+            <label className="block space-y-1 text-xs font-semibold">
+              Dirección de entrega
+              <input
+                value={direccion}
+                onChange={(event) => setDireccion(event.target.value)}
+                maxLength={500}
+                className="h-11 w-full rounded-xl border border-[#cbd5e1] px-3 text-sm font-normal"
+              />
+            </label>
+          )}
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block space-y-1 text-xs font-semibold">
+              Fecha de entrega
+              <input
+                type="date"
+                value={fecha}
+                onChange={(event) => setFecha(event.target.value)}
+                className="h-11 w-full rounded-xl border border-[#cbd5e1] px-3 text-sm font-normal"
+              />
+            </label>
+            <label className="block space-y-1 text-xs font-semibold">
+              Horario
+              <input
+                type="time"
+                value={hora}
+                onChange={(event) => setHora(event.target.value)}
+                className="h-11 w-full rounded-xl border border-[#cbd5e1] px-3 text-sm font-normal"
+              />
+            </label>
+          </div>
+          <fieldset className="space-y-2">
+            <legend className="text-xs font-semibold">Medios de pago</legend>
+            {[...new Set([...MEDIOS_PAGO, ...mediosPago])].map((medio) => (
+              <label key={medio} className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={mediosPago.includes(medio)}
+                  onChange={(event) =>
+                    setMediosPago((actuales) =>
+                      event.target.checked
+                        ? [...actuales, medio]
+                        : actuales.filter((item) => item !== medio),
+                    )
+                  }
+                />
+                {medio}
+              </label>
+            ))}
+          </fieldset>
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className="rounded-full bg-[#056184] px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
+            >
+              {loading ? "Guardando..." : "Guardar cambios"}
+            </button>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => setEditandoDetalles(false)}
+              className="rounded-full border border-[#cbd5e1] px-4 py-2 text-xs font-semibold text-[#102a39] disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      )}
 
       {pedido.requiere_revision && (
         <div className="flex items-center justify-between rounded-2xl border border-red-200 bg-red-50 p-3.5">
