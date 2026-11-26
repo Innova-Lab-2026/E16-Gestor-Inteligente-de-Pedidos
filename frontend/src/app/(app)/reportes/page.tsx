@@ -103,7 +103,7 @@ function getRangoFechas(periodo: PeriodoKey): {
   };
 }
 
-export default async function NumerosPage({
+export default async function ReportesPage({
   searchParams,
 }: {
   searchParams: Promise<{ periodo?: string }>;
@@ -159,7 +159,7 @@ export default async function NumerosPage({
           return (
             <Link
               key={p.key}
-              href={`/numeros?periodo=${p.key}`}
+              href={`/reportes?periodo=${p.key}`}
               className={`rounded-full py-1.5 text-center text-xs font-bold transition ${
                 activo
                   ? "bg-[#7622ed] text-white"

@@ -8,7 +8,7 @@ const NAV_ITEMS = [
   { href: "/catalogo", label: "Catálogo", icon: "package" },
   { href: "/dashboard", label: "Hoy", icon: "calendar" },
   { href: "/clientes", label: "Clientes", icon: "users" },
-  { href: "/numeros", label: "Números", icon: "chart" },
+  { href: "/reportes", label: "Reportes", icon: "chart" },
 ];
 
 function NavIcon({ name }: { name: string }) {
