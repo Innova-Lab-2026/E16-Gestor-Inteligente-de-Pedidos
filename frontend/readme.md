@@ -164,7 +164,7 @@ src/
 │     ├─ dashboard/
 │     ├─ emprendimientos/
 │     ├─ hoy/
-│     ├─ numeros/
+│     ├─ reportes/
 │     └─ pedidos/
 ├─ components/
 │  ├─ auth/

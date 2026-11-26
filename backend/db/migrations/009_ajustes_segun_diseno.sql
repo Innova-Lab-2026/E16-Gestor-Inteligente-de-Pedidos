@@ -8,7 +8,7 @@
 --   3. Catalogo                    -> foto, marca, modelo, genero, variantes
 --                                     con atributos (talle x color)
 --   4. Clientes                    -> apellido, documento, email, condicion
---   5. Vistas/RPC de lectura       -> catalogo, clientes, "Numeros"
+--   5. Vistas/RPC de lectura       -> catalogo, clientes, "Reportes"
 -- =====================================================================
 set search_path = public;
 
@@ -310,7 +310,7 @@ from (
   from public.clientes c
 ) t;
 
--- Pantalla "Numeros" (Esta semana / Este mes).
+-- Pantalla "Reportes" (Esta semana / Este mes).
 --   ventas = pedidos no cancelados creados en [desde, hasta) (cobrados o no;
 --            lo pendiente se muestra aparte en "Pendiente de cobro").
 --   "$41.000 mas que la semana pasada" = comparacion con el periodo anterior
