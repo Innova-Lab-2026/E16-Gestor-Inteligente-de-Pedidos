@@ -226,18 +226,6 @@
   font-weight: 400;
 }
 
-.forgotPassword {
-  align-self: flex-start;
-  margin-top: 24px;
-  border: 0;
-  padding: 0;
-  background: transparent;
-  color: #006b91;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
 .formActions {
   display: flex;
   flex-direction: column;

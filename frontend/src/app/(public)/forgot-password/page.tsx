@@ -1,5 +1,6 @@
-import RecoverPasswordScreen from "@/components/auth/RecoverPasswordScreen";
+import { redirect } from "next/navigation";
+import { ROUTES } from "@/config/router";
 
 export default function ForgotPasswordPage() {
-  return <RecoverPasswordScreen />;
+  redirect(ROUTES.login);
 }

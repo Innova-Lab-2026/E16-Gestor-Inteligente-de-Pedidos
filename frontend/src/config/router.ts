@@ -3,7 +3,6 @@ import type { Role } from "@/features/auth/types";
 export const ROUTES = {
   login: "/",
   registro: "/registro",
-  recuperarContrasena: "/forgot-password",
   home: "/dashboard",
 } as const;
 

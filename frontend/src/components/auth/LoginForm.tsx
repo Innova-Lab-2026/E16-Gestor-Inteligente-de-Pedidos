@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import Link from "next/link";
 import { login, type LoginState } from "@/features/auth/actions";
 import { ROUTES } from "@/config/router";
 import styles from "./LoginScreen.module.css";
@@ -89,10 +88,6 @@ export default function LoginForm() {
             <p className={styles.helperText} id="password-helper">Usá letras y números.</p>
           )}
         </div>
-
-        <Link href={ROUTES.recuperarContrasena} className={styles.forgotPassword}>
-          Olvidé mi contraseña
-        </Link>
 
         <div className={styles.formActions}>
           <button type="submit" className={styles.submitButton} disabled={isPending}>
