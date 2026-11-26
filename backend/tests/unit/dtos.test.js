@@ -1,7 +1,10 @@
 ﻿import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 
-import { createPedidoManualSchema } from "../../src/modules/pedidos/dtos/create-pedido-manual.dto.js";
+import {
+  createPedidoChannelSchema,
+  createPedidoManualSchema,
+} from "../../src/modules/pedidos/dtos/create-pedido-manual.dto.js";
 import { updatePedidoDetailsSchema } from "../../src/modules/pedidos/dtos/update-pedido-details.dto.js";
 import {
   changeOrderStatusSchema,
@@ -21,7 +24,16 @@ describe("DTO de pedido manual", () => {
 
     assert.equal(dto.items[0].cantidad, 3);
     assert.equal(dto.estado_cobro, "PENDIENTE");
-    assert.equal(dto.reservar_stock, true);
+    assert.equal(dto.reservar_stock, false);
+  });
+
+  test("los pedidos de canal tampoco reservan stock al crearse", () => {
+    const dto = createPedidoChannelSchema.parse({
+      canal_id: UUID,
+      items: [{ producto_id: UUID, cantidad: 1 }],
+    });
+
+    assert.equal(dto.reservar_stock, false);
   });
 
   test("rechaza cantidad cero o negativa", () => {

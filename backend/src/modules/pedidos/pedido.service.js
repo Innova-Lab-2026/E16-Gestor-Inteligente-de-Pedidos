@@ -144,28 +144,14 @@ export class PedidoService {
       requiere_revision: requiereRevision,
     };
 
-    // La cabecera y sus items se escriben juntos; la reserva de stock
-    // se ejecuta inmediatamente después y forma parte de la misma
-    // unidad lógica de negocio (ver db/migrations para el RPC transaccional).
-    const pedido = await this.pedidoDao.createConItems(cabecera, items);
-
-    if (dto.reservar_stock && items.length) {
-      await this.stockService.reservarPedido({
-        emprendimientoId,
-        pedidoId: pedido.id,
-        items: items.map((it) => ({
-          productoId: it.producto_id,
-          varianteId: it.variante_id,
-          cantidad: it.cantidad,
-        })),
-      });
-    }
-
-    return pedido;
+    // La cabecera y sus items se escriben juntos; el stock se reserva
+    // cuando el pedido pasa a EN_PREPARACION.
+    return this.pedidoDao.createConItems(cabecera, items);
   }
 
   /**
-   * Pedido creado a mano por el相关内容. Se reserva stock por defecto.
+   * Pedido creado a mano por el emprendimiento. No reserva stock hasta iniciar
+   * la preparación.
    * @param {{ emprendimientoId: string, dto: object }} params
    */
   async createManual({ emprendimientoId, dto }) {
@@ -217,6 +203,24 @@ export class PedidoService {
       emprendimientoId,
       id
     );
+
+    if (
+      pedido.estado === ORDER_STATUS.RECIBIDO &&
+      estado === ORDER_STATUS.EN_PREPARACION
+    ) {
+      const { reservado } = await this.pedidoDao.estadoStock(id);
+      if (!reservado) {
+        await this.stockService.reservarPedido({
+          emprendimientoId,
+          pedidoId: id,
+          items: (pedido.items ?? []).map((item) => ({
+            productoId: item.producto_id,
+            varianteId: item.variante_id,
+            cantidad: item.cantidad,
+          })),
+        });
+      }
+    }
 
     const actualizado = await this.pedidoDao.updateEstado(
       emprendimientoId,

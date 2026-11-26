@@ -13,8 +13,8 @@ export const PROD = "22222222-2222-2222-2222-222222222222";
 export const VAR = "33333333-3333-3333-3333-333333333333";
 
 export const build = (stock) => {
-  const stockDao = new FakeStockDao(stock);
   const movimientoDao = new FakeMovimientoDao();
+  const stockDao = new FakeStockDao(stock, movimientoDao);
   const service = new StockService({ stockDao, movimientoStockDao: movimientoDao });
   return { service, stockDao, movimientoDao };
 };

@@ -1,10 +1,10 @@
 import { createSupabaseClient, createSecretClient } from "../../config/database.js";
+import { BadRequestError } from "../../errors/bad-request.error.js";
 
 /**
  * Acceso a `productos` y `variantes` con fines de stock.
  *
- * El descuento de stock se hace siempre vía la función SQL
- * `ajustar_stock_*` declarada en la migración: es atómica y valida
+ * Los cambios de stock se hacen vía RPCs atómicas que validan
  * que no quede stock negativo.
  */
 export class StockDao {
@@ -77,6 +77,9 @@ export class StockDao {
       p_cantidad: delta,
       p_motivo: motivo ?? null,
     });
+    if (error?.code === "P0006") {
+      throw new BadRequestError(error.message || "Stock insuficiente");
+    }
     if (error) throw error;
     const row = Array.isArray(data) ? data[0] : data;
     return {

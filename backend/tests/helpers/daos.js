@@ -3,9 +3,10 @@
 /** StockDao en memoria: aplica deltas y no permite stock negativo. */
 export class FakeStockDao {
   /** @param {Record<string, {producto?: number, variante?: number}>} stock */
-  constructor(stock = {}) {
+  constructor(stock = {}, movimientoDao) {
     this.stock = JSON.parse(JSON.stringify(stock));
     this.aplicados = [];
+    this.movimientoDao = movimientoDao;
   }
 
   async getProductoStock(productoId) {
@@ -31,6 +32,40 @@ export class FakeStockDao {
     this.stock[key][campo] = actual + delta;
     this.aplicados.push({ key, campo, delta, resultante: actual + delta });
     return actual + delta;
+  }
+
+  async applyMove({
+    emprendimientoId,
+    productoId,
+    varianteId,
+    pedidoId,
+    tipo,
+    delta,
+    motivo,
+  }) {
+    const stockResultante = await this.applyDelta(
+      { productoId, varianteId },
+      delta,
+    );
+    if (stockResultante === null) {
+      return { stockResultante: null, movimiento: null };
+    }
+
+    const movimiento = {
+      emprendimiento_id: emprendimientoId,
+      producto_id: productoId,
+      variante_id: varianteId ?? null,
+      pedido_id: pedidoId ?? null,
+      tipo,
+      cantidad: delta,
+      motivo: motivo ?? null,
+    };
+    return {
+      stockResultante,
+      movimiento: this.movimientoDao
+        ? await this.movimientoDao.create(movimiento)
+        : movimiento,
+    };
   }
 }
 
@@ -63,11 +98,12 @@ export class FakeMovimientoDao {
  * para que las reglas de idempotencia de la restitución se prueben reales.
  */
 export class FakePedidoDao {
-  constructor({ movimientoDao } = {}) {
+  constructor({ movimientoDao, stockDao } = {}) {
     this.pedidos = [];
     this.items = [];
     this.secuencia = 0;
     this.movimientoDao = movimientoDao;
+    this.stockDao = stockDao;
   }
 
   async createConItems(cabecera, items) {
@@ -79,10 +115,10 @@ export class FakePedidoDao {
       this.items.push({
         id: `item-${this.items.length + 1}`,
         pedido_id: pedido.id,
-        producto_id: item.productoId,
-        variante_id: item.varianteId ?? null,
+        producto_id: item.producto_id ?? item.productoId,
+        variante_id: item.variante_id ?? item.varianteId ?? null,
         cantidad: item.cantidad,
-        precio_unitario: item.precioUnitario,
+        precio_unitario: item.precio_unitario ?? item.precioUnitario,
         subtotal: item.subtotal,
       });
     }
@@ -120,8 +156,52 @@ export class FakePedidoDao {
       );
     }
 
+    if (
+      nuevoEstado === "CANCELADO" &&
+      this.stockDao &&
+      this.movimientoDao
+    ) {
+      await this.#restituirReservas(emprendimientoId, id);
+    }
     pedido.estado = nuevoEstado;
     return pedido;
+  }
+
+  async #restituirReservas(emprendimientoId, pedidoId) {
+    const movimientos = await this.movimientoDao.listByPedido(pedidoId);
+    if (movimientos.some((m) => m.tipo === "RESTITUCION_CANCELACION")) return;
+
+    const cantidades = new Map();
+    for (const movimiento of movimientos) {
+      if (movimiento.tipo !== "RESERVA_PEDIDO") continue;
+      const key = `${movimiento.producto_id}:${movimiento.variante_id ?? ""}`;
+      const actual = cantidades.get(key) ?? {
+        producto_id: movimiento.producto_id,
+        variante_id: movimiento.variante_id ?? null,
+        cantidad: 0,
+      };
+      actual.cantidad -= movimiento.cantidad;
+      cantidades.set(key, actual);
+    }
+
+    for (const reserva of cantidades.values()) {
+      if (reserva.cantidad <= 0) continue;
+      await this.stockDao.applyDelta(
+        {
+          productoId: reserva.producto_id,
+          varianteId: reserva.variante_id,
+        },
+        reserva.cantidad,
+      );
+      await this.movimientoDao.create({
+        emprendimiento_id: emprendimientoId,
+        producto_id: reserva.producto_id,
+        variante_id: reserva.variante_id,
+        pedido_id: pedidoId,
+        tipo: "RESTITUCION_CANCELACION",
+        cantidad: reserva.cantidad,
+      });
+    }
   }
 
   async updateEstadoCobro(emprendimientoId, id, estadoCobro) {

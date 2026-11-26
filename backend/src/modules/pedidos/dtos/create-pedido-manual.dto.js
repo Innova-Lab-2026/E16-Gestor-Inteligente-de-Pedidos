@@ -27,8 +27,8 @@ export const createPedidoManualSchema = z.object({
   estado_cobro: z.enum(Object.values(PAYMENT_STATUS)).default(PAYMENT_STATUS.PENDIENTE),
   observaciones: z.string().max(2000).optional(),
   items: z.array(itemSchema).min(1, "El pedido debe tener al menos un item"),
-  /** Si se omite, el pedido queda en RECIBIDO y se reserva stock. */
-  reservar_stock: z.boolean().default(true),
+  /** El stock se reserva cuando el pedido pasa a EN_PREPARACION. */
+  reservar_stock: z.boolean().default(false),
 });
 
 /**

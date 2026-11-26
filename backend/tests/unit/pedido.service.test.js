@@ -40,10 +40,11 @@ const varianteM = { id: VAR_M, producto_id: PROD, nombre: "Talle M" };
 
 const build = ({ productos = [productoSimple], variantes = [], stock } = {}) => {
   const movimientoDao = new FakeMovimientoDao();
-  const pedidoDao = new FakePedidoDao({ movimientoDao });
   const stockDao = new FakeStockDao(
-    stock ?? { [PROD]: { producto: 10 } }
+    stock ?? { [PROD]: { producto: 10 } },
+    movimientoDao,
   );
+  const pedidoDao = new FakePedidoDao({ movimientoDao, stockDao });
 
   const service = new PedidoService({
     pedidoDao,
@@ -59,7 +60,7 @@ const build = ({ productos = [productoSimple], variantes = [], stock } = {}) => 
   return { service, pedidoDao, movimientoDao, stockDao };
 };
 
-const dtoBase = { estadoCobro: PAYMENT_STATUS.PENDIENTE };
+const dtoBase = { estado_cobro: PAYMENT_STATUS.PENDIENTE };
 
 describe("PedidoService - creacion manual", () => {
   test("crea el pedido con origen MANUAL y canal_id NULL", async () => {
@@ -67,7 +68,7 @@ describe("PedidoService - creacion manual", () => {
 
     const pedido = await service.createManual({
       emprendimientoId: EMP,
-      dto: { ...dtoBase, reservarStock: true, items: [{ productoId: PROD, cantidad: 2 }] },
+      dto: { ...dtoBase, items: [{ producto_id: PROD, cantidad: 2 }] },
     });
 
     assert.equal(pedido.origen_tipo, "MANUAL");
@@ -81,7 +82,7 @@ describe("PedidoService - creacion manual", () => {
 
     await service.createManual({
       emprendimientoId: EMP,
-      dto: { ...dtoBase, reservarStock: false, items: [{ productoId: PROD, cantidad: 3 }] },
+      dto: { ...dtoBase, items: [{ producto_id: PROD, cantidad: 3 }] },
     });
 
     const item = pedidoDao.items[0];
@@ -139,16 +140,99 @@ describe("PedidoService - creacion manual", () => {
     assert.equal(pedidoDao.pedidos[0].modalidad_entrega, "ENVIO");
   });
 
-  test("reserva stock por defecto al crear el pedido", async () => {
+  test("no reserva stock al crear pedidos manuales o de canal", async () => {
     const { service, stockDao, movimientoDao } = build();
 
     await service.createManual({
       emprendimientoId: EMP,
-      dto: { ...dtoBase, reservarStock: true, items: [{ productoId: PROD, cantidad: 4 }] },
+      dto: { ...dtoBase, items: [{ producto_id: PROD, cantidad: 4 }] },
+    });
+    await service.createFromChannel({
+      emprendimientoId: EMP,
+      canalId: CANAL,
+      dto: { ...dtoBase, items: [{ producto_id: PROD, cantidad: 2 }] },
     });
 
+    assert.equal(stockDao.stock[PROD].producto, 10);
+    assert.equal(movimientoDao.movimientos.length, 0);
+  });
+
+  test("reserva stock al iniciar la preparación incluso con el cobro pendiente", async () => {
+    const { service, pedidoDao, stockDao, movimientoDao } = build();
+    const pedido = await service.createManual({
+      emprendimientoId: EMP,
+      dto: { ...dtoBase, items: [{ producto_id: PROD, cantidad: 4 }] },
+    });
+
+    assert.equal(stockDao.stock[PROD].producto, 10);
+    assert.equal(movimientoDao.movimientos.length, 0);
+
+    const actualizado = await service.changeStatus({
+      emprendimientoId: EMP,
+      id: pedido.id,
+      estado: ORDER_STATUS.EN_PREPARACION,
+    });
+
+    assert.equal(actualizado.estado, ORDER_STATUS.EN_PREPARACION);
+    assert.equal(pedidoDao.pedidos[0].estado, ORDER_STATUS.EN_PREPARACION);
     assert.equal(stockDao.stock[PROD].producto, 6);
+    assert.equal(movimientoDao.movimientos.length, 1);
     assert.equal(movimientoDao.movimientos[0].tipo, "RESERVA_PEDIDO");
+    assert.equal(movimientoDao.movimientos[0].cantidad, -4);
+  });
+
+  test("no cambia a preparación cuando el stock es insuficiente", async () => {
+    const { service, pedidoDao, stockDao, movimientoDao } = build({
+      stock: { [PROD]: { producto: 2 } },
+    });
+    const pedido = await service.createManual({
+      emprendimientoId: EMP,
+      dto: { ...dtoBase, items: [{ producto_id: PROD, cantidad: 3 }] },
+    });
+
+    await assert.rejects(
+      () =>
+        service.changeStatus({
+          emprendimientoId: EMP,
+          id: pedido.id,
+          estado: ORDER_STATUS.EN_PREPARACION,
+        }),
+      /Stock insuficiente/,
+    );
+
+    assert.equal(pedidoDao.pedidos[0].estado, ORDER_STATUS.RECIBIDO);
+    assert.equal(stockDao.stock[PROD].producto, 2);
+    assert.equal(movimientoDao.movimientos.length, 0);
+  });
+
+  test("valida en conjunto items repetidos para evitar una reserva parcial", async () => {
+    const { service, pedidoDao, stockDao, movimientoDao } = build({
+      stock: { [PROD]: { producto: 4 } },
+    });
+    const pedido = await service.createManual({
+      emprendimientoId: EMP,
+      dto: {
+        ...dtoBase,
+        items: [
+          { producto_id: PROD, cantidad: 2 },
+          { producto_id: PROD, cantidad: 3 },
+        ],
+      },
+    });
+
+    await assert.rejects(
+      () =>
+        service.changeStatus({
+          emprendimientoId: EMP,
+          id: pedido.id,
+          estado: ORDER_STATUS.EN_PREPARACION,
+        }),
+      /disponible 4, requerido 5/,
+    );
+
+    assert.equal(pedidoDao.pedidos[0].estado, ORDER_STATUS.RECIBIDO);
+    assert.equal(stockDao.stock[PROD].producto, 4);
+    assert.equal(movimientoDao.movimientos.length, 0);
   });
 
   test("exige al menos un item si no requiere revision", async () => {
@@ -171,7 +255,7 @@ describe("PedidoService - creacion manual", () => {
       () =>
         service.createManual({
           emprendimientoId: EMP,
-          dto: { ...dtoBase, items: [{ productoId: PROD, cantidad: 1 }] },
+          dto: { ...dtoBase, items: [{ producto_id: PROD, cantidad: 1 }] },
         }),
       /tiene variantes/
     );
@@ -187,9 +271,8 @@ describe("PedidoService - creacion desde canal", () => {
       canalId: CANAL,
       dto: {
         ...dtoBase,
-        requiereRevision: false,
-        reservarStock: false,
-        items: [{ productoId: PROD, cantidad: 1 }],
+        requiere_revision: false,
+        items: [{ producto_id: PROD, cantidad: 1 }],
       },
     });
 
@@ -220,9 +303,8 @@ describe("PedidoService - creacion desde canal", () => {
       canalId: CANAL,
       dto: {
         ...dtoBase,
-        requiereRevision: true,
-        motivoRevision: "No se identifico el producto",
-        reservarStock: false,
+        requiere_revision: true,
+        motivo_revision: "No se identifico el producto",
         items: [],
       },
     });
@@ -234,18 +316,24 @@ describe("PedidoService - creacion desde canal", () => {
 });
 
 describe("PedidoService - estados y cancelacion", () => {
-  const crearPedidoReservado = async (buildArgs) => {
+  const crearPedidoRecibido = async (buildArgs) => {
     const ctx = build(buildArgs);
     const pedido = await ctx.service.createManual({
       emprendimientoId: EMP,
-      dto: { ...dtoBase, reservarStock: true, items: [{ productoId: PROD, cantidad: 2 }] },
+      dto: { ...dtoBase, items: [{ producto_id: PROD, cantidad: 2 }] },
     });
     return { ...ctx, pedido };
   };
 
   test("la cancelacion restituye el stock una sola vez", async () => {
     const { service, movimientoDao, stockDao, pedido } =
-      await crearPedidoReservado();
+      await crearPedidoRecibido();
+
+    await service.changeStatus({
+      emprendimientoId: EMP,
+      id: pedido.id,
+      estado: ORDER_STATUS.EN_PREPARACION,
+    });
 
     await service.changeStatus({
       emprendimientoId: EMP,
@@ -255,7 +343,6 @@ describe("PedidoService - estados y cancelacion", () => {
 
     assert.equal(stockDao.stock[PROD].producto, 10, "el stock vuelve al original");
 
-    // Un segundo intento de cancelacion no debe duplicar la restitucion.
     // Un segundo intento de cancelacion no debe duplicar la restitucion.
     await service.changeStatus({
       emprendimientoId: EMP,
@@ -270,7 +357,7 @@ describe("PedidoService - estados y cancelacion", () => {
   });
 
   test("rechaza una transicion de estado invalida", async () => {
-    const { service, pedido } = await crearPedidoReservado();
+    const { service, pedido } = await crearPedidoRecibido();
 
     await assert.rejects(
       () =>
@@ -284,7 +371,7 @@ describe("PedidoService - estados y cancelacion", () => {
   });
 
   test("permite avanzar de RECIBIDO a EN_PREPARACION", async () => {
-    const { service, pedido } = await crearPedidoReservado();
+    const { service, pedido, stockDao } = await crearPedidoRecibido();
 
     const actualizado = await service.changeStatus({
       emprendimientoId: EMP,
@@ -293,10 +380,30 @@ describe("PedidoService - estados y cancelacion", () => {
     });
 
     assert.equal(actualizado.estado, ORDER_STATUS.EN_PREPARACION);
+    assert.equal(stockDao.stock[PROD].producto, 8);
+  });
+
+  test("cancelar desde RECIBIDO no restituye stock ni crea movimiento", async () => {
+    const { service, pedido, stockDao, movimientoDao } =
+      await crearPedidoRecibido();
+
+    await service.changeStatus({
+      emprendimientoId: EMP,
+      id: pedido.id,
+      estado: ORDER_STATUS.CANCELADO,
+    });
+
+    assert.equal(stockDao.stock[PROD].producto, 10);
+    assert.equal(
+      movimientoDao.movimientos.some(
+        (m) => m.tipo === "RESTITUCION_CANCELACION",
+      ),
+      false,
+    );
   });
 
   test("no permite modificar un pedido de otro tenant", async () => {
-    const { service, pedido } = await crearPedidoReservado();
+    const { service, pedido } = await crearPedidoRecibido();
 
     await assert.rejects(
       () =>

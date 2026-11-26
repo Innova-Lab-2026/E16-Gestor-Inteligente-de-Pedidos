@@ -117,12 +117,34 @@ export class StockService {
 
   /**
    * Reserva stock por los items de un pedido y registra los movimientos.
-   * Debe invocarse dentro de la misma transacción que crea el pedido.
+   * Se invoca al pasar el pedido a EN_PREPARACION.
    * @param {{ emprendimientoId: string, pedidoId: string, items: Array, motivo?: string }} params
    */
   async reservarPedido({ emprendimientoId, pedidoId, items, motivo }) {
     if (!Array.isArray(items) || items.length === 0) {
       throw new BadRequestError("El pedido no tiene items para reservar");
+    }
+
+    const cantidadesPorItem = new Map();
+    for (const item of items) {
+      const key = `${item.productoId}:${item.varianteId ?? ""}`;
+      const actual = cantidadesPorItem.get(key);
+      cantidadesPorItem.set(key, {
+        ...item,
+        cantidad: (actual?.cantidad ?? 0) + item.cantidad,
+      });
+    }
+
+    for (const item of cantidadesPorItem.values()) {
+      const disponibilidad = await this.checkAvailability(item);
+      if (!disponibilidad.suficiente) {
+        const nombre = disponibilidad.referencia.nombre
+          ? `"${disponibilidad.referencia.nombre}"`
+          : item.productoId;
+        throw new BadRequestError(
+          `Stock insuficiente para ${nombre}: disponible ${disponibilidad.disponible}, requerido ${item.cantidad}`,
+        );
+      }
     }
 
     const movimientos = [];

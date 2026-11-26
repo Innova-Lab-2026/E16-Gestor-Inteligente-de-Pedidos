@@ -91,6 +91,13 @@ begin
   perform public.cambiar_estado_pedido(
     current_setting('test.emprendimiento_a')::uuid,
     current_setting('test.pedido')::uuid,
+    'EN_PREPARACION',
+    'inicio de preparación'
+  );
+
+  perform public.cambiar_estado_pedido(
+    current_setting('test.emprendimiento_a')::uuid,
+    current_setting('test.pedido')::uuid,
     'CANCELADO',
     'prueba'
   );
@@ -128,6 +135,53 @@ begin
   if v_stock <> 10 or v_restituciones <> 1 then
     raise exception 'La segunda cancelación dejó stock % y % restituciones',
       v_stock, v_restituciones;
+  end if;
+end $$;
+`
+);
+
+testDb(
+  "cancelar un pedido recibido sin reserva no modifica el stock",
+  `
+insert into public.pedidos
+  (emprendimiento_id, cliente_id, origen_tipo, estado, estado_cobro, total)
+values
+  (current_setting('test.emprendimiento_a')::uuid,
+   current_setting('test.cliente_a')::uuid, 'MANUAL', 'RECIBIDO', 'PENDIENTE', 100)
+returning set_config('test.pedido', id::text, true);
+
+select set_config(
+  'test.stock_antes',
+  stock_disponible::text,
+  true
+)
+from public.productos
+where id = current_setting('test.producto_a')::uuid;
+
+select public.cambiar_estado_pedido(
+  current_setting('test.emprendimiento_a')::uuid,
+  current_setting('test.pedido')::uuid,
+  'CANCELADO',
+  'sin reserva'
+);
+
+do $$
+declare
+  v_stock integer;
+  v_restituciones integer;
+begin
+  select stock_disponible into v_stock
+  from public.productos
+  where id = current_setting('test.producto_a')::uuid;
+
+  select count(*) into v_restituciones
+  from public.movimientos_stock
+  where pedido_id = current_setting('test.pedido')::uuid
+    and tipo = 'RESTITUCION_CANCELACION';
+
+  if v_stock <> current_setting('test.stock_antes')::integer
+     or v_restituciones <> 0 then
+    raise exception 'La cancelación sin reserva alteró stock o creó restitución';
   end if;
 end $$;
 `
