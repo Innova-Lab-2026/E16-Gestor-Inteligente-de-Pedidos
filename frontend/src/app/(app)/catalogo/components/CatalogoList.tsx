@@ -17,8 +17,11 @@ export default function CatalogoList({ productos }: { productos: Producto[] }) {
     setFiltro((prev) => (prev === valor ? null : valor));
   };
 
+  const getCantidadVariantes = (p: Producto) => p.variantes?.length ?? 0;
+  const tieneVariantes = (p: Producto) => getCantidadVariantes(p) > 0;
+
   const getStockTotal = (p: Producto) => {
-    if (p.tiene_variantes && p.variantes) {
+    if (tieneVariantes(p) && p.variantes) {
       return p.variantes.reduce((acc, v) => acc + (v.stock_disponible ?? 0), 0);
     }
     return p.stock_disponible ?? 0;
@@ -31,9 +34,9 @@ export default function CatalogoList({ productos }: { productos: Producto[] }) {
     const stock = getStockTotal(p);
     if (filtro === "inactivos") return !p.activo;
     if (!p.activo) return false;
-    if (filtro === "sin_stock") return !p.tiene_variantes && stock === 0;
+    if (filtro === "sin_stock") return !tieneVariantes(p) && stock === 0;
     if (filtro === "stock_bajo") {
-      return !p.tiene_variantes && stock > 0 && stock <= (p.stock_minimo ?? 0);
+      return !tieneVariantes(p) && stock > 0 && stock <= (p.stock_minimo ?? 0);
     }
     return true;
   });
@@ -103,13 +106,15 @@ export default function CatalogoList({ productos }: { productos: Producto[] }) {
       <div className="space-y-3 pb-24">
         {filtrados.map((producto) => {
           const stock = getStockTotal(producto);
-          const sinStock = producto.activo && !producto.tiene_variantes && stock === 0;
+          const cantidadVariantes = getCantidadVariantes(producto);
+          const productoTieneVariantes = cantidadVariantes > 0;
+          const sinStock =
+            producto.activo && !productoTieneVariantes && stock === 0;
           const stockBajo =
             producto.activo &&
-            !producto.tiene_variantes &&
+            !productoTieneVariantes &&
             stock > 0 &&
             stock <= (producto.stock_minimo ?? 0);
-          const cantidadVariantes = producto.variantes?.length ?? 0;
 
           return (
             <Link
@@ -154,8 +159,10 @@ export default function CatalogoList({ productos }: { productos: Producto[] }) {
                 <p className="text-xs text-[#586574]">
                   ${Number(producto.precio).toLocaleString("es-AR")}
                   {producto.activo
-                    ? producto.tiene_variantes
-                      ? ` · ${cantidadVariantes} variantes`
+                    ? productoTieneVariantes
+                      ? ` · ${cantidadVariantes} ${
+                          cantidadVariantes === 1 ? "variante" : "variantes"
+                        }`
                       : " · Sin variantes"
                     : " / no se vende"}
                 </p>
@@ -179,9 +186,7 @@ export default function CatalogoList({ productos }: { productos: Producto[] }) {
               </div>
 
               <div className="flex shrink-0 items-center gap-2">
-                {!producto.tiene_variantes && (
-                  <span className="text-sm font-bold text-[#102a39]">{stock} u.</span>
-                )}
+                <span className="text-sm font-bold text-[#102a39]">{stock} u.</span>
                 <span className="text-lg font-bold text-[#586574]">›</span>
               </div>
             </Link>

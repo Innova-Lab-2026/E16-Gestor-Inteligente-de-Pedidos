@@ -1,8 +1,50 @@
-import { getProductos } from "@/app/(app)/catalogo/api";
+import {
+  getProductos,
+  getVariantesProducto,
+} from "@/app/(app)/catalogo/api";
 import CatalogoList from "@/app/(app)/catalogo/components/CatalogoList";
+import type { Variante } from "./types";
 
 export default async function CatalogoPage() {
-  const { data, error } = await getProductos(true);
+  const productosResult = await getProductos(true);
+  const productos = productosResult.data ?? [];
+  let variantesError: string | undefined;
+
+  if (productosResult.ok) {
+    const resultadosVariantes = await Promise.all(
+      productos
+        .filter((producto) => producto.tiene_variantes)
+        .map(async (producto) => ({
+          productoId: producto.id,
+          ...(await getVariantesProducto(producto.id)),
+        })),
+    );
+    const resultadoFallido = resultadosVariantes.find(
+      (resultado) => !resultado.ok || !resultado.data,
+    );
+    if (resultadoFallido) {
+      variantesError =
+        resultadoFallido.error ?? "No pudimos cargar las variantes.";
+    }
+
+    const variantesPorProducto = new Map<string, Variante[]>();
+    for (const resultado of resultadosVariantes) {
+      if (resultado.ok && resultado.data) {
+        variantesPorProducto.set(resultado.productoId, resultado.data);
+      }
+    }
+    for (let index = 0; index < productos.length; index += 1) {
+      const producto = productos[index];
+      if (producto.tiene_variantes) {
+        productos[index] = {
+          ...producto,
+          variantes: variantesPorProducto.get(producto.id) ?? [],
+        };
+      }
+    }
+  }
+
+  const error = productosResult.error ?? variantesError;
 
   return (
     <section className="space-y-4 pt-2">
@@ -16,7 +58,7 @@ export default async function CatalogoPage() {
       {error ? (
         <p className="rounded-xl bg-red-50 p-3 text-sm text-red-600">{error}</p>
       ) : (
-        <CatalogoList productos={data ?? []} />
+        <CatalogoList productos={productos} />
       )}
     </section>
   );
