@@ -8,10 +8,18 @@ import type { Producto } from "../types";
 
 type FiltroStock = "stock_bajo" | "sin_stock" | "inactivos" | null;
 
-export default function CatalogoList({ productos }: { productos: Producto[] }) {
+export default function CatalogoList({
+  productos,
+  filtroUrl,
+}: {
+  productos: Producto[];
+  filtroUrl?: string;
+}) {
   const router = useRouter();
   const [busqueda, setBusqueda] = useState("");
-  const [filtro, setFiltro] = useState<FiltroStock>(null);
+  const [filtro, setFiltro] = useState<FiltroStock>(
+    filtroUrl === "stock_bajo" ? "stock_bajo" : null,
+  );
 
   const toggleFiltro = (valor: Exclude<FiltroStock, null>) => {
     setFiltro((prev) => (prev === valor ? null : valor));

@@ -69,7 +69,6 @@ Un panel operativo que centraliza pedidos (manuales y provenientes de WhatsApp),
 
 ## Documentación adicional
 
-- [Guía de Entorno, QA y Pruebas por WhatsApp](docs/GUIA_ENTORNO_QA.md)
 - Documentación técnica del servidor en `backend/README.md`
 - Documentación de la aplicación web en `frontend/README.md`
 

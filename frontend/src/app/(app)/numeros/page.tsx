@@ -15,6 +15,7 @@ type DashboardResumen = {
   facturado: number;
   pendienteCobro: number;
   pedidosRequiriendoRevision: number;
+  productosBajoStock: number;
   productosMasVendidos: Array<{
     productoId: string;
     nombre: string;
@@ -235,6 +236,39 @@ export default async function NumerosPage({
                   {cancelados}
                 </p>
               </div>
+
+              <Link
+                href="/catalogo?filtro=stock_bajo"
+                className={`rounded-2xl border p-3.5 transition ${
+                  resumen.productosBajoStock > 0
+                    ? "border-orange-200 bg-orange-50 hover:border-orange-300"
+                    : "border-[#e2e8f0] bg-white hover:border-[#cbd5e1]"
+                }`}
+              >
+                <p
+                  className={`text-[11px] font-semibold ${
+                    resumen.productosBajoStock > 0
+                      ? "text-orange-800"
+                      : "text-[#586574]"
+                  }`}
+                >
+                  Productos con stock bajo:
+                </p>
+                <p
+                  className={`mt-1 text-xl font-extrabold ${
+                    resumen.productosBajoStock > 0
+                      ? "text-orange-700"
+                      : "text-[#102a39]"
+                  }`}
+                >
+                  {resumen.productosBajoStock}
+                </p>
+                {resumen.productosBajoStock === 0 && (
+                  <p className="mt-1 text-[11px] font-semibold text-[#586574]">
+                    Todo en orden
+                  </p>
+                )}
+              </Link>
             </div>
 
             {/* Distribución por estado */}

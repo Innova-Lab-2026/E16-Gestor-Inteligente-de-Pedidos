@@ -5,7 +5,13 @@ import {
 import CatalogoList from "@/app/(app)/catalogo/components/CatalogoList";
 import type { Variante } from "./types";
 
-export default async function CatalogoPage() {
+export default async function CatalogoPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ filtro?: string | string[] }>;
+}) {
+  const { filtro } = await searchParams;
+  const filtroUrl = Array.isArray(filtro) ? filtro[0] : filtro;
   const productosResult = await getProductos(true);
   const productos = productosResult.data ?? [];
   let variantesError: string | undefined;
@@ -58,7 +64,11 @@ export default async function CatalogoPage() {
       {error ? (
         <p className="rounded-xl bg-red-50 p-3 text-sm text-red-600">{error}</p>
       ) : (
-        <CatalogoList productos={productos} />
+        <CatalogoList
+          key={filtroUrl ?? ""}
+          productos={productos}
+          filtroUrl={filtroUrl}
+        />
       )}
     </section>
   );
