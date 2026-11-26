@@ -73,6 +73,12 @@ export default function ProductoDetalle({ producto }: { producto: Producto }) {
     setError(null);
     setOkMsg(null);
 
+    const motivo = motivoMov.trim();
+    if (tipoMovimiento !== "REPOSICION" && !motivo) {
+      setError("Indicá el motivo del ajuste");
+      return;
+    }
+
     const cant = Number(cantidadMov);
     if (!cant || cant === 0) {
       setError("Ingresá una cantidad distinta de 0.");
@@ -85,7 +91,7 @@ export default function ProductoDetalle({ producto }: { producto: Producto }) {
       variante_id: producto.tiene_variantes ? varianteStockId || null : null,
       tipo: tipoMovimiento,
       cantidad: cant,
-      motivo: motivoMov.trim() || undefined,
+      motivo: motivo || undefined,
     });
 
     setLoading(false);
@@ -416,9 +422,10 @@ export default function ProductoDetalle({ producto }: { producto: Producto }) {
 
         <label className="block space-y-1">
           <span className="text-xs font-semibold text-[#586574]">
-            Motivo (Opcional)
+            Motivo {tipoMovimiento === "REPOSICION" ? "(Opcional)" : "(Obligatorio)"}
           </span>
           <input
+            required={tipoMovimiento !== "REPOSICION"}
             placeholder="Ej: Ingreso de proveedor"
             value={motivoMov}
             onChange={(e) => setMotivoMov(e.target.value)}
