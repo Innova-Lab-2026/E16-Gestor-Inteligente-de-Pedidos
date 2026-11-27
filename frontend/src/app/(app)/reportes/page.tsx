@@ -153,17 +153,17 @@ export default async function ReportesPage({
       </div>
 
       {/* Selector de período */}
-      <div className="grid grid-cols-4 gap-1.5 rounded-full border border-[#e2e8f0] bg-white p-1">
+      <div className="grid grid-cols-4 border-b border-[#e2e8f0] text-xs">
         {PERIODOS.map((p) => {
           const activo = periodo === p.key;
           return (
             <Link
               key={p.key}
               href={`/reportes?periodo=${p.key}`}
-              className={`rounded-full py-1.5 text-center text-xs font-bold transition ${
+              className={`border-b-2 py-2.5 text-center transition ${
                 activo
-                  ? "bg-[#7622ed] text-white"
-                  : "text-[#586574] hover:text-[#102a39]"
+                  ? "border-[#7622ed] font-bold text-[#7622ed]"
+                  : "border-transparent font-medium text-[#586574] hover:text-[#102a39]"
               }`}
             >
               {p.label}
