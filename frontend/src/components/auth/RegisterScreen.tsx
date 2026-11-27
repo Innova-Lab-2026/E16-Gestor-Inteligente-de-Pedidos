@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -129,90 +130,113 @@ export default function RegisterScreen() {
 
   return (
     <main className={`${styles.screen} ${step > 1 ? styles.businessScreen : ""}`}>
-      {step === 1 ? (
-        <>
-          <header className={styles.header}>
-            <Link href={ROUTES.login} className={styles.backLink} aria-label="Volver al inicio de sesión">
-              <ArrowIcon />
-            </Link>
-            <h1>Crear cuenta</h1>
-          </header>
-
-          <p className={styles.intro}>Cargá tus datos y comenzá a organizar tu emprendimiento.</p>
-
-          <form action={formAction} className={styles.form} onSubmit={handleAccountSubmit}>
-            <label className={styles.field}>
-              <span>Nombre *</span>
-              <input name="nombre" autoComplete="given-name" placeholder="Ej: Pepe" required value={account.nombre} onChange={(event) => updateAccount("nombre", event.currentTarget.value)} />
-            </label>
-
-            <label className={styles.field}>
-              <span>Apellido *</span>
-              <input name="apellido" autoComplete="family-name" placeholder="Ej: Argento" required value={account.apellido} onChange={(event) => updateAccount("apellido", event.currentTarget.value)} />
-            </label>
-
-            <label className={styles.field}>
-              <span>DNI *</span>
-              <input name="dni" inputMode="numeric" autoComplete="off" placeholder="Ej: 123456789" pattern="[0-9]+" required value={account.dni} onChange={(event) => updateAccount("dni", event.currentTarget.value)} />
-              <small>Sin espacios ni puntos.</small>
-            </label>
-
-            <label className={`${styles.field} ${emailInvalid ? styles.fieldInvalid : ""}`}>
-              <span>Email *</span>
-              <input name="email" type="email" autoComplete="email" placeholder="Ej: hola@gmail.com" required value={account.email} aria-invalid={emailInvalid} onBlur={() => setEmailInvalid(!emailValid)} onChange={(event) => { updateAccount("email", event.currentTarget.value); setEmailInvalid(false); }} />
-              {emailInvalid && <small className={styles.error}>Usá un formato válido: Hola@ejemplo.com</small>}
-            </label>
-
-            <label className={`${styles.field} ${passwordInvalid ? styles.fieldInvalid : ""}`}>
-              <span>Contraseña *</span>
-              <span className={styles.passwordWrap}>
-                <input name="password" type={showPassword ? "text" : "password"} autoComplete="new-password" placeholder="Mínimo 8 caracteres" required value={account.password} aria-invalid={passwordInvalid} onFocus={() => setPasswordFocused(true)} onBlur={() => { setPasswordFocused(false); if (account.password) { setPasswordTouched(true); setPasswordInvalid(!passwordValid); } }} onChange={(event) => { updateAccount("password", event.currentTarget.value); setPasswordTouched(false); setPasswordInvalid(false); }} />
-                <button type="button" className={styles.passwordToggle} onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}><EyeIcon visible={showPassword} /></button>
-              </span>
-              {(passwordFocused || passwordTouched || account.password.length > 0) && (
-                <ul className={styles.passwordRules} aria-live="polite">
-                  {passwordRules.map((rule) => <li key={rule.label} className={rule.valid ? styles.ruleValid : ""}>{rule.label}</li>)}
-                </ul>
-              )}
-            </label>
-
-            <label className={`${styles.field} ${account.repeatPassword && account.password !== account.repeatPassword ? styles.fieldInvalid : ""}`}>
-              <span>Repetir contraseña *</span>
-              <span className={styles.passwordWrap}>
-                <input name="repeatPassword" type={showRepeatedPassword ? "text" : "password"} autoComplete="new-password" placeholder="Repetí tu contraseña" required value={account.repeatPassword} aria-invalid={Boolean(account.repeatPassword) && account.password !== account.repeatPassword} onChange={(event) => updateAccount("repeatPassword", event.currentTarget.value)} />
-                <button type="button" className={styles.passwordToggle} onClick={() => setShowRepeatedPassword((value) => !value)} aria-label={showRepeatedPassword ? "Ocultar contraseña" : "Mostrar contraseña"}><EyeIcon visible={showRepeatedPassword} /></button>
-              </span>
-              {account.repeatPassword && account.password !== account.repeatPassword && <small className={styles.error}>Las contraseñas no coinciden.</small>}
-            </label>
-
-            <label className={styles.terms}>
-              <input name="acceptTerms" type="checkbox" required checked={termsAccepted} onChange={(event) => setTermsAccepted(event.currentTarget.checked)} />
-              <span>Acepto los términos y condiciones y la política de privacidad.</span>
-            </label>
-            <button className={styles.submitButton} type="submit" disabled={!accountValid}>
-              Siguiente
-            </button>
-          </form>
-        </>
-      ) : (
-        <EmprendimientoSetupWizard
-          initialValues={{
-            nombre: businessName,
-            rubro: productType,
-            especialidad: customProduct,
-            canales: selectedChannels,
-            telefonos: channelPhones,
-            modalidades: deliveryModes,
-            direccionRetiro: pickupAddress,
-          }}
-          error={registrationError}
-          pending={isPending || Boolean(state.success)}
-          pendingLabel={state.success ? "Cuenta creada" : "Creando cuenta..."}
-          submitLabel="Crear cuenta"
-          onComplete={handleSetupComplete}
-          onCancel={() => router.replace(ROUTES.login)}
+      <aside className={styles.brandPanel} aria-hidden="true">
+        <Image
+          src="/images/emprendete-logo.png"
+          alt=""
+          width={324}
+          height={272}
+          priority
+          className={styles.brandLogo}
         />
-      )}
+        <span className={`${styles.decoration} ${styles.asterisk}`}>*</span>
+        <span className={`${styles.decoration} ${styles.plus}`}>+</span>
+        <span className={`${styles.decoration} ${styles.hashtag}`}>#</span>
+        <p className={styles.tagline}>
+          Pedidos, stock y cobros
+          <br />
+          en un solo lugar
+        </p>
+      </aside>
+
+      <div className={styles.formPane}>
+        <div className={styles.formInner}>
+          {step === 1 ? (
+            <>
+              <header className={styles.header}>
+                <Link href={ROUTES.login} className={styles.backLink} aria-label="Volver al inicio de sesión">
+                  <ArrowIcon />
+                </Link>
+                <h1>Crear cuenta</h1>
+              </header>
+
+              <p className={styles.intro}>Cargá tus datos y comenzá a organizar tu emprendimiento.</p>
+
+              <form action={formAction} className={styles.form} onSubmit={handleAccountSubmit}>
+                <label className={styles.field}>
+                  <span>Nombre *</span>
+                  <input name="nombre" autoComplete="given-name" placeholder="Ej: Pepe" required value={account.nombre} onChange={(event) => updateAccount("nombre", event.currentTarget.value)} />
+                </label>
+
+                <label className={styles.field}>
+                  <span>Apellido *</span>
+                  <input name="apellido" autoComplete="family-name" placeholder="Ej: Argento" required value={account.apellido} onChange={(event) => updateAccount("apellido", event.currentTarget.value)} />
+                </label>
+
+                <label className={styles.field}>
+                  <span>DNI *</span>
+                  <input name="dni" inputMode="numeric" autoComplete="off" placeholder="Ej: 123456789" pattern="[0-9]+" required value={account.dni} onChange={(event) => updateAccount("dni", event.currentTarget.value)} />
+                  <small>Sin espacios ni puntos.</small>
+                </label>
+
+                <label className={`${styles.field} ${emailInvalid ? styles.fieldInvalid : ""}`}>
+                  <span>Email *</span>
+                  <input name="email" type="email" autoComplete="email" placeholder="Ej: hola@gmail.com" required value={account.email} aria-invalid={emailInvalid} onBlur={() => setEmailInvalid(!emailValid)} onChange={(event) => { updateAccount("email", event.currentTarget.value); setEmailInvalid(false); }} />
+                  {emailInvalid && <small className={styles.error}>Usá un formato válido: Hola@ejemplo.com</small>}
+                </label>
+
+                <label className={`${styles.field} ${passwordInvalid ? styles.fieldInvalid : ""}`}>
+                  <span>Contraseña *</span>
+                  <span className={styles.passwordWrap}>
+                    <input name="password" type={showPassword ? "text" : "password"} autoComplete="new-password" placeholder="Mínimo 8 caracteres" required value={account.password} aria-invalid={passwordInvalid} onFocus={() => setPasswordFocused(true)} onBlur={() => { setPasswordFocused(false); if (account.password) { setPasswordTouched(true); setPasswordInvalid(!passwordValid); } }} onChange={(event) => { updateAccount("password", event.currentTarget.value); setPasswordTouched(false); setPasswordInvalid(false); }} />
+                    <button type="button" className={styles.passwordToggle} onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}><EyeIcon visible={showPassword} /></button>
+                  </span>
+                  {(passwordFocused || passwordTouched || account.password.length > 0) && (
+                    <ul className={styles.passwordRules} aria-live="polite">
+                      {passwordRules.map((rule) => <li key={rule.label} className={rule.valid ? styles.ruleValid : ""}>{rule.label}</li>)}
+                    </ul>
+                  )}
+                </label>
+
+                <label className={`${styles.field} ${account.repeatPassword && account.password !== account.repeatPassword ? styles.fieldInvalid : ""}`}>
+                  <span>Repetir contraseña *</span>
+                  <span className={styles.passwordWrap}>
+                    <input name="repeatPassword" type={showRepeatedPassword ? "text" : "password"} autoComplete="new-password" placeholder="Repetí tu contraseña" required value={account.repeatPassword} aria-invalid={Boolean(account.repeatPassword) && account.password !== account.repeatPassword} onChange={(event) => updateAccount("repeatPassword", event.currentTarget.value)} />
+                    <button type="button" className={styles.passwordToggle} onClick={() => setShowRepeatedPassword((value) => !value)} aria-label={showRepeatedPassword ? "Ocultar contraseña" : "Mostrar contraseña"}><EyeIcon visible={showRepeatedPassword} /></button>
+                  </span>
+                  {account.repeatPassword && account.password !== account.repeatPassword && <small className={styles.error}>Las contraseñas no coinciden.</small>}
+                </label>
+
+                <label className={styles.terms}>
+                  <input name="acceptTerms" type="checkbox" required checked={termsAccepted} onChange={(event) => setTermsAccepted(event.currentTarget.checked)} />
+                  <span>Acepto los términos y condiciones y la política de privacidad.</span>
+                </label>
+                <button className={styles.submitButton} type="submit" disabled={!accountValid}>
+                  Siguiente
+                </button>
+              </form>
+            </>
+          ) : (
+            <EmprendimientoSetupWizard
+              initialValues={{
+                nombre: businessName,
+                rubro: productType,
+                especialidad: customProduct,
+                canales: selectedChannels,
+                telefonos: channelPhones,
+                modalidades: deliveryModes,
+                direccionRetiro: pickupAddress,
+              }}
+              error={registrationError}
+              pending={isPending || Boolean(state.success)}
+              pendingLabel={state.success ? "Cuenta creada" : "Creando cuenta..."}
+              submitLabel="Crear cuenta"
+              onComplete={handleSetupComplete}
+              onCancel={() => router.replace(ROUTES.login)}
+            />
+          )}
+        </div>
+      </div>
     </main>
   );
 }
