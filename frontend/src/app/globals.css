@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
-.app-grid-header {
+.app-grid-header,
+.app-page-heading {
   background-color: #ffffff;
   background-image:
     linear-gradient(
@@ -14,24 +15,44 @@
       transparent 2px
     );
   background-size: 36px 36px;
-  background-position: top left;
   background-repeat: repeat;
 }
 
-.app-page-heading {
-  background: transparent;
-  margin-top: 0 !important;
+.app-grid-header {
+  background-position: 0 0;
+}
+
+main > *:first-child:has(> .app-page-heading:first-child) {
+  padding-top: 0 !important;
 }
 
 .app-page-heading {
   width: calc(100% + 2.5rem);
+  margin-top: 0 !important;
   margin-left: -1.25rem;
   margin-right: -1.25rem;
+  padding-top: 0.75rem;
   padding-left: 1.25rem;
   padding-right: 1.25rem;
-  background-position: left -78px;
+  padding-bottom: 1.25rem;
+  background-position: 0 -76px;
 }
 
 .app-page-heading-at-nav {
-  background-position: left -70px;
+  background-position: 0 -76px;
+}
+
+/* Estandariza tamaño de título, subtítulo y alto de cabecera en todas las secciones */
+.app-page-heading {
+  min-height: 5.5rem;
+}
+
+.app-page-heading h1 {
+  font-size: 1.25rem !important; /* igual a text-xl (20px) del Dashboard */
+  line-height: 1.75rem !important;
+}
+
+.app-page-heading p {
+  font-size: 0.75rem !important; /* igual a text-xs (12px) del Dashboard */
+  line-height: 1rem !important;
 }

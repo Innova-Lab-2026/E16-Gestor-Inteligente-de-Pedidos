@@ -29,25 +29,27 @@ export default async function AppLayout({
       emprendimientos={emprendimientos}
       initialActiveId={initialActiveId}
     >
-      <div className="mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-white text-[#102a39] shadow-sm">
-        <header className="app-grid-header flex w-full items-center justify-between px-5 pt-5 pb-4">
-          <Link
-            href="/dashboard"
-            prefetch={false}
-            className="font-[family-name:var(--font-bungee-shade)] text-2xl text-[#7622ed]"
-          >
-            E
-          </Link>
-          <div className="flex items-center gap-2">
-            <EmprendimientoSelector />
-          </div>
-        </header>
+      <div className="min-h-dvh bg-[#eef2f6]">
+        <div className="mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-white text-[#102a39] shadow-xl">
+          <header className="app-grid-header flex w-full items-center justify-between px-5 pt-5 pb-4">
+            <Link
+              href="/dashboard"
+              prefetch={false}
+              className="font-[family-name:var(--font-bungee-shade)] text-2xl text-[#7622ed]"
+            >
+              E
+            </Link>
+            <div className="flex items-center gap-2">
+              <EmprendimientoSelector />
+            </div>
+          </header>
 
-        <main className="flex-1 px-5 pb-24">{children}</main>
+          <main className="flex-1 px-5 pb-24">{children}</main>
 
-        <FloatingNewOrderButton />
-        <BottomNav />
-        <OnboardingModal />
+          <FloatingNewOrderButton />
+          <BottomNav />
+          <OnboardingModal />
+        </div>
       </div>
     </EmprendimientoProvider>
   );

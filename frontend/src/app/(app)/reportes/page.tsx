@@ -148,7 +148,7 @@ export default async function ReportesPage({
   return (
     <section className="space-y-4 pt-2 pb-24">
       <div className="app-page-heading">
-        <h1 className="text-2xl font-bold text-[#102a39]">Números</h1>
+        <h1 className="text-2xl font-bold text-[#102a39]">Reportes</h1>
         <p className="text-xs text-[#586574]">{subtitulo}</p>
       </div>
 

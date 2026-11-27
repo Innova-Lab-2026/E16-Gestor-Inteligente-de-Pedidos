@@ -103,7 +103,7 @@ export default async function DashboardPage() {
 
   return (
     <section
-      className="space-y-4 pt-2 pb-24"
+      className="space-y-4 pb-24"
       aria-labelledby="dashboard-title"
     >
       {/* Cabecera con saludo y acceso rápido a nuevo pedido */}
@@ -263,12 +263,12 @@ export default async function DashboardPage() {
 
             {resumen.cantidadPedidos === 0 ? (
               <div className="flex min-h-48 flex-col items-center justify-center rounded-2xl border border-[#e2e8f0] bg-white p-6 text-center">
-                <p className="max-w-sm text-sm leading-6 text-[#586574]">
+                <div className="max-w-sm text-sm leading-6 text-[#586574]">
                   <p>No tenés pedidos para hoy. </p>
                   <p>Cuando ingrese uno nuevo por
                   WhatsApp, lo vas a ver acá. Si te piden algo en persona,
                   cargalo con el botón +.</p>
-                </p>
+                </div>
                 <Link
                   href="/pedidos/nuevo"
                   className="mt-4 rounded-full bg-[#056184] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#044d69]"
