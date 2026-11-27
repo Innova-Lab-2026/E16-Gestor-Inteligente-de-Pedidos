@@ -6,6 +6,11 @@ export type EstadoPedido =
   | "ENTREGADO"
   | "CANCELADO";
 
+export type EstadoOperativoPedido = Extract<
+  EstadoPedido,
+  "RECIBIDO" | "EN_PREPARACION" | "LISTO"
+>;
+
 export type EstadoCobro = "PAGADO" | "PENDIENTE";
 export type OrigenPedido = "MANUAL" | "WHATSAPP" | "TELEGRAM" | "WEB";
 export type ModalidadEntrega = "RETIRO" | "ENVIO";

@@ -4,7 +4,12 @@ import type { FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import EmptyState from "@/components/EmptyState";
-import type { EstadoCobro, EstadoPedido, Pedido } from "../types";
+import type {
+  EstadoCobro,
+  EstadoOperativoPedido,
+  EstadoPedido,
+  Pedido,
+} from "../types";
 
 type TabPedidos = "vigentes" | "cancelados" | "entregados";
 
@@ -14,6 +19,7 @@ type FiltrosPedidos = {
   clienteId: string;
   desde: string;
   hasta: string;
+  estado: EstadoOperativoPedido | "";
   estadoCobro: EstadoCobro | "";
   requiereRevision: boolean;
   offset: number;
@@ -55,6 +61,9 @@ export default function PedidosList({
     if (siguiente.clienteId) params.set("cliente_id", siguiente.clienteId);
     if (siguiente.desde) params.set("desde", siguiente.desde);
     if (siguiente.hasta) params.set("hasta", siguiente.hasta);
+    if (siguiente.tab === "vigentes" && siguiente.estado) {
+      params.set("estado", siguiente.estado);
+    }
     if (siguiente.estadoCobro) {
       params.set("estado_cobro", siguiente.estadoCobro);
     }
@@ -93,7 +102,7 @@ export default function PedidosList({
   );
   const tieneFiltros =
     Boolean(filtros.busqueda || filtros.clienteId || filtros.desde || filtros.hasta) ||
-    Boolean(filtros.estadoCobro || filtros.requiereRevision);
+    Boolean(filtros.estado || filtros.estadoCobro || filtros.requiereRevision);
 
   const renderCard = (pedido: Pedido) => {
     const cobrado = pedido.estado_cobro === "PAGADO";
@@ -290,6 +299,7 @@ export default function PedidosList({
                   clienteId: "",
                   desde: "",
                   hasta: "",
+                  estado: "",
                   estadoCobro: "",
                   requiereRevision: false,
                   offset: 0,
@@ -304,48 +314,84 @@ export default function PedidosList({
       </form>
 
       {filtros.tab === "vigentes" && (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold text-[#102a39]">Filtrar por:</span>
-          {(
-            [
-              {
-                key: "revision",
-                label: "Para revisar",
-                active: filtros.requiereRevision,
-                action: () =>
-                  navegarConFiltros({
-                    requiereRevision: !filtros.requiereRevision,
-                    offset: 0,
-                  }),
-              },
-              {
-                key: "no_cobrados",
-                label: "No cobrados",
-                active: filtros.estadoCobro === "PENDIENTE",
-                action: () =>
-                  navegarConFiltros({
-                    estadoCobro:
-                      filtros.estadoCobro === "PENDIENTE" ? "" : "PENDIENTE",
-                    offset: 0,
-                  }),
-              },
-            ] as const
-          ).map((item) => {
-            return (
-              <button
-                key={item.key}
-                type="button"
-                onClick={item.action}
-                className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
-                  item.active
-                    ? "border-[#7622ed] bg-[#7622ed] text-white"
-                    : "border-[#cbd5e1] bg-white text-[#102a39]"
-                }`}
-              >
-                {item.active ? `✓ ${item.label}` : item.label}
-              </button>
-            );
-          })}
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold text-[#102a39]">
+              Estado del pedido:
+            </span>
+            {(
+              [
+                { estado: "", label: "Todos" },
+                { estado: "RECIBIDO", label: "Recibido" },
+                { estado: "EN_PREPARACION", label: "En preparación" },
+                { estado: "LISTO", label: "Listo" },
+              ] as const
+            ).map((item) => {
+              const activo = filtros.estado === item.estado;
+              return (
+                <button
+                  key={item.estado || "todos"}
+                  type="button"
+                  aria-pressed={activo}
+                  onClick={() =>
+                    navegarConFiltros({ estado: item.estado, offset: 0 })
+                  }
+                  className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
+                    activo
+                      ? "border-[#7622ed] bg-[#7622ed] text-white"
+                      : "border-[#cbd5e1] bg-white text-[#102a39]"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold text-[#102a39]">
+              Filtrar por:
+            </span>
+            {(
+              [
+                {
+                  key: "revision",
+                  label: "Para revisar",
+                  active: filtros.requiereRevision,
+                  action: () =>
+                    navegarConFiltros({
+                      requiereRevision: !filtros.requiereRevision,
+                      offset: 0,
+                    }),
+                },
+                {
+                  key: "no_cobrados",
+                  label: "No cobrados",
+                  active: filtros.estadoCobro === "PENDIENTE",
+                  action: () =>
+                    navegarConFiltros({
+                      estadoCobro:
+                        filtros.estadoCobro === "PENDIENTE" ? "" : "PENDIENTE",
+                      offset: 0,
+                    }),
+                },
+              ] as const
+            ).map((item) => {
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={item.action}
+                  className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
+                    item.active
+                      ? "border-[#7622ed] bg-[#7622ed] text-white"
+                      : "border-[#cbd5e1] bg-white text-[#102a39]"
+                  }`}
+                >
+                  {item.active ? `✓ ${item.label}` : item.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
