@@ -35,9 +35,8 @@ export default async function AppLayout({
             <Link
               href="/dashboard"
               prefetch={false}
-              className="font-[family-name:var(--font-bungee-shade)] text-2xl text-[#7622ed]"
-            >
-              E
+              className="font-[family-name:var(--font-bungee-shade)] text-4xl text-[#7622ed]">
+                E
             </Link>
             <div className="flex items-center gap-2">
               <EmprendimientoSelector />
