@@ -10,6 +10,7 @@ import {
   changeOrderStatusSchema,
   listPedidosQuerySchema,
 } from "../../src/modules/pedidos/dtos/change-order-status.dto.js";
+import { pedidoResponseSchema } from "../../src/modules/pedidos/dtos/order-response.dto.js";
 import { createProductoSchema } from "../../src/modules/productos/dtos/create-producto.dto.js";
 import { createCanalSchema } from "../../src/modules/canales/dtos/create-canal.dto.js";
 import {
@@ -71,6 +72,35 @@ describe("DTO de pedido manual", () => {
     assert.equal(dto.direccion_entrega, "Av. Siempre Viva 123");
     assert.equal(dto.hora_prevista_entrega, "18:30:00");
     assert.deepEqual(dto.medios_pago, ["Transferencia"]);
+  });
+});
+
+describe("DTO de respuesta de pedido", () => {
+  test("conserva la condición comercial del cliente asociado", () => {
+    const response = pedidoResponseSchema.parse({
+      id: UUID,
+      emprendimiento_id: UUID,
+      cliente_id: UUID,
+      origen_tipo: "MANUAL",
+      canal_id: null,
+      estado: "RECIBIDO",
+      estado_cobro: "PENDIENTE",
+      modalidad_entrega: null,
+      fecha_prevista_entrega: null,
+      subtotal: 0,
+      total: 0,
+      observaciones: null,
+      requiere_revision: false,
+      created_at: "2026-11-27T00:00:00.000Z",
+      updated_at: "2026-11-27T00:00:00.000Z",
+      cliente: {
+        id: UUID,
+        nombre: "Ana",
+        condicion_comercial: "DEUDOR",
+      },
+    });
+
+    assert.equal(response.cliente.condicion_comercial, "DEUDOR");
   });
 });
 

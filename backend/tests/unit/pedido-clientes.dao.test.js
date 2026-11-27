@@ -11,6 +11,7 @@ const clienteActualizado = {
   telefono: "5491112345678",
   direccion: "Av. Siempre Viva 123",
   email: "ana@example.com",
+  condicion_comercial: "DEUDOR",
 };
 
 async function conRespuestaSupabase(data, callback) {
@@ -47,7 +48,28 @@ describe("Pedidos con datos actuales de cliente", () => {
         assert.ok(
           getUrl()
             .searchParams.get("select")
-            .includes("clientes(id,nombre,apellido,telefono,direccion,email)"),
+            .includes(
+              "clientes(id,nombre,apellido,telefono,direccion,email,condicion_comercial:condicion)",
+            ),
+        );
+      },
+    );
+  });
+
+  test("el detalle incluye la condición comercial del cliente", async () => {
+    await conRespuestaSupabase(
+      { id: "pedido-1", clientes: clienteActualizado, items_pedido: [] },
+      async (getUrl) => {
+        const pedido = await new PedidoDao("token").findById(
+          "tenant",
+          "pedido-1",
+        );
+
+        assert.deepEqual(pedido.cliente, clienteActualizado);
+        assert.ok(
+          getUrl()
+            .searchParams.get("select")
+            .includes("condicion_comercial:condicion"),
         );
       },
     );

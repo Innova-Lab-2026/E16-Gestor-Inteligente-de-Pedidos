@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import CondicionBadge from "@/features/clientes/CondicionBadge";
 import {
   actualizarDetallesPedidoAction,
   cambiarCobroPedidoAction,
@@ -173,8 +174,14 @@ export default function PedidoDetalle({ pedido }: { pedido: PedidoDetallado }) {
           emailCliente) && (
           <div className="space-y-1 text-sm text-[#102a39]">
             {nombreCliente && (
-              <p>
-                <strong>Cliente:</strong> {nombreCliente}
+              <p className="flex flex-wrap items-center gap-2">
+                <strong>Cliente:</strong>
+                <span>{nombreCliente}</span>
+                {pedido.cliente?.condicion_comercial && (
+                  <CondicionBadge
+                    condicion={pedido.cliente.condicion_comercial}
+                  />
+                )}
               </p>
             )}
             {telefonoCliente && (

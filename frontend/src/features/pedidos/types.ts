@@ -1,3 +1,5 @@
+import type { CondicionCliente } from "@/features/clientes/types";
+
 export type EstadoPedido =
   | "RECIBIDO"
   | "EN_PREPARACION"
@@ -60,6 +62,7 @@ export type Pedido = {
     telefono?: string | null;
     direccion?: string | null;
     email?: string | null;
+    condicion_comercial?: CondicionCliente | null;
   } | null;
 };
 

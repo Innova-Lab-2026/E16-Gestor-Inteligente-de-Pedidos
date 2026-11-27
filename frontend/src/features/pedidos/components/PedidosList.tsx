@@ -4,6 +4,7 @@ import type { FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import EmptyState from "@/components/EmptyState";
+import CondicionBadge from "@/features/clientes/CondicionBadge";
 import type {
   EstadoCobro,
   EstadoOperativoPedido,
@@ -123,10 +124,10 @@ export default function PedidosList({
             : "border-[#e2e8f0] hover:border-[#7622ed]"
         }`}
       >
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-bold text-[#102a39]">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="min-w-0 break-words font-bold text-[#102a39]">
                 {getNombreCliente(pedido)}
               </h3>
               {pedido.numero && (
@@ -134,10 +135,15 @@ export default function PedidosList({
                   #{pedido.numero}
                 </span>
               )}
+              {pedido.cliente?.condicion_comercial && (
+                <CondicionBadge
+                  condicion={pedido.cliente.condicion_comercial}
+                />
+              )}
             </div>
           </div>
 
-          <div className="text-right">
+          <div className="ml-auto shrink-0 text-right">
             <p className="font-bold text-[#102a39]">
               ${Number(pedido.total).toLocaleString("es-AR")}
             </p>

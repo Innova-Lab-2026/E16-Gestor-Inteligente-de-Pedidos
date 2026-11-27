@@ -4,29 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import EmptyState from "@/components/EmptyState";
+import CondicionBadge, {
+  BADGE_CONDICION,
+} from "@/features/clientes/CondicionBadge";
 import type { Cliente, CondicionCliente } from "../types";
-
-const BADGE_CONDICION: Record<
-  CondicionCliente,
-  { label: string; className: string }
-> = {
-  OK: {
-    label: "OK",
-    className: "bg-emerald-100 text-emerald-800",
-  },
-  DEUDOR: {
-    label: "Deudor",
-    className: "bg-amber-100 text-amber-800",
-  },
-  IRRESPETUOSO: {
-    label: "Irrespetuoso",
-    className: "bg-orange-100 text-orange-800",
-  },
-  CANCELADOR: {
-    label: "Cancelador",
-    className: "bg-red-100 text-red-700",
-  },
-};
 
 export default function ClientesList({ clientes }: { clientes: Cliente[] }) {
   const router = useRouter();
@@ -124,8 +105,6 @@ export default function ClientesList({ clientes }: { clientes: Cliente[] }) {
           const nombreCompleto = [cliente.nombre, cliente.apellido]
             .filter(Boolean)
             .join(" ");
-          const badge =
-            BADGE_CONDICION[cliente.condicion] ?? BADGE_CONDICION.OK;
           const iniciales = `${cliente.nombre.trim().charAt(0)}${
             cliente.apellido?.trim().charAt(0) ?? ""
           }`.toUpperCase();
@@ -142,11 +121,7 @@ export default function ClientesList({ clientes }: { clientes: Cliente[] }) {
               <div className="min-w-0 flex-1 space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="font-bold text-[#102a39]">{nombreCompleto}</h2>
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${badge.className}`}
-                  >
-                    {badge.label === "OK" ? "Ok" : badge.label}
-                  </span>
+                  <CondicionBadge condicion={cliente.condicion} />
                 </div>
 
                 {cliente.observaciones && (

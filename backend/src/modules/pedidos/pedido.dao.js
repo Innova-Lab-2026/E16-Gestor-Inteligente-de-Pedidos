@@ -63,7 +63,7 @@ export class PedidoDao {
 
   async findById(emprendimientoId, id, { conItems = true } = {}) {
     const columnas = conItems
-      ? "*, items_pedido(*, productos(nombre), variantes(nombre)), clientes(id, nombre, apellido, telefono, direccion, email)"
+      ? "*, items_pedido(*, productos(nombre), variantes(nombre)), clientes(id, nombre, apellido, telefono, direccion, email, condicion_comercial:condicion)"
       : "*";
 
     const { data, error } = await this.#client()
@@ -122,8 +122,8 @@ export class PedidoDao {
       .from("pedidos")
       .select(
         buscarCliente
-          ? "*, clientes!inner(id, nombre, apellido, telefono, direccion, email)"
-          : "*, clientes(id, nombre, apellido, telefono, direccion, email)",
+          ? "*, clientes!inner(id, nombre, apellido, telefono, direccion, email, condicion_comercial:condicion)"
+          : "*, clientes(id, nombre, apellido, telefono, direccion, email, condicion_comercial:condicion)",
       )
       .eq("emprendimiento_id", emprendimientoId);
 

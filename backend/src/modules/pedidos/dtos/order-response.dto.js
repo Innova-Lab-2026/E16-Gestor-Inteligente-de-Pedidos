@@ -72,6 +72,9 @@ export const pedidoResponseSchema = z.object({
       telefono: z.string().nullable().optional(),
       direccion: z.string().nullable().optional(),
       email: z.string().nullable().optional(),
+      condicion_comercial: z
+        .enum(["OK", "DEUDOR", "IRRESPETUOSO", "CANCELADOR"])
+        .optional(),
     })
     .nullable()
     .optional(),
