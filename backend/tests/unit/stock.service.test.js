@@ -30,9 +30,8 @@ describe("StockService · signo de los movimientos", () => {
     assert.equal(StockService.signedQuantity(STOCK_MOVEMENT_TYPE.PERDIDA, 2), -2);
   });
 
-  test("la corrección manual respeta el signo enviado", () => {
+  test("la corrección manual se interpreta como una suma", () => {
     assert.equal(StockService.signedQuantity(STOCK_MOVEMENT_TYPE.CORRECCION_MANUAL, 5), 5);
-    assert.equal(StockService.signedQuantity(STOCK_MOVEMENT_TYPE.CORRECCION_MANUAL, -5), -5);
   });
 });
 
@@ -58,6 +57,35 @@ describe("StockService · disponibilidad", () => {
 });
 
 describe("StockService · movimientos", () => {
+  test("rechaza cantidades que no sean enteros positivos en ajustes manuales", async () => {
+    const { service, movimientoDao, stockDao } = build({
+      [PROD]: { producto: 5 },
+    });
+
+    for (const [tipo, cantidad] of [
+      [STOCK_MOVEMENT_TYPE.PERDIDA, -2],
+      [STOCK_MOVEMENT_TYPE.CORRECCION_MANUAL, -2],
+      [STOCK_MOVEMENT_TYPE.PERDIDA, 0],
+      [STOCK_MOVEMENT_TYPE.PERDIDA, 1.5],
+      [STOCK_MOVEMENT_TYPE.PERDIDA, Number.NaN],
+    ]) {
+      await assert.rejects(
+        () =>
+          service.ajustarManual({
+            emprendimientoId: EMP,
+            productoId: PROD,
+            tipo,
+            cantidad,
+            motivo: "Prueba de validación",
+          }),
+        (error) => error.statusCode === 400,
+      );
+    }
+
+    assert.equal(stockDao.stock[PROD].producto, 5);
+    assert.equal(movimientoDao.movimientos.length, 0);
+  });
+
   test("descuenta stock de producto y registra el movimiento", async () => {
     const { service, stockDao, movimientoDao } = build({
       [PROD]: { producto: 10 },

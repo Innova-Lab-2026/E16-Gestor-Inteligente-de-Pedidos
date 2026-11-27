@@ -3,6 +3,7 @@ import { z } from "zod";
 import { validate } from "../middlewares/validator.middleware.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { tenantMiddleware } from "../middlewares/tenant.middleware.js";
+import { BadRequestError } from "../errors/bad-request.error.js";
 import {
   ProductoController,
   VarianteController,
@@ -40,11 +41,19 @@ const crearMovimientoStockSchema = z.object({
   cantidad: z.coerce
     .number()
     .int()
-    .refine((n) => n !== 0, {
-      message: "La cantidad no puede ser 0",
-    }),
+    .positive("La cantidad debe ser un entero mayor a 0"),
   motivo: z.string().max(2000).optional(),
 });
+
+const validarCantidadMovimiento = (req, _res, next) => {
+  const { cantidad } = req.body ?? {};
+  if (!Number.isInteger(cantidad) || cantidad <= 0) {
+    return next(
+      new BadRequestError("La cantidad debe ser un entero mayor a 0"),
+    );
+  }
+  return next();
+};
 
 // =====================================================================
 // ROUTER PRINCIPAL: PRODUCTOS Y VARIANTES ANIDADAS
@@ -91,6 +100,7 @@ stockRouter.use(authMiddleware, tenantMiddleware());
 stockRouter.get("/movimientos", stockController.listMovimientos);
 stockRouter.post(
   "/movimientos",
+  validarCantidadMovimiento,
   validate({ body: crearMovimientoStockSchema }),
   stockController.createMovimiento,
 );

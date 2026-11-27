@@ -80,8 +80,10 @@ export default function ProductoDetalle({ producto }: { producto: Producto }) {
     }
 
     const cant = Number(cantidadMov);
-    if (!cant || cant === 0) {
-      setError("Ingresá una cantidad distinta de 0.");
+    if (!Number.isInteger(cant) || cant <= 0) {
+      setError(
+        "La cantidad debe ser un entero mayor a 0. Ingresá la cantidad sin signo; el tipo de movimiento define si suma o resta.",
+      );
       return;
     }
 
@@ -403,7 +405,7 @@ export default function ProductoDetalle({ producto }: { producto: Producto }) {
               <option value="REPOSICION">Reposición (+)</option>
               <option value="PRODUCCION">Producción (+)</option>
               <option value="PERDIDA">Pérdida (-)</option>
-              <option value="CORRECCION_MANUAL">Corrección manual</option>
+              <option value="CORRECCION_MANUAL">Corrección manual (+)</option>
             </select>
           </label>
 
@@ -412,11 +414,29 @@ export default function ProductoDetalle({ producto }: { producto: Producto }) {
             <input
               required
               type="number"
+              min={1}
+              step={1}
               placeholder="Ej: 5"
               value={cantidadMov}
-              onChange={(e) => setCantidadMov(e.target.value)}
+              onKeyDown={(e) => {
+                if (["-", "+", "e", "E", ".", ","].includes(e.key)) {
+                  e.preventDefault();
+                }
+              }}
+              onPaste={(e) => {
+                if (!/^\d+$/.test(e.clipboardData.getData("text"))) {
+                  e.preventDefault();
+                }
+              }}
+              onChange={(e) => {
+                const value = e.target.value;
+                setCantidadMov(/^\d*$/.test(value) ? value : "");
+              }}
               className="h-11 w-full rounded-full border-2 border-[#102a39] px-4 text-sm focus:outline-none"
             />
+            <span className="block text-xs text-[#586574]">
+              Cantidad absoluta, sin signo (ej. 2; no -2). El tipo define si suma o resta.
+            </span>
           </label>
         </div>
 

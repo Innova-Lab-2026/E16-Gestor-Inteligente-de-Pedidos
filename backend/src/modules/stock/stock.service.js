@@ -30,7 +30,6 @@ export class StockService {
    * @param {number} cantidad magnitud (el signo lo define el tipo)
    */
   static signedQuantity(tipo, cantidad) {
-    if (tipo === STOCK_MOVEMENT_TYPE.CORRECCION_MANUAL) return cantidad;
     return STOCK_MOVEMENT_SIGN[tipo] * cantidad;
   }
 
@@ -89,10 +88,11 @@ export class StockService {
       throw new BadRequestError(`Tipo de movimiento inválido: ${tipo}`);
     }
 
-    const delta = StockService.signedQuantity(tipo, cantidad);
-    if (delta === 0) {
-      throw new BadRequestError("La cantidad del movimiento no puede ser 0");
+    if (!Number.isInteger(cantidad) || cantidad <= 0) {
+      throw new BadRequestError("La cantidad debe ser un entero mayor a 0");
     }
+
+    const delta = StockService.signedQuantity(tipo, cantidad);
 
     const { stockResultante, movimiento } = await this.stockDao.applyMove({
       emprendimientoId,
@@ -198,12 +198,6 @@ export class StockService {
     cantidad,
     motivo,
   }) {
-    if (tipo === STOCK_MOVEMENT_TYPE.CORRECCION_MANUAL && !cantidad) {
-      throw new BadRequestError(
-        "Una corrección manual requiere la cantidad con signo a aplicar",
-      );
-    }
-
     return this.move({
       emprendimientoId,
       productoId,

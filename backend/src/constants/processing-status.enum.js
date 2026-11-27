@@ -22,8 +22,7 @@ export const STOCK_MOVEMENT_SIGN = Object.freeze({
   [STOCK_MOVEMENT_TYPE.REPOSICION]: 1,
   [STOCK_MOVEMENT_TYPE.PRODUCCION]: 1,
   [STOCK_MOVEMENT_TYPE.PERDIDA]: -1,
-  // CORRECCION_MANUAL toma el signo de la cantidad enviada.
-  [STOCK_MOVEMENT_TYPE.CORRECCION_MANUAL]: 0,
+  [STOCK_MOVEMENT_TYPE.CORRECCION_MANUAL]: 1,
 });
 
 /** Modalidades de entrega. */
