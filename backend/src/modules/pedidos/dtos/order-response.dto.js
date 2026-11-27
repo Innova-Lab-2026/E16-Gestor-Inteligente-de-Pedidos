@@ -64,7 +64,17 @@ export const pedidoResponseSchema = z.object({
   created_at: z.string(),
   updated_at: z.string(),
   items: z.array(itemPedidoResponseSchema).optional(),
-  cliente: z.object({ id: z.string(), nombre: z.string() }).nullable().optional(),
+  cliente: z
+    .object({
+      id: z.string(),
+      nombre: z.string(),
+      apellido: z.string().nullable().optional(),
+      telefono: z.string().nullable().optional(),
+      direccion: z.string().nullable().optional(),
+      email: z.string().nullable().optional(),
+    })
+    .nullable()
+    .optional(),
   movimientos_stock: z.array(z.object({}).passthrough()).optional(),
 });
 

@@ -8,10 +8,6 @@ import type { EstadoCobro, EstadoPedido, Pedido } from "../types";
 
 type TabPedidos = "vigentes" | "cancelados" | "entregados";
 
-type PedidoConCliente = Pedido & {
-  clientes?: { nombre: string } | null;
-};
-
 type FiltrosPedidos = {
   tab: TabPedidos;
   busqueda: string;
@@ -46,7 +42,7 @@ export default function PedidosList({
   filtros,
   hasNext,
 }: {
-  pedidos: PedidoConCliente[];
+  pedidos: Pedido[];
   filtros: FiltrosPedidos;
   hasNext: boolean;
 }) {
@@ -81,8 +77,13 @@ export default function PedidosList({
     });
   };
 
-  const getNombreCliente = (p: PedidoConCliente) =>
-    p.cliente?.nombre ?? p.clientes?.nombre ?? "Cliente sin asignar";
+  const getNombreCliente = (p: Pedido) => {
+    if (!p.cliente) return p.cliente_nombre ?? "Cliente sin asignar";
+    return (
+      [p.cliente.nombre, p.cliente.apellido].filter(Boolean).join(" ") ||
+      "Cliente sin asignar"
+    );
+  };
 
   const paraPreparar = pedidos.filter(
     (p) => p.estado === "RECIBIDO" || p.estado === "EN_PREPARACION",
@@ -94,7 +95,7 @@ export default function PedidosList({
     Boolean(filtros.busqueda || filtros.clienteId || filtros.desde || filtros.hasta) ||
     Boolean(filtros.estadoCobro || filtros.requiereRevision);
 
-  const renderCard = (pedido: PedidoConCliente) => {
+  const renderCard = (pedido: Pedido) => {
     const cobrado = pedido.estado_cobro === "PAGADO";
     const canal =
       pedido.origen_tipo === "WHATSAPP"

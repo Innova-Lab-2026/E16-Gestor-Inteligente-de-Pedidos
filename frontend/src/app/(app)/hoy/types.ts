@@ -16,7 +16,15 @@ export type UltimoPedidoItem = {
   created_at?: string;
   modalidad_entrega?: "RETIRO" | "ENVIO" | string | null;
   requiere_revision?: boolean;
-  cliente?: { id?: string; nombre: string } | null;
+  cliente_nombre?: string | null;
+  cliente?: {
+    id?: string;
+    nombre: string;
+    apellido?: string | null;
+    telefono?: string | null;
+    direccion?: string | null;
+    email?: string | null;
+  } | null;
 };
 
 export type DashboardResumen = {

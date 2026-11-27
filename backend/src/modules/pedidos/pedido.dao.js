@@ -63,7 +63,7 @@ export class PedidoDao {
 
   async findById(emprendimientoId, id, { conItems = true } = {}) {
     const columnas = conItems
-      ? "*, items_pedido(*, productos(nombre), variantes(nombre)), clientes(nombre)"
+      ? "*, items_pedido(*, productos(nombre), variantes(nombre)), clientes(id, nombre, apellido, telefono, direccion, email)"
       : "*";
 
     const { data, error } = await this.#client()
@@ -120,7 +120,11 @@ export class PedidoDao {
     const buscarCliente = cliente || (busqueda && !esNumeroPedido);
     let query = this.#client()
       .from("pedidos")
-      .select(buscarCliente ? "*, clientes!inner(nombre)" : "*, clientes(nombre)")
+      .select(
+        buscarCliente
+          ? "*, clientes!inner(id, nombre, apellido, telefono, direccion, email)"
+          : "*, clientes(id, nombre, apellido, telefono, direccion, email)",
+      )
       .eq("emprendimiento_id", emprendimientoId);
 
     if (estado?.length) query = query.in("estado", estado);
@@ -149,7 +153,10 @@ export class PedidoDao {
       .range(offset, offset + limite - 1);
 
     if (error) throw error;
-    return data || [];
+    return (data || []).map(({ clientes, ...pedido }) => ({
+      ...pedido,
+      cliente: clientes ?? null,
+    }));
   }
 
   /**

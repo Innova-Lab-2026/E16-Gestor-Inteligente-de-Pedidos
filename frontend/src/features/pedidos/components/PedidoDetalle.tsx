@@ -48,6 +48,20 @@ export default function PedidoDetalle({ pedido }: { pedido: PedidoDetallado }) {
     pedido.hora_prevista_entrega?.slice(0, 5) ?? "",
   );
   const [mediosPago, setMediosPago] = useState(pedido.medios_pago ?? []);
+  const nombreCliente = pedido.cliente
+    ? [pedido.cliente.nombre, pedido.cliente.apellido]
+        .filter(Boolean)
+        .join(" ") || null
+    : pedido.cliente_nombre ?? null;
+  const telefonoCliente = pedido.cliente
+    ? pedido.cliente.telefono
+    : pedido.cliente_telefono;
+  const direccionCliente = pedido.cliente
+    ? pedido.cliente.direccion
+    : pedido.cliente_direccion;
+  const emailCliente = pedido.cliente
+    ? pedido.cliente.email
+    : pedido.cliente_email;
 
   const siguiente =
     pedido.estado === "LISTO" && pedido.modalidad_entrega === "ENVIO"
@@ -147,10 +161,32 @@ export default function PedidoDetalle({ pedido }: { pedido: PedidoDetallado }) {
           </button>
         </div>
 
-        {pedido.cliente && (
-          <p className="text-sm text-[#102a39]">
-            <strong>Cliente:</strong> {pedido.cliente.nombre}
-          </p>
+        {(nombreCliente ||
+          telefonoCliente ||
+          direccionCliente ||
+          emailCliente) && (
+          <div className="space-y-1 text-sm text-[#102a39]">
+            {nombreCliente && (
+              <p>
+                <strong>Cliente:</strong> {nombreCliente}
+              </p>
+            )}
+            {telefonoCliente && (
+              <p>
+                <strong>Teléfono:</strong> {telefonoCliente}
+              </p>
+            )}
+            {emailCliente && (
+              <p>
+                <strong>Email:</strong> {emailCliente}
+              </p>
+            )}
+            {direccionCliente && (
+              <p>
+                <strong>Dirección del cliente:</strong> {direccionCliente}
+              </p>
+            )}
+          </div>
         )}
 
         {pedido.modalidad_entrega && (

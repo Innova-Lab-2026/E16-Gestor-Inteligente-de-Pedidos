@@ -106,14 +106,19 @@ export class DashboardDao {
   async ultimosPedidos(emprendimientoId, limite = 10, rango = {}) {
     let query = this.#client()
       .from("pedidos")
-      .select("id, estado, estado_cobro, total, created_at, clientes(nombre)")
+      .select(
+        "id, estado, estado_cobro, total, created_at, clientes(id, nombre, apellido, telefono, direccion, email)",
+      )
       .eq("emprendimiento_id", emprendimientoId)
       .order("created_at", { ascending: false });
     query = aplicarFiltroPeriodo(query, rango);
 
     const { data, error } = await query.limit(limite);
     if (error) throw error;
-    return data || [];
+    return (data || []).map(({ clientes, ...pedido }) => ({
+      ...pedido,
+      cliente: clientes ?? null,
+    }));
   }
 }
 

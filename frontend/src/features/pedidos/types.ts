@@ -28,6 +28,10 @@ export type Pedido = {
   id: string;
   emprendimiento_id: string;
   cliente_id: string | null;
+  cliente_nombre?: string | null;
+  cliente_telefono?: string | null;
+  cliente_direccion?: string | null;
+  cliente_email?: string | null;
   origen_tipo: OrigenPedido;
   canal_id: string | null;
   estado: EstadoPedido;
@@ -44,7 +48,14 @@ export type Pedido = {
   requiere_revision: boolean;
   created_at: string;
   items?: ItemPedido[];
-  cliente?: { id: string; nombre: string } | null;
+  cliente?: {
+    id: string;
+    nombre: string;
+    apellido?: string | null;
+    telefono?: string | null;
+    direccion?: string | null;
+    email?: string | null;
+  } | null;
 };
 
 export type CreatePedidoManualInput = {

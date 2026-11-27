@@ -21,5 +21,7 @@ export async function editarClienteAction(
 
   revalidatePath("/clientes");
   revalidatePath(`/clientes/${id}`);
+  revalidatePath("/pedidos");
+  revalidatePath("/hoy");
   return { data: res.data };
 }

@@ -270,6 +270,14 @@ export default async function HoyPage() {
                 <div className="divide-y divide-[#e2e8f0]">
                   {resumen.ultimosPedidos.map((pedido) => {
                     const num = pedido.numero ?? pedido.numero_pedido;
+                    const nombreCliente = pedido.cliente
+                      ? [
+                          pedido.cliente.nombre,
+                          pedido.cliente.apellido,
+                        ]
+                          .filter(Boolean)
+                          .join(" ")
+                      : pedido.cliente_nombre;
                     return (
                       <Link
                         key={pedido.id}
@@ -279,9 +287,7 @@ export default async function HoyPage() {
                         <div className="space-y-0.5">
                           <p className="font-bold text-[#102a39]">
                             {num ? `Pedido #${num}` : "Pedido"}
-                            {pedido.cliente?.nombre
-                              ? ` · ${pedido.cliente.nombre}`
-                              : ""}
+                            {nombreCliente ? ` · ${nombreCliente}` : ""}
                           </p>
                           <div className="flex items-center gap-1.5">
                             <span className="rounded-full bg-[#7622ed]/10 px-2 py-0.5 text-[11px] font-bold text-[#7622ed]">
