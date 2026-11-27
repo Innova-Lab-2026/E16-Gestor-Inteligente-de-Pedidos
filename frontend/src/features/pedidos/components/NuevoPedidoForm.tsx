@@ -13,6 +13,28 @@ export type ProductoConVariantes = Producto & {
   variantes?: Variante[];
 };
 
+function getStockDisponible(
+  producto: ProductoConVariantes,
+  varianteId?: string,
+) {
+  if (!producto.tiene_variantes) {
+    return Math.max(0, producto.stock_disponible ?? 0);
+  }
+
+  const variante = producto.variantes?.find((item) => item.id === varianteId);
+  return Math.max(0, variante?.stock_disponible ?? 0);
+}
+
+function productoSinStock(producto: ProductoConVariantes) {
+  if (!producto.tiene_variantes) {
+    return getStockDisponible(producto) <= 0;
+  }
+
+  return !(producto.variantes ?? []).some(
+    (variante) => variante.stock_disponible > 0,
+  );
+}
+
 type ItemDraft = {
   producto_id: string;
   variante_id: string;
@@ -88,8 +110,29 @@ export default function NuevoPedidoForm({
 
     for (const it of itemsValidos) {
       const prod = getProducto(it.producto_id);
+      if (!prod) {
+        setError("Elegí un producto válido.");
+        return;
+      }
+
       if (prod?.tiene_variantes && !it.variante_id) {
         setError(`Elegí una variante para "${prod.nombre}".`);
+        return;
+      }
+
+      const stockDisponible = getStockDisponible(prod, it.variante_id);
+      if (stockDisponible <= 0) {
+        setError(`"${prod.nombre}" no tiene stock disponible.`);
+        return;
+      }
+      if (
+        !Number.isInteger(it.cantidad) ||
+        it.cantidad <= 0 ||
+        it.cantidad > stockDisponible
+      ) {
+        setError(
+          `Stock insuficiente para "${prod.nombre}". Disponible: ${stockDisponible}.`,
+        );
         return;
       }
     }
@@ -178,6 +221,9 @@ export default function NuevoPedidoForm({
 
         {items.map((item, idx) => {
           const prod = getProducto(item.producto_id);
+          const stockDisponible = prod
+            ? getStockDisponible(prod, item.variante_id)
+            : 0;
           const subtotal = prod ? Number(prod.precio) * item.cantidad : 0;
 
           return (
@@ -189,20 +235,34 @@ export default function NuevoPedidoForm({
                 <select
                   required
                   value={item.producto_id}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const productoId = e.target.value;
+                    const siguiente = getProducto(productoId);
+                    const stockProducto =
+                      siguiente && !siguiente.tiene_variantes
+                        ? getStockDisponible(siguiente)
+                        : 1;
                     updateItem(idx, {
-                      producto_id: e.target.value,
+                      producto_id: productoId,
                       variante_id: "",
-                    })
-                  }
+                      cantidad: Math.max(
+                        1,
+                        Math.min(item.cantidad, stockProducto),
+                      ),
+                    });
+                  }}
                   className="h-11 w-full rounded-full border-2 border-[#102a39] bg-white px-3 text-xs font-semibold focus:outline-none"
                 >
                   <option value="">Seleccionar producto...</option>
-                  {productos.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.nombre} (${Number(p.precio).toLocaleString("es-AR")})
-                    </option>
-                  ))}
+                  {productos.map((p) => {
+                    const sinStock = productoSinStock(p);
+                    return (
+                      <option key={p.id} value={p.id} disabled={sinStock}>
+                        {p.nombre} (${Number(p.precio).toLocaleString("es-AR")})
+                        {sinStock ? " · Sin stock" : ""}
+                      </option>
+                    );
+                  })}
                 </select>
 
                 {items.length > 1 && (
@@ -220,17 +280,31 @@ export default function NuevoPedidoForm({
                 <select
                   required
                   value={item.variante_id}
-                  onChange={(e) =>
-                    updateItem(idx, { variante_id: e.target.value })
-                  }
+                  onChange={(e) => {
+                    const varianteId = e.target.value;
+                    const stockVariante = getStockDisponible(
+                      prod,
+                      varianteId,
+                    );
+                    updateItem(idx, {
+                      variante_id: varianteId,
+                      cantidad: Math.max(
+                        1,
+                        Math.min(item.cantidad, Math.max(1, stockVariante)),
+                      ),
+                    });
+                  }}
                   className="h-10 w-full rounded-full border-2 border-[#102a39] bg-white px-3 text-xs focus:outline-none"
                 >
                   <option value="">Elegir variante...</option>
-                  {(prod.variantes ?? []).map((v: Variante) => (
-                    <option key={v.id} value={v.id}>
-                      {v.nombre} ({v.stock_disponible} disp.)
-                    </option>
-                  ))}
+                  {(prod.variantes ?? []).map((v: Variante) => {
+                    const sinStock = v.stock_disponible <= 0;
+                    return (
+                      <option key={v.id} value={v.id} disabled={sinStock}>
+                        {`${v.nombre} (${sinStock ? "Sin stock" : `${v.stock_disponible} disp.`})`}
+                      </option>
+                    );
+                  })}
                 </select>
               )}
 
@@ -239,13 +313,20 @@ export default function NuevoPedidoForm({
                   <span>Cantidad:</span>
                   <input
                     type="number"
-                    min="1"
+                    min={1}
+                    max={stockDisponible}
+                    step={1}
+                    disabled={!prod || stockDisponible <= 0}
                     value={item.cantidad}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      const cantidad = Math.max(
+                        1,
+                        Math.floor(Number(e.target.value) || 1),
+                      );
                       updateItem(idx, {
-                        cantidad: Math.max(1, Number(e.target.value) || 1),
-                      })
-                    }
+                        cantidad: Math.min(stockDisponible, cantidad),
+                      });
+                    }}
                     className="h-9 w-20 rounded-full border-2 border-[#102a39] bg-white text-center text-xs font-bold focus:outline-none"
                   />
                 </label>

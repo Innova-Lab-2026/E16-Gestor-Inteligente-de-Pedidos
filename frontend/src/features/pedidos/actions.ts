@@ -57,8 +57,9 @@ export async function cambiarEstadoPedidoAction(
   if (res.ok) {
     revalidatePath("/pedidos");
     revalidatePath(`/pedidos/${id}`);
-    if (estado === "CANCELADO") {
+    if (estado === "EN_PREPARACION" || estado === "CANCELADO") {
       revalidatePath("/catalogo");
+      revalidatePath("/pedidos/nuevo");
     }
   }
 
