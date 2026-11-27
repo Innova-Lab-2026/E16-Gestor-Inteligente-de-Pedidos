@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { requireSession } from "@/features/auth/guards";
-import { getProductos } from "@/app/(app)/catalogo/api";
 import { getDashboardResumen } from "@/app/(app)/hoy/api";
 import type { EstadoPedido } from "@/app/(app)/hoy/types";
 
@@ -59,47 +58,17 @@ export default async function DashboardPage() {
 
   const { fechaDespacho, fechaLegible } = getRangoHoyArgentina();
 
-  const [resumenRes, productosRes] = await Promise.all([
-    getDashboardResumen({ fechaDespacho }),
-    getProductos(false),
-  ]);
+  const resumenRes = await getDashboardResumen({ fechaDespacho });
 
   const resumen = resumenRes.data;
-  const productos = productosRes.data ?? [];
-
-  const alertasStock: Array<{
-    key: string;
-    productoId: string;
-    nombre: string;
-    stock: number;
-  }> = [];
-
-  for (const prod of productos) {
-    if (!prod.activo) continue;
-    if (prod.tiene_variantes) {
-      for (const v of prod.variantes ?? []) {
-        if (!v.activo) continue;
-        if (v.stock_disponible <= (v.stock_minimo ?? 0)) {
-          alertasStock.push({
-            key: `${prod.id}-${v.id}`,
-            productoId: prod.id,
-            nombre: `${prod.nombre} (${v.nombre})`,
-            stock: v.stock_disponible,
-          });
-        }
-      }
-    } else {
-      const stock = prod.stock_disponible ?? 0;
-      if (stock <= (prod.stock_minimo ?? 0)) {
-        alertasStock.push({
-          key: prod.id,
-          productoId: prod.id,
-          nombre: prod.nombre,
-          stock,
-        });
-      }
-    }
-  }
+  const alertasStock = (resumen?.productosBajoStockDetalle ?? []).map(
+    (alerta) => ({
+      key: `${alerta.productoId}-${alerta.varianteId ?? "producto"}`,
+      productoId: alerta.productoId,
+      nombre: alerta.nombre,
+      stock: alerta.stockDisponible,
+    }),
+  );
 
   return (
     <section

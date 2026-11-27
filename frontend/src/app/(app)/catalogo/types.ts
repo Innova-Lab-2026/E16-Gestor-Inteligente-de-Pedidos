@@ -3,7 +3,7 @@ export type Variante = {
   producto_id: string;
   nombre: string;
   stock_disponible: number;
-  stock_minimo: number;
+  stock_minimo: number | null;
   activo: boolean;
   atributos: Record<string, string>;
 };
@@ -17,7 +17,7 @@ export type Producto = {
   activo: boolean;
   tiene_variantes: boolean;
   stock_disponible: number | null;
-  stock_minimo: number;
+  stock_minimo: number | null;
   foto_url: string | null;
   marca: string | null;
   modelo: string | null;

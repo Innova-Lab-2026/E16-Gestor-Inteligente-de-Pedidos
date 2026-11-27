@@ -42,4 +42,10 @@ export type DashboardResumen = {
   }>;
   unidadesVendidas: number;
   productosBajoStock: number;
+  productosBajoStockDetalle: Array<{
+    productoId: string;
+    varianteId: string | null;
+    nombre: string;
+    stockDisponible: number;
+  }>;
 };

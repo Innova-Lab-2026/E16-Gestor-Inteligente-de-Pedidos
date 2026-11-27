@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { getProductos } from "@/app/(app)/catalogo/api";
 import { getDashboardResumen } from "./api";
 import type { EstadoPedido } from "./types";
 import HoyEmptyState from "./components/HoyEmptyState";
@@ -55,48 +54,17 @@ function getRangoHoyArgentina() {
 export default async function HoyPage() {
   const { fechaDespacho, fechaLegible } = getRangoHoyArgentina();
 
-  const [resumenRes, productosRes] = await Promise.all([
-    getDashboardResumen({ fechaDespacho }),
-    getProductos(false),
-  ]);
+  const resumenRes = await getDashboardResumen({ fechaDespacho });
 
   const resumen = resumenRes.data;
-  const productos = productosRes.data ?? [];
-
-  // Alertas de stock bajo o sin stock en productos activos
-  const alertasStock: Array<{
-    key: string;
-    productoId: string;
-    nombre: string;
-    stock: number;
-  }> = [];
-
-  for (const prod of productos) {
-    if (!prod.activo) continue;
-    if (prod.tiene_variantes) {
-      for (const v of prod.variantes ?? []) {
-        if (!v.activo) continue;
-        if (v.stock_disponible <= (v.stock_minimo ?? 0)) {
-          alertasStock.push({
-            key: `${prod.id}-${v.id}`,
-            productoId: prod.id,
-            nombre: `${prod.nombre} (${v.nombre})`,
-            stock: v.stock_disponible,
-          });
-        }
-      }
-    } else {
-      const stock = prod.stock_disponible ?? 0;
-      if (stock <= (prod.stock_minimo ?? 0)) {
-        alertasStock.push({
-          key: prod.id,
-          productoId: prod.id,
-          nombre: prod.nombre,
-          stock,
-        });
-      }
-    }
-  }
+  const alertasStock = (resumen?.productosBajoStockDetalle ?? []).map(
+    (alerta) => ({
+      key: `${alerta.productoId}-${alerta.varianteId ?? "producto"}`,
+      productoId: alerta.productoId,
+      nombre: alerta.nombre,
+      stock: alerta.stockDisponible,
+    }),
+  );
 
   return (
     <section className="space-y-4 pt-2 pb-24">

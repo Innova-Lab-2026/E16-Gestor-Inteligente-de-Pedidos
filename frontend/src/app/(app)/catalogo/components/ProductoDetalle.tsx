@@ -297,8 +297,15 @@ export default function ProductoDetalle({ producto }: { producto: Producto }) {
                   <p className="font-semibold text-[#102a39]">{v.nombre}</p>
                   <p className="text-xs text-[#586574]">
                     Stock: <strong>{v.stock_disponible} u.</strong> · Mín:{" "}
-                    {v.stock_minimo}
+                    {v.stock_minimo ?? producto.stock_minimo ?? 0}
                   </p>
+                  {v.activo &&
+                    v.stock_disponible <=
+                      (v.stock_minimo ?? producto.stock_minimo ?? 0) && (
+                      <span className="mt-1 inline-flex rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800">
+                        {v.stock_disponible <= 0 ? "Sin stock" : "Stock bajo"}
+                      </span>
+                    )}
                 </div>
                 <button
                   type="button"

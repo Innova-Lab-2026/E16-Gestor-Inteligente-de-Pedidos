@@ -65,22 +65,39 @@ export class DashboardService {
       }
     }
 
-    let productosBajoStock = 0;
+    const productosBajoStockDetalle = [];
     for (const producto of productos) {
       if (!producto.activo) continue;
 
       if (producto.tiene_variantes) {
-        productosBajoStock += (producto.variantes ?? []).filter(
-          (variante) =>
-            variante.activo &&
-            (variante.stock_disponible ?? 0) <= (variante.stock_minimo ?? 0),
-        ).length;
+        for (const variante of producto.variantes ?? []) {
+          const stockMinimo = variante.stock_minimo ?? producto.stock_minimo ?? 0;
+          if (
+            !variante.activo ||
+            (variante.stock_disponible ?? 0) > stockMinimo
+          ) {
+            continue;
+          }
+
+          productosBajoStockDetalle.push({
+            productoId: producto.id,
+            varianteId: variante.id,
+            nombre: `${producto.nombre ?? "Producto"} — ${variante.nombre ?? "Variante"}`,
+            stockDisponible: variante.stock_disponible ?? 0,
+          });
+        }
       } else if (
         (producto.stock_disponible ?? 0) <= (producto.stock_minimo ?? 0)
       ) {
-        productosBajoStock += 1;
+        productosBajoStockDetalle.push({
+          productoId: producto.id,
+          varianteId: null,
+          nombre: producto.nombre ?? "Producto",
+          stockDisponible: producto.stock_disponible ?? 0,
+        });
       }
     }
+    const productosBajoStock = productosBajoStockDetalle.length;
 
     const productosMasVendidos = [...ventasPorProducto.values()].sort(
       (a, b) =>
@@ -101,6 +118,7 @@ export class DashboardService {
       productosMasVendidos,
       unidadesVendidas,
       productosBajoStock,
+      productosBajoStockDetalle,
     };
   }
 }

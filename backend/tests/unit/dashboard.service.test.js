@@ -110,28 +110,62 @@ describe("DashboardService", () => {
           {
             activo: true,
             tiene_variantes: false,
+            id: "simple-bajo",
+            nombre: "Jabón",
             stock_disponible: 2,
             stock_minimo: 2,
           },
           {
             activo: true,
             tiene_variantes: false,
+            id: "simple-ok",
+            nombre: "Velas",
             stock_disponible: 5,
             stock_minimo: 2,
           },
           {
             activo: false,
             tiene_variantes: false,
+            id: "simple-inactivo",
+            nombre: "Crema",
             stock_disponible: 0,
             stock_minimo: 1,
           },
           {
             activo: true,
             tiene_variantes: true,
+            id: "producto-variantes",
+            nombre: "Remera",
+            stock_minimo: 2,
             variantes: [
-              { activo: true, stock_disponible: 1, stock_minimo: 2 },
-              { activo: true, stock_disponible: 0, stock_minimo: 0 },
-              { activo: false, stock_disponible: 0, stock_minimo: 1 },
+              {
+                id: "variante-s",
+                nombre: "Talle S",
+                activo: true,
+                stock_disponible: 1,
+                stock_minimo: null,
+              },
+              {
+                id: "variante-m",
+                nombre: "Talle M",
+                activo: true,
+                stock_disponible: 10,
+                stock_minimo: null,
+              },
+              {
+                id: "variante-xs",
+                nombre: "Talle XS",
+                activo: true,
+                stock_disponible: 0,
+                stock_minimo: 0,
+              },
+              {
+                id: "variante-inactiva",
+                nombre: "Talle XL",
+                activo: false,
+                stock_disponible: 0,
+                stock_minimo: 1,
+              },
             ],
           },
         ];
@@ -160,5 +194,25 @@ describe("DashboardService", () => {
       },
     ]);
     assert.equal(result.productosBajoStock, 3);
+    assert.deepEqual(result.productosBajoStockDetalle, [
+      {
+        productoId: "simple-bajo",
+        varianteId: null,
+        nombre: "Jabón",
+        stockDisponible: 2,
+      },
+      {
+        productoId: "producto-variantes",
+        varianteId: "variante-s",
+        nombre: "Remera — Talle S",
+        stockDisponible: 1,
+      },
+      {
+        productoId: "producto-variantes",
+        varianteId: "variante-xs",
+        nombre: "Remera — Talle XS",
+        stockDisponible: 0,
+      },
+    ]);
   });
 });

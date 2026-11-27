@@ -79,7 +79,7 @@ export class DashboardDao {
     const { data, error } = await this.#client()
       .from("productos")
       .select(
-        "activo, tiene_variantes, stock_disponible, stock_minimo, variantes(activo, stock_disponible, stock_minimo)",
+        "id, nombre, activo, tiene_variantes, stock_disponible, stock_minimo, variantes(id, nombre, activo, stock_disponible, stock_minimo)",
       )
       .eq("emprendimiento_id", emprendimientoId)
       .eq("activo", true);

@@ -41,16 +41,18 @@ export default function CatalogoList({
     return p.stock_disponible ?? 0;
   };
 
+  const getVariantesEnStockBajo = (p: Producto) => {
+    if (!tieneVariantes(p)) return [];
+    return getVariantesActivas(p).filter(
+      (variante) =>
+        variante.stock_disponible <=
+        (variante.stock_minimo ?? p.stock_minimo ?? 0),
+    );
+  };
+
   const tieneStockBajo = (p: Producto, stock: number) => {
-    if (stock <= 0) return false;
-    if (tieneVariantes(p)) {
-      return getVariantesActivas(p).some(
-        (variante) =>
-          (variante.stock_disponible ?? 0) <=
-          (variante.stock_minimo ?? 0),
-      );
-    }
-    return stock <= (p.stock_minimo ?? 0);
+    if (tieneVariantes(p)) return getVariantesEnStockBajo(p).length > 0;
+    return stock > 0 && stock <= (p.stock_minimo ?? 0);
   };
 
   const filtrados = productos.filter((p) => {
@@ -132,6 +134,7 @@ export default function CatalogoList({
           const stock = getStockTotal(producto);
           const cantidadVariantes = getCantidadVariantes(producto);
           const productoTieneVariantes = tieneVariantes(producto);
+          const variantesStockBajo = getVariantesEnStockBajo(producto);
           const sinStock = producto.activo && stock <= 0;
           const stockBajo =
             producto.activo && tieneStockBajo(producto, stock);
@@ -202,6 +205,15 @@ export default function CatalogoList({
                       stock bajo
                     </span>
                   )}
+                  {stockBajo &&
+                    variantesStockBajo.map((variante) => (
+                      <span
+                        key={variante.id}
+                        className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800"
+                      >
+                        {variante.nombre}: {variante.stock_disponible} u.
+                      </span>
+                    ))}
                 </div>
               </div>
 

@@ -16,6 +16,12 @@ type DashboardResumen = {
   pendienteCobro: number;
   pedidosRequiriendoRevision: number;
   productosBajoStock: number;
+  productosBajoStockDetalle: Array<{
+    productoId: string;
+    varianteId: string | null;
+    nombre: string;
+    stockDisponible: number;
+  }>;
   productosMasVendidos: Array<{
     productoId: string;
     nombre: string;
@@ -257,12 +263,29 @@ export default async function ReportesPage({
                       : "text-[#586574]"
                   }`}
                 >
-                  Productos con stock bajo
+                  Productos y variantes con stock bajo
                 </p>
                 {resumen.productosBajoStock === 0 && (
                   <p className="mt-1 text-[11px] font-semibold text-[#586574]">
                     Todo en orden
                   </p>
+                )}
+                {resumen.productosBajoStockDetalle.length > 0 && (
+                  <ul className="mt-2 space-y-1">
+                    {resumen.productosBajoStockDetalle.map((item) => (
+                      <li
+                        key={`${item.productoId}-${item.varianteId ?? "producto"}`}
+                        className="flex items-center justify-between gap-3 text-xs"
+                      >
+                        <span className="min-w-0 truncate text-[#586574]">
+                          {item.nombre}
+                        </span>
+                        <span className="shrink-0 font-semibold text-orange-800">
+                          {item.stockDisponible} u.
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </div>
               <div className="flex shrink-0 items-center gap-2">
