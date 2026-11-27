@@ -383,6 +383,64 @@ describe("PedidoService - estados y cancelacion", () => {
     assert.equal(stockDao.stock[PROD].producto, 8);
   });
 
+  test("mantiene el stock reservado al pasar de LISTO a ENTREGADO", async () => {
+    const { service, pedido, stockDao, movimientoDao } =
+      await crearPedidoRecibido();
+
+    await service.changeStatus({
+      emprendimientoId: EMP,
+      id: pedido.id,
+      estado: ORDER_STATUS.EN_PREPARACION,
+    });
+    await service.changeStatus({
+      emprendimientoId: EMP,
+      id: pedido.id,
+      estado: ORDER_STATUS.LISTO,
+    });
+    const entregado = await service.changeStatus({
+      emprendimientoId: EMP,
+      id: pedido.id,
+      estado: ORDER_STATUS.ENTREGADO,
+    });
+
+    assert.equal(entregado.estado, ORDER_STATUS.ENTREGADO);
+    assert.equal(stockDao.stock[PROD].producto, 8);
+    assert.equal(
+      movimientoDao.movimientos.filter((m) => m.tipo === "RESERVA_PEDIDO")
+        .length,
+      1,
+    );
+  });
+
+  test("cancelar desde LISTO restituye el stock reservado", async () => {
+    const { service, pedido, stockDao, movimientoDao } =
+      await crearPedidoRecibido();
+
+    await service.changeStatus({
+      emprendimientoId: EMP,
+      id: pedido.id,
+      estado: ORDER_STATUS.EN_PREPARACION,
+    });
+    await service.changeStatus({
+      emprendimientoId: EMP,
+      id: pedido.id,
+      estado: ORDER_STATUS.LISTO,
+    });
+    await service.changeStatus({
+      emprendimientoId: EMP,
+      id: pedido.id,
+      estado: ORDER_STATUS.CANCELADO,
+    });
+
+    assert.equal(stockDao.stock[PROD].producto, 10);
+    assert.equal(
+      movimientoDao.movimientos.filter(
+        (m) => m.tipo === "RESTITUCION_CANCELACION",
+      ).length,
+      1,
+    );
+  });
+
   test("cancelar desde RECIBIDO no restituye stock ni crea movimiento", async () => {
     const { service, pedido, stockDao, movimientoDao } =
       await crearPedidoRecibido();

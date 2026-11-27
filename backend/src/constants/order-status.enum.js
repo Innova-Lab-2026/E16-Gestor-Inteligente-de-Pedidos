@@ -9,8 +9,8 @@ export const ORDER_STATUS = Object.freeze({
 });
 
 /**
- * Transiciones válidas. Cancelar desde cualquier estado no terminal
- * genera restitución de stock; no se puede volver desde un estado terminal.
+ * Transiciones válidas. Al cancelar, la RPC restituye las reservas existentes;
+ * no se puede volver desde un estado terminal.
  */
 export const ORDER_STATUS_TRANSITIONS = Object.freeze({
   [ORDER_STATUS.RECIBIDO]: [

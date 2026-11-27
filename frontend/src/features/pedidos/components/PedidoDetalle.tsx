@@ -12,6 +12,15 @@ import type { EstadoPedido, ModalidadEntrega, Pedido } from "../types";
 
 const MEDIOS_PAGO = ["Transferencia", "Efectivo", "Mercado Pago", "Tarjeta"];
 
+const ESTADO_LABEL: Record<EstadoPedido, string> = {
+  RECIBIDO: "Recibido",
+  EN_PREPARACION: "En preparación",
+  LISTO: "Listo",
+  EN_VIAJE: "En viaje",
+  ENTREGADO: "Entregado",
+  CANCELADO: "Cancelado",
+};
+
 type PedidoDetallado = Pedido & {
   items?: Array<{
     id: string;
@@ -63,10 +72,7 @@ export default function PedidoDetalle({ pedido }: { pedido: PedidoDetallado }) {
     ? pedido.cliente.email
     : pedido.cliente_email;
 
-  const siguiente =
-    pedido.estado === "LISTO" && pedido.modalidad_entrega === "ENVIO"
-      ? { estado: "EN_VIAJE" as EstadoPedido, label: "Despachar (En viaje)" }
-      : SIGUIENTE_ESTADO[pedido.estado];
+  const siguiente = SIGUIENTE_ESTADO[pedido.estado];
 
   const puedeCancelar =
     pedido.estado !== "ENTREGADO" && pedido.estado !== "CANCELADO";
@@ -137,7 +143,7 @@ export default function PedidoDetalle({ pedido }: { pedido: PedidoDetallado }) {
             Estado actual
           </span>
           <span className="rounded-full bg-[#7622ed]/10 px-3 py-1 text-xs font-bold text-[#7622ed]">
-            {pedido.estado}
+            {ESTADO_LABEL[pedido.estado]}
           </span>
         </div>
 
@@ -402,7 +408,9 @@ export default function PedidoDetalle({ pedido }: { pedido: PedidoDetallado }) {
             onClick={() => handleCambiarEstado("CANCELADO")}
             className="h-11 w-full rounded-full border-2 border-red-600 text-xs font-bold text-red-600 transition hover:bg-red-50 disabled:opacity-50"
           >
-            Cancelar pedido y devolver stock
+            {pedido.estado === "RECIBIDO"
+              ? "Cancelar pedido"
+              : "Cancelar pedido y devolver stock"}
           </button>
         )}
       </div>
