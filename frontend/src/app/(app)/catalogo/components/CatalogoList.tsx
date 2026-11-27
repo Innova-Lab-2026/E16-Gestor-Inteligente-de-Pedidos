@@ -25,14 +25,32 @@ export default function CatalogoList({
     setFiltro((prev) => (prev === valor ? null : valor));
   };
 
-  const getCantidadVariantes = (p: Producto) => p.variantes?.length ?? 0;
-  const tieneVariantes = (p: Producto) => getCantidadVariantes(p) > 0;
+  const getVariantesActivas = (p: Producto) =>
+    (p.variantes ?? []).filter((variante) => variante.activo);
+  const getCantidadVariantes = (p: Producto) =>
+    p.tiene_variantes ? getVariantesActivas(p).length : 0;
+  const tieneVariantes = (p: Producto) => p.tiene_variantes;
 
   const getStockTotal = (p: Producto) => {
-    if (tieneVariantes(p) && p.variantes) {
-      return p.variantes.reduce((acc, v) => acc + (v.stock_disponible ?? 0), 0);
+    if (tieneVariantes(p)) {
+      return getVariantesActivas(p).reduce(
+        (acc, variante) => acc + (variante.stock_disponible ?? 0),
+        0,
+      );
     }
     return p.stock_disponible ?? 0;
+  };
+
+  const tieneStockBajo = (p: Producto, stock: number) => {
+    if (stock <= 0) return false;
+    if (tieneVariantes(p)) {
+      return getVariantesActivas(p).some(
+        (variante) =>
+          (variante.stock_disponible ?? 0) <=
+          (variante.stock_minimo ?? 0),
+      );
+    }
+    return stock <= (p.stock_minimo ?? 0);
   };
 
   const filtrados = productos.filter((p) => {
@@ -42,10 +60,8 @@ export default function CatalogoList({
     const stock = getStockTotal(p);
     if (filtro === "inactivos") return !p.activo;
     if (!p.activo) return false;
-    if (filtro === "sin_stock") return !tieneVariantes(p) && stock === 0;
-    if (filtro === "stock_bajo") {
-      return !tieneVariantes(p) && stock > 0 && stock <= (p.stock_minimo ?? 0);
-    }
+    if (filtro === "sin_stock") return stock <= 0;
+    if (filtro === "stock_bajo") return tieneStockBajo(p, stock);
     return true;
   });
 
@@ -115,14 +131,10 @@ export default function CatalogoList({
         {filtrados.map((producto) => {
           const stock = getStockTotal(producto);
           const cantidadVariantes = getCantidadVariantes(producto);
-          const productoTieneVariantes = cantidadVariantes > 0;
-          const sinStock =
-            producto.activo && !productoTieneVariantes && stock === 0;
+          const productoTieneVariantes = tieneVariantes(producto);
+          const sinStock = producto.activo && stock <= 0;
           const stockBajo =
-            producto.activo &&
-            !productoTieneVariantes &&
-            stock > 0 &&
-            stock <= (producto.stock_minimo ?? 0);
+            producto.activo && tieneStockBajo(producto, stock);
 
           return (
             <Link
