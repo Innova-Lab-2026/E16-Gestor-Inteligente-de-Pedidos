@@ -13,10 +13,20 @@
   inset: 0 0 auto;
   height: 320px;
   content: "";
-  background-image: url("/images/cuadricula-bg.png");
+  background-image:
+    linear-gradient(
+      to right,
+      rgba(130, 248, 231, 0.298) 4px,
+      transparent 4px
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(130, 248, 231, 0.298) 4px,
+      transparent 4px
+    );
   background-position: top left;
   background-repeat: repeat;
-  background-size: 355px 793px;
+  background-size: 42px 42px;
 }
 
 .logo {
