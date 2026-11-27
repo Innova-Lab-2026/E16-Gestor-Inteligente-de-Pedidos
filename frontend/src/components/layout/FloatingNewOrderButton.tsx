@@ -8,10 +8,7 @@ export default function FloatingNewOrderButton() {
   const pathname = usePathname();
   const isCreatePage = /(?:^|\/)(?:nuevo|crear)(?:\/|$)/.test(pathname);
 
-  if (
-    pathname.startsWith("/configuracion") ||
-    isCreatePage
-  ) {
+  if (pathname.startsWith("/configuracion") || isCreatePage) {
     return null;
   }
 
@@ -22,7 +19,7 @@ export default function FloatingNewOrderButton() {
       : { href: "/pedidos/nuevo", label: "Nuevo pedido" };
 
   return (
-    <div className="pointer-events-none fixed bottom-20 left-1/2 z-20 flex w-full max-w-[430px] -translate-x-1/2 justify-end px-5">
+    <div className="pointer-events-none fixed bottom-20 left-1/2 z-20 flex w-full max-w-[430px] -translate-x-1/2 justify-end px-5 md:max-w-[720px]">
       <Link
         href={action.href}
         prefetch={false}

@@ -30,13 +30,14 @@ export default async function AppLayout({
       initialActiveId={initialActiveId}
     >
       <div className="min-h-dvh bg-[#eef2f6]">
-        <div className="mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-white text-[#102a39] shadow-xl">
-          <header className="app-grid-header flex w-full items-center justify-between px-5 pt-5 pb-4">
+        <div className="mx-auto flex min-h-dvh w-full max-w-[430px] flex-col overflow-x-clip bg-white text-[#102a39] shadow-xl md:max-w-[720px]">
+          <header className="app-grid-header flex h-[76px] w-full items-center justify-between px-5">
             <Link
               href="/dashboard"
               prefetch={false}
-              className="font-[family-name:var(--font-bungee-shade)] text-4xl text-[#7622ed]">
-                E
+              className="font-[family-name:var(--font-bungee-shade)] text-4xl text-[#7622ed]"
+            >
+              E
             </Link>
             <div className="flex items-center gap-2">
               <EmprendimientoSelector />

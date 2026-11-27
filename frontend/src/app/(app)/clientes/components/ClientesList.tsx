@@ -9,6 +9,15 @@ import CondicionBadge, {
 } from "@/features/clientes/CondicionBadge";
 import type { Cliente, CondicionCliente } from "../types";
 
+function normalizarTextoBusqueda(texto: string) {
+  return texto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
 export default function ClientesList({ clientes }: { clientes: Cliente[] }) {
   const router = useRouter();
   const [busqueda, setBusqueda] = useState("");
@@ -23,18 +32,19 @@ export default function ClientesList({ clientes }: { clientes: Cliente[] }) {
     if (filtroCondicion && c.condicion !== filtroCondicion) return false;
 
     if (busqueda.trim()) {
-      const q = busqueda.toLowerCase();
-      const texto = [
-        c.nombre,
-        c.apellido,
-        c.telefono,
-        c.email,
-        c.numero_documento,
-        c.direccion,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
+      const q = normalizarTextoBusqueda(busqueda);
+      const texto = normalizarTextoBusqueda(
+        [
+          c.nombre,
+          c.apellido,
+          c.telefono,
+          c.email,
+          c.numero_documento,
+          c.direccion,
+        ]
+          .filter(Boolean)
+          .join(" "),
+      );
       if (!texto.includes(q)) return false;
     }
 

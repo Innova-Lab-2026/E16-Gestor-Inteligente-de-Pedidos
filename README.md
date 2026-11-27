@@ -90,4 +90,5 @@ Un panel operativo que centraliza pedidos (manuales y provenientes de WhatsApp),
 
 ## Licencia
 
+Proyecto desarrollado con fines académicos en el marco de Innova Lab 2026
 Ver 0.0.0.1
