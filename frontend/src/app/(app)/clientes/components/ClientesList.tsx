@@ -14,12 +14,16 @@ const BADGE_CONDICION: Record<
     label: "OK",
     className: "bg-emerald-100 text-emerald-800",
   },
-  SUSPENDIDO: {
-    label: "Suspendido",
+  DEUDOR: {
+    label: "Deudor",
     className: "bg-amber-100 text-amber-800",
   },
-  BLOQUEADO: {
-    label: "Bloqueado",
+  IRRESPETUOSO: {
+    label: "Irrespetuoso",
+    className: "bg-orange-100 text-orange-800",
+  },
+  CANCELADOR: {
+    label: "Cancelador",
     className: "bg-red-100 text-red-700",
   },
 };
@@ -95,7 +99,7 @@ export default function ClientesList({ clientes }: { clientes: Cliente[] }) {
         <span className="text-xs font-semibold text-[#102a39]">
           Filtrar por:
         </span>
-        {(["OK", "SUSPENDIDO", "BLOQUEADO"] as const).map((cond) => {
+        {(["OK", "DEUDOR", "IRRESPETUOSO", "CANCELADOR"] as const).map((cond) => {
           const activo = filtroCondicion === cond;
           const label = BADGE_CONDICION[cond].label;
           return (

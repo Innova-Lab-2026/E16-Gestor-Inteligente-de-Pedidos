@@ -1,4 +1,8 @@
-export type CondicionCliente = "OK" | "SUSPENDIDO" | "BLOQUEADO";
+export type CondicionCliente =
+  | "OK"
+  | "DEUDOR"
+  | "IRRESPETUOSO"
+  | "CANCELADOR";
 
 export type Cliente = {
   id: string;

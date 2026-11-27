@@ -1,18 +1,30 @@
 import { z } from "zod";
 
+const optionalField = (schema) =>
+  z.preprocess(
+    (value) =>
+      typeof value === "string" && value.trim() === "" ? undefined : value,
+    schema.optional(),
+  );
+
+const condicionSchema = z.preprocess(
+  (value) => (typeof value === "string" ? value.trim().toUpperCase() : value),
+  z.enum(["OK", "DEUDOR", "IRRESPETUOSO", "CANCELADOR"]).default("OK"),
+);
+
 export const createClienteSchema = z.object({
   nombre: z.string().trim().min(1, "nombre es obligatorio").max(150),
-  apellido: z.string().trim().max(150).optional(),
-  telefono: z.string().trim().min(5).max(50).optional(),
-  direccion: z.string().trim().max(2000).optional(),
-  observaciones: z.string().trim().max(2000).optional(),
+  apellido: optionalField(z.string().trim().max(150)),
+  telefono: optionalField(z.string().trim().min(5).max(50)),
+  direccion: optionalField(z.string().trim().max(2000)),
+  observaciones: optionalField(z.string().trim().max(2000)),
   // Nuevos campos del catálogo (migración 009)
-  tipo_documento: z.string().trim().max(50).optional(),
-  numero_documento: z.string().trim().max(50).optional(),
-  email: z.string().email().optional(),
+  tipo_documento: optionalField(z.string().trim().max(50)),
+  numero_documento: optionalField(z.string().trim().max(50)),
+  email: optionalField(z.string().trim().email()),
   /** URL de foto de perfil (migración 009). */
-  foto_url: z.string().url().optional().nullable(),
-  condicion: z.enum(["OK", "SUSPENDIDO", "BLOQUEADO"]).default("OK"),
+  foto_url: optionalField(z.string().url().nullable()),
+  condicion: condicionSchema,
 });
 
 export const updateClienteSchema = createClienteSchema.partial();

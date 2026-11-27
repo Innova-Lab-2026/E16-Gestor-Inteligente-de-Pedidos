@@ -12,6 +12,10 @@ import {
 } from "../../src/modules/pedidos/dtos/change-order-status.dto.js";
 import { createProductoSchema } from "../../src/modules/productos/dtos/create-producto.dto.js";
 import { createCanalSchema } from "../../src/modules/canales/dtos/create-canal.dto.js";
+import {
+  createClienteSchema,
+  updateClienteSchema,
+} from "../../src/modules/clientes/dtos/create-cliente.dto.js";
 import { loginSchema } from "../../src/modules/auth/dtos/login.dto.js";
 
 const UUID = "22222222-2222-2222-2222-222222222222";
@@ -151,6 +155,63 @@ describe("DTO de producto", () => {
       () => createProductoSchema.parse({ nombre: "a".repeat(200), precio: 10 }),
       /at most 150/
     );
+  });
+});
+
+describe("DTO de cliente", () => {
+  test("acepta las condiciones definidas por el enum de la base de datos", () => {
+    for (const condicion of ["OK", "DEUDOR", "IRRESPETUOSO", "CANCELADOR"]) {
+      assert.equal(
+        createClienteSchema.parse({ nombre: "Ana", condicion }).condicion,
+        condicion
+      );
+      assert.equal(updateClienteSchema.parse({ condicion }).condicion, condicion);
+    }
+  });
+
+  test("normaliza condiciones en minúsculas al valor uppercase de la base", () => {
+    assert.equal(
+      createClienteSchema.parse({ nombre: "Ana", condicion: "deudor" }).condicion,
+      "DEUDOR"
+    );
+    assert.equal(
+      updateClienteSchema.parse({ condicion: "irrespetuoso" }).condicion,
+      "IRRESPETUOSO"
+    );
+  });
+
+  test("rechaza condiciones que no existen en el enum de la base de datos", () => {
+    assert.throws(
+      () => createClienteSchema.parse({ nombre: "Ana", condicion: "BLOQUEADO" })
+    );
+    assert.throws(() => updateClienteSchema.parse({ condicion: "BLOQUEADO" }));
+  });
+
+  test("acepta campos opcionales vacíos al crear y editar", () => {
+    const camposVacios = {
+      apellido: "",
+      telefono: "",
+      direccion: "",
+      observaciones: "",
+      tipo_documento: "",
+      numero_documento: "",
+      email: "",
+      foto_url: "",
+    };
+
+    for (const schema of [createClienteSchema, updateClienteSchema]) {
+      const resultado = schema.parse({ nombre: "Ana", ...camposVacios });
+      for (const campo of Object.keys(camposVacios)) {
+        assert.equal(resultado[campo], undefined);
+      }
+    }
+  });
+
+  test("sigue rechazando valores opcionales no vacíos inválidos", () => {
+    assert.throws(
+      () => createClienteSchema.parse({ nombre: "Ana", email: "no-es-email" })
+    );
+    assert.throws(() => updateClienteSchema.parse({ telefono: "123" }));
   });
 });
 

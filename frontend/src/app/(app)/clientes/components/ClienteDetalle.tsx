@@ -187,8 +187,9 @@ export default function ClienteDetalle({ cliente }: { cliente: Cliente }) {
             className="h-11 w-full rounded-full border-2 border-[#102a39] bg-white px-4 text-sm focus:outline-none"
           >
             <option value="OK">OK (Habilitado)</option>
-            <option value="SUSPENDIDO">Suspendido</option>
-            <option value="BLOQUEADO">Bloqueado</option>
+            <option value="DEUDOR">Deudor</option>
+            <option value="IRRESPETUOSO">Irrespetuoso</option>
+            <option value="CANCELADOR">Cancelador</option>
           </select>
         </label>
 
