@@ -27,19 +27,33 @@ export default function BottomNav() {
             key={item.href}
             href={item.href}
             prefetch={false}
-            className={`flex flex-col items-center gap-1 rounded-full px-3 py-1 text-[10px] font-semibold transition ${
-              active
-                ? "bg-[#7622ed]/10 text-[#7622ed]"
-                : "text-[#586574] opacity-75 hover:text-[#102a39] hover:opacity-100"
-            }`}
+            className="flex flex-col items-center gap-1 text-[10px] font-semibold transition"
           >
-            <img
-              src={item.icon}
-              alt=""
-              aria-hidden="true"
-              className="h-5 w-5 object-contain"
-            />
-            <span>{item.label}</span>
+            <div
+              className={`flex h-9 w-9 items-center justify-center rounded-full transition ${
+                active ? "bg-[#7622ed]/15" : "bg-transparent"
+              }`}
+            >
+              <span
+                aria-hidden="true"
+                className={`h-5 w-5 transition ${
+                  active ? "bg-[#7622ed]" : "bg-[#586574]"
+                }`}
+                style={{
+                  WebkitMaskImage: `url(${item.icon})`,
+                  maskImage: `url(${item.icon})`,
+                  WebkitMaskRepeat: "no-repeat",
+                  maskRepeat: "no-repeat",
+                  WebkitMaskPosition: "center",
+                  maskPosition: "center",
+                  WebkitMaskSize: "contain",
+                  maskSize: "contain",
+                }}
+              />
+            </div>
+            <span className={active ? "text-[#7622ed]" : "text-[#586574]"}>
+              {item.label}
+            </span>
           </Link>
         );
       })}
