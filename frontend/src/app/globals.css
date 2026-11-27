@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 .app-grid-header,
 .app-page-heading {
   background-color: #ffffff;
@@ -16,7 +18,6 @@
   background-position: top left;
   background-repeat: repeat;
 }
-
 .app-page-heading {
   width: calc(100% + 2.5rem);
   margin-left: -1.25rem;
