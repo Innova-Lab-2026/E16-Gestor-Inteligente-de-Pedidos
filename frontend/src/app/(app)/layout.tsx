@@ -33,9 +33,9 @@ export default async function AppLayout({
         className="mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-white text-[#102a39] shadow-sm"
         style={{
           backgroundImage: 'url("/images/cuadricula-bg.png")',
-          backgroundPosition: "top",
-          backgroundRepeat: "no-repeat",
-          backgroundSize: "100% 260px",
+          backgroundPosition: "top left",
+          backgroundRepeat: "repeat",
+          backgroundSize: "355px 793px",
         }}
       >
         <header className="flex items-center justify-between px-5 pt-5 pb-4">
