@@ -249,15 +249,15 @@ export default async function ReportesPage({
 
             <Link
               href="/catalogo?filtro=stock_bajo"
-              className={`flex items-center justify-between gap-4 rounded-2xl border p-4 transition ${
+              className={`flex items-center gap-3 overflow-hidden rounded-2xl border p-4 transition ${
                 resumen.productosBajoStock > 0
                   ? "border-orange-200 bg-orange-50 hover:border-orange-300"
                   : "border-[#e2e8f0] bg-white hover:border-[#cbd5e1]"
               }`}
             >
-              <div>
+              <div className="min-w-0 flex-1">
                 <p
-                  className={`text-sm font-bold ${
+                  className={`break-words text-sm font-bold ${
                     resumen.productosBajoStock > 0
                       ? "text-orange-800"
                       : "text-[#586574]"
@@ -288,7 +288,7 @@ export default async function ReportesPage({
                   </ul>
                 )}
               </div>
-              <div className="flex shrink-0 items-center gap-2">
+              <div className="flex shrink-0 flex-col items-end gap-1">
                 <span
                   className={`text-xl font-extrabold ${
                     resumen.productosBajoStock > 0
@@ -299,7 +299,7 @@ export default async function ReportesPage({
                   {resumen.productosBajoStock}
                 </span>
                 <span
-                  className={`text-[11px] font-semibold ${
+                  className={`whitespace-nowrap text-[11px] font-semibold ${
                     resumen.productosBajoStock > 0
                       ? "text-orange-800"
                       : "text-[#586574]"
