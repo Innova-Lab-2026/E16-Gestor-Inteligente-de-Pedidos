@@ -6,7 +6,7 @@ export default async function ClientesPage() {
 
   return (
     <section className="space-y-4 pt-2">
-      <div>
+      <div className="app-page-heading">
         <h1 className="text-2xl font-bold text-[#102a39]">Clientes</h1>
         <p className="text-sm text-[#586574]">
           Agenda de compradores, direcciones y contacto rápido.

@@ -28,7 +28,7 @@ export default function ConfiguracionEmprendimientoForm() {
 
   if (!emprendimientoActivo) {
     return (
-      <section className="space-y-3 pt-2">
+      <section className="app-page-heading space-y-3 pt-2">
         <h1 className="text-2xl font-bold text-[#102a39]">Configuración</h1>
         <p className="text-sm text-[#586574]">
           Creá un emprendimiento para configurar sus datos.
@@ -124,7 +124,7 @@ function ConfiguracionEmprendimiento({
 
   return (
     <section className="space-y-5 pt-2">
-      <div>
+      <div className="app-page-heading">
         <h1 className="text-2xl font-bold text-[#102a39]">
           Configuración
         </h1>

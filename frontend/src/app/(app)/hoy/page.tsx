@@ -100,7 +100,7 @@ export default async function HoyPage() {
 
   return (
     <section className="space-y-4 pt-2 pb-24">
-      <div className="flex items-start justify-between gap-3">
+      <div className="app-page-heading flex items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-[#102a39]">Hoy</h1>
           <p className="text-xs text-[#586574]">{fechaLegible}</p>

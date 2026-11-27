@@ -126,16 +126,31 @@ export default function EmprendimientoSetupWizard({
     <div className={compact ? styles.appSetupWizard : undefined}>
       {step === 1 ? (
         <form className={styles.businessStep} onSubmit={handleSubmit}>
-          <header className={styles.progressHeader}>
-            {backButton}
-            <span>Paso 1 de 2</span>
-          </header>
-          <div className={styles.progressTrack} aria-label="Progreso: paso 1 de 2">
-            <span />
-          </div>
+          <div
+            className={
+              compact
+                ? "app-page-heading app-page-heading-at-nav"
+                : "contents"
+            }
+          >
+            <header className={styles.progressHeader}>
+              {backButton}
+              <span>Paso 1 de 2</span>
+            </header>
+            <div
+              className={styles.progressTrack}
+              aria-label="Progreso: paso 1 de 2"
+            >
+              <span />
+            </div>
 
-          <h1 className={styles.businessTitle}>Contanos de tu emprendimiento</h1>
-          <p className={styles.businessIntro}>Con esto armamos tu catálogo inicial.</p>
+            <h1 className={styles.businessTitle}>
+              Contanos de tu emprendimiento
+            </h1>
+            <p className={styles.businessIntro}>
+              Con esto armamos tu catálogo inicial.
+            </p>
+          </div>
 
           <label className={styles.businessField}>
             <span>Nombre del emprendimiento</span>
@@ -228,24 +243,34 @@ export default function EmprendimientoSetupWizard({
           className={`${styles.businessStep} ${styles.deliveryStep}`}
           onSubmit={handleSubmit}
         >
-          <header className={styles.progressHeader}>
-            <button
-              type="button"
-              className={styles.stepBack}
-              onClick={() => setStep(1)}
-              aria-label="Volver al paso anterior"
-            >
-              <ArrowIcon />
-            </button>
-            <span>Paso 2 de 2</span>
-          </header>
           <div
-            className={`${styles.progressTrack} ${styles.progressComplete}`}
-            aria-label="Progreso: paso 2 de 2"
+            className={
+              compact
+                ? "app-page-heading app-page-heading-at-nav"
+                : "contents"
+            }
           >
-            <span />
+            <header className={styles.progressHeader}>
+              <button
+                type="button"
+                className={styles.stepBack}
+                onClick={() => setStep(1)}
+                aria-label="Volver al paso anterior"
+              >
+                <ArrowIcon />
+              </button>
+              <span>Paso 2 de 2</span>
+            </header>
+            <div
+              className={`${styles.progressTrack} ${styles.progressComplete}`}
+              aria-label="Progreso: paso 2 de 2"
+            >
+              <span />
+            </div>
+            <h1 className={styles.deliveryTitle}>
+              ¿Cómo te llegan los pedidos?
+            </h1>
           </div>
-          <h1 className={styles.deliveryTitle}>¿Cómo te llegan los pedidos?</h1>
 
           <div className={styles.channelList}>
             {channelOptions.map((channel) => {

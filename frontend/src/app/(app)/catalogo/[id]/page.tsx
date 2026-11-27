@@ -36,7 +36,7 @@ export default async function ProductoDetallePage({
 
   return (
     <section className="space-y-4 pt-2">
-      <div className="flex items-center gap-3">
+      <div className="app-page-heading flex items-center gap-3">
         <Link
           href="/catalogo"
           className="text-lg font-bold text-[#102a39]"

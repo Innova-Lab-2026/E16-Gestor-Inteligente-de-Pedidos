@@ -49,7 +49,7 @@ export default function NuevoClientePage() {
 
   return (
     <section className="space-y-5 pt-2 pb-12">
-      <div className="flex items-center gap-3">
+      <div className="app-page-heading flex items-center gap-3">
         <Link
           href="/clientes"
           className="text-lg font-bold text-[#102a39]"

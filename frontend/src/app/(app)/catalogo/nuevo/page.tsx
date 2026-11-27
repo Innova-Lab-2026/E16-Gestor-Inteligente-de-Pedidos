@@ -115,7 +115,7 @@ export default function NuevoProductoPage() {
 
   return (
     <section className="space-y-5 pt-2">
-      <div className="flex items-center gap-3">
+      <div className="app-page-heading flex items-center gap-3">
         <Link
           href="/catalogo"
           prefetch={false}

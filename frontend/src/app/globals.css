@@ -1,1 +1,26 @@
 @import "tailwindcss";
+
+.app-grid-header {
+  width: 100%;
+  height: 70px;
+  background-image: url("/images/cuadricula-bg.png");
+  background-position: top left;
+  background-repeat: repeat;
+  background-size: 355px 793px;
+}
+
+.app-page-heading {
+  width: calc(100% + 2.5rem);
+  margin-left: -1.25rem;
+  margin-right: -1.25rem;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+  background-image: url("/images/cuadricula-bg.png");
+  background-position: left -78px;
+  background-repeat: repeat;
+  background-size: 355px 793px;
+}
+
+.app-page-heading-at-nav {
+  background-position: left -70px;
+}

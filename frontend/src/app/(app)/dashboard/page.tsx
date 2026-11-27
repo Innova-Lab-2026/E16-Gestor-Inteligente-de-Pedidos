@@ -107,7 +107,7 @@ export default async function DashboardPage() {
       aria-labelledby="dashboard-title"
     >
       {/* Cabecera con saludo y acceso rápido a nuevo pedido */}
-      <div className="flex items-start justify-between gap-2">
+      <div className="app-page-heading flex items-start justify-between gap-2">
         <div>
           <h1 id="dashboard-title" className="text-xl font-bold text-[#102a39]">
             Hola, {String(displayName)}
