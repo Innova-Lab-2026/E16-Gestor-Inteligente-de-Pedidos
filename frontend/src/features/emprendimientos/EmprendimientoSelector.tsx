@@ -101,7 +101,7 @@ export default function EmprendimientoSelector() {
               onClick={() => setOpen(false)}
               className="block rounded-xl px-3 py-3 text-sm font-bold text-[#0E4D64] transition hover:bg-[#0E4D64]/5"
             >
-              + Crear nuevo emprendimiento
+              + Nuevo emprendimiento
             </Link>
           </div>
           <div className="mt-1 border-t border-[#6D28D9]/15 pt-2">
