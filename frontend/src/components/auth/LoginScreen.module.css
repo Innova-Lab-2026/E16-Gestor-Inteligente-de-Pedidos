@@ -55,6 +55,10 @@
   user-select: none;
 }
 
+.desktopDecorations {
+  display: none;
+}
+
 .asterisk {
   top: 5%;
   right: -2%;
@@ -435,5 +439,143 @@
 
   to {
     opacity: 1;
+  }
+}
+
+@media (min-width: 768px) {
+  .screen {
+    display: grid;
+    width: 100%;
+    max-width: none;
+    min-height: 100dvh;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    overflow: hidden;
+  }
+
+  .screen::before {
+    display: none;
+  }
+
+  .brandPanel {
+    position: relative;
+    grid-column: 1;
+    min-height: 100dvh;
+    overflow: hidden;
+    background-color: #f8fafc;
+  }
+
+  .brandPanel::before {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    content: "";
+    background-image:
+      linear-gradient(
+        to right,
+        rgba(130, 248, 231, 0.2) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        rgba(130, 248, 231, 0.2) 1px,
+        transparent 1px
+      );
+    background-size: 42px 42px;
+  }
+
+  .brandPanel > .decoration {
+    display: none;
+  }
+
+  .desktopDecorations {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    display: block;
+    pointer-events: none;
+  }
+
+  .decorIcon {
+    position: absolute;
+    fill: none;
+    stroke: rgba(3, 92, 128, 0.18);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.5;
+  }
+
+  .boxIcon {
+    top: 19%;
+    left: 12%;
+    width: 76px;
+    height: 76px;
+  }
+
+  .bagIcon {
+    top: 17%;
+    right: 12%;
+    width: 88px;
+    height: 88px;
+  }
+
+  .chartIcon {
+    right: 12%;
+    bottom: 21%;
+    width: 96px;
+    height: 96px;
+  }
+
+  .logo {
+    top: 50%;
+    left: 50%;
+    width: min(440px, 82%);
+    transform: translate(-50%, -50%);
+    animation:
+      logo-enter 1.2s ease-out 1 forwards,
+      logo-fade-in 1.2s ease-in 1 forwards;
+  }
+
+  .logoToHeader {
+    top: 50%;
+    left: 50%;
+    width: min(440px, 82%);
+    transform: translate(-50%, -50%);
+    animation: none;
+  }
+
+  .tagline {
+    top: auto;
+    bottom: 40px;
+    left: 48px;
+    width: calc(100% - 96px);
+    font-size: clamp(20px, 2vw, 28px);
+    animation: tagline-fade-in 1s ease-in 1 forwards;
+  }
+
+  .taglineToHeader {
+    top: auto;
+    bottom: 40px;
+    left: 48px;
+    width: calc(100% - 96px);
+    font-size: clamp(20px, 2vw, 28px);
+    animation: none;
+  }
+
+  .loginForm {
+    grid-column: 2;
+    width: min(100%, 448px);
+    min-height: 100dvh;
+    margin: 0 auto;
+    justify-content: center;
+    padding: 48px;
+  }
+
+  .credentials {
+    flex: 0 1 auto;
+  }
+
+  .formActions {
+    margin-top: 28px;
+    padding-top: 0;
   }
 }
