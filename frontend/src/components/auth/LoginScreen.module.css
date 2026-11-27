@@ -38,11 +38,11 @@
   height: auto;
   aspect-ratio: 81 / 68;
   transform: translate(-100%, -50%);
-  animation: logo-enter 5s ease-out forwards, logo-fade-in 3s ease-in forwards;
+  animation: logo-enter 5s ease-out 1 forwards, logo-fade-in 3s ease-in 1 forwards;
 }
 
 .logoToHeader {
-  animation: logo-to-header 1.7s ease-in-out forwards;
+  animation: logo-to-header 1.7s ease-in-out 1 forwards;
 }
 
 .decoration {
