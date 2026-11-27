@@ -1,0 +1,44 @@
+[33mcommit 2c35303e90758c2acbc7a227f63dd498890f57fa[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: anyrossotti <anys.br@gmail.com>
+Date:   Thu Nov 26 21:49:17 2026 -0300
+
+    style(header): implementar cuadricula de fondo continua con CSS
+
+ frontend/src/app/globals.css                       | 24 [32m++++++++++++++++[m[31m------[m
+ .../src/components/auth/LoginScreen.module.css     | 14 [32m+++++++++++[m[31m--[m
+ 2 files changed, 30 insertions(+), 8 deletions(-)
+
+[33mcommit 7e48b8c41621e1ffe9a10a324905009f824ba34c[m
+Author: anyrossotti <anys.br@gmail.com>
+Date:   Thu Nov 26 21:39:13 2026 -0300
+
+    style(header): limitar cuadricula al header a ancho completo
+
+ frontend/public/images/cuadricula-bg.png           | Bin [31m4510[m -> [32m4490[m bytes
+ frontend/src/app/(app)/catalogo/[id]/page.tsx      |   2 [32m+[m[31m-[m
+ frontend/src/app/(app)/catalogo/nuevo/page.tsx     |   2 [32m+[m[31m-[m
+ frontend/src/app/(app)/catalogo/page.tsx           |   2 [32m+[m[31m-[m
+ frontend/src/app/(app)/clientes/[id]/page.tsx      |   2 [32m+[m[31m-[m
+ frontend/src/app/(app)/clientes/nuevo/page.tsx     |   2 [32m+[m[31m-[m
+ frontend/src/app/(app)/clientes/page.tsx           |   2 [32m+[m[31m-[m
+ .../ConfiguracionEmprendimientoForm.tsx            |   4 [32m+[m[31m-[m
+ frontend/src/app/(app)/dashboard/page.tsx          |   2 [32m+[m[31m-[m
+ frontend/src/app/(app)/hoy/page.tsx                |   2 [32m+[m[31m-[m
+ frontend/src/app/(app)/layout.tsx                  |  12 [32m+[m[31m---[m
+ frontend/src/app/(app)/pedidos/[id]/page.tsx       |   2 [32m+[m[31m-[m
+ frontend/src/app/(app)/pedidos/nuevo/page.tsx      |   2 [32m+[m[31m-[m
+ frontend/src/app/(app)/pedidos/page.tsx            |   2 [32m+[m[31m-[m
+ frontend/src/app/(app)/reportes/page.tsx           |   2 [32m+[m[31m-[m
+ frontend/src/app/globals.css                       |  27 [32m+++++++[m[31m-[m
+ .../src/components/auth/LoginScreen.module.css     |  15 [32m++[m[31m---[m
+ .../emprendimientos/EmprendimientoSetupWizard.tsx  |  73 [32m++++++++++++++[m[31m-------[m
+ 18 files changed, 96 insertions(+), 59 deletions(-)
+
+[33mcommit 339a7dcdf5e925f415429538afe7608f367a915b[m
+Author: anyrossotti <anys.br@gmail.com>
+Date:   Thu Nov 26 21:21:49 2026 -0300
+
+    style(ui): acortar texto a Nuevo emprendimiento en selector
+
+ frontend/src/features/emprendimientos/EmprendimientoSelector.tsx | 2 [32m+[m[31m-[m
+ 1 file changed, 1 insertion(+), 1 deletion(-)
