@@ -23,17 +23,17 @@ export default async function NuevoPedidoPage() {
 
   return (
     <section className="space-y-4 pt-2">
-      <div className="app-page-heading flex items-center gap-3">
+      <div className="app-page-heading">
         <Link
           href="/pedidos"
           prefetch={false}
-          className="text-lg font-bold text-[#102a39]"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-slate-900"
           aria-label="Volver a pedidos"
         >
-          ←
+          ← Volver
         </Link>
         <div>
-          <h1 className="text-xl font-bold text-[#7622ed]">Nuevo pedido</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Nuevo pedido</h1>
           <p className="text-xs text-[#586574]">
             Completá los datos para descontar stock y agendar la entrega.
           </p>

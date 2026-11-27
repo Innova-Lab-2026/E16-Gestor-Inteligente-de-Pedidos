@@ -29,16 +29,16 @@ export default async function ClienteDetallePage({
 
   return (
     <section className="space-y-4 pt-2">
-      <div className="app-page-heading flex items-center gap-3">
+      <div className="app-page-heading">
         <Link
           href="/clientes"
-          className="text-lg font-bold text-[#102a39]"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-slate-900"
           aria-label="Volver a clientes"
         >
-          ←
+          ← Volver
         </Link>
         <div>
-          <h1 className="text-xl font-bold text-[#7622ed]">
+          <h1 className="text-2xl font-bold text-slate-900">
             {nombreCompleto}
           </h1>
           <p className="text-xs text-[#586574]">

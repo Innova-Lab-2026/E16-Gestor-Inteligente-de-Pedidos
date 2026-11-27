@@ -61,7 +61,7 @@ export default async function PedidosPage({
   return (
     <section className="space-y-4 pt-2">
       <div className="app-page-heading">
-        <h1 className="text-2xl font-bold text-[#102a39]">Pedidos</h1>
+        <h1 className="text-2xl font-bold text-slate-900">Pedidos</h1>
         <p className="text-sm text-[#586574]">
           Gestioná tus ventas y seguí el estado de cada entrega.
         </p>

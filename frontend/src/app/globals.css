@@ -42,14 +42,9 @@ main > *:first-child:has(> .app-page-heading:first-child) {
   background-position: 0 -76px;
 }
 
-/* Estandariza tamaño de título, subtítulo y alto de cabecera en todas las secciones */
+/* Estandariza el subtítulo y el alto de cabecera en todas las secciones */
 .app-page-heading {
   min-height: 5.5rem;
-}
-
-.app-page-heading h1 {
-  font-size: 1.25rem !important; /* igual a text-xl (20px) del Dashboard */
-  line-height: 1.75rem !important;
 }
 
 .app-page-heading p {
