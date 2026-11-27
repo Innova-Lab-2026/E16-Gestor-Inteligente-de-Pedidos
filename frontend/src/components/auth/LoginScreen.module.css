@@ -472,92 +472,87 @@
     background-image:
       linear-gradient(
         to right,
-        rgba(130, 248, 231, 0.2) 1px,
-        transparent 1px
+        rgba(130, 248, 231, 0.298) 2px,
+        transparent 2px
       ),
       linear-gradient(
         to bottom,
-        rgba(130, 248, 231, 0.2) 1px,
-        transparent 1px
+        rgba(130, 248, 231, 0.298) 2px,
+        transparent 2px
       );
-    background-size: 42px 42px;
-  }
-
-  .brandPanel > .decoration {
-    display: none;
+    background-size: 36px 36px;
+    background-repeat: repeat;
   }
 
   .desktopDecorations {
-    position: absolute;
-    z-index: 1;
-    inset: 0;
-    display: block;
-    pointer-events: none;
+    display: none;
   }
 
-  .decorIcon {
-    position: absolute;
-    fill: none;
-    stroke: rgba(3, 92, 128, 0.18);
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1.5;
+  .asterisk {
+    top: 4%;
+    right: 4%;
+    font-size: clamp(120px, 12vw, 170px);
+    animation:
+      asterisk-fade-in 1.5s ease-out 1 forwards,
+      asterisk-rotate 3s ease-in-out 1 forwards;
   }
 
-  .boxIcon {
-    top: 19%;
-    left: 12%;
-    width: 76px;
-    height: 76px;
+  .plus {
+    right: -12px;
+    bottom: -24px;
+    font-size: clamp(240px, 24vw, 340px);
+    animation:
+      plus-fade-in 1.5s ease-out 1 forwards,
+      plus-enter 3s ease-out 1 forwards;
   }
 
-  .bagIcon {
-    top: 17%;
-    right: 12%;
-    width: 88px;
-    height: 88px;
+  .hashtag {
+    bottom: 15%;
+    left: 8%;
+    font-size: clamp(95px, 9vw, 130px);
+    animation:
+      hashtag-fade-in 1.5s ease-out 1 forwards,
+      hashtag-shrink 3s ease-in-out 1 forwards;
   }
 
-  .chartIcon {
-    right: 12%;
-    bottom: 21%;
-    width: 96px;
-    height: 96px;
+  .decorationToTop,
+  .plus.decorationToTop {
+    animation: none;
   }
 
   .logo {
-    top: 50%;
+    top: 43%;
     left: 50%;
-    width: min(440px, 82%);
+    width: min(330px, 62%);
     transform: translate(-50%, -50%);
     animation:
-      logo-enter 1.2s ease-out 1 forwards,
-      logo-fade-in 1.2s ease-in 1 forwards;
+      logo-enter 2.5s ease-out 1 forwards,
+      logo-fade-in 2s ease-in 1 forwards;
   }
 
   .logoToHeader {
-    top: 50%;
+    top: 43%;
     left: 50%;
-    width: min(440px, 82%);
+    width: min(330px, 62%);
     transform: translate(-50%, -50%);
     animation: none;
   }
 
   .tagline {
     top: auto;
-    bottom: 40px;
+    bottom: 44px;
     left: 48px;
     width: calc(100% - 96px);
-    font-size: clamp(20px, 2vw, 28px);
-    animation: tagline-fade-in 1s ease-in 1 forwards;
+    font-size: clamp(18px, 1.6vw, 24px);
+    animation: tagline-fade-in 2s ease-in 1 forwards;
   }
 
   .taglineToHeader {
     top: auto;
-    bottom: 40px;
+    bottom: 44px;
     left: 48px;
     width: calc(100% - 96px);
-    font-size: clamp(20px, 2vw, 28px);
+    font-size: clamp(18px, 1.6vw, 24px);
     animation: none;
   }
 
