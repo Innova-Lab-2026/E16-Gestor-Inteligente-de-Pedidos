@@ -1,0 +1,56 @@
+.action {
+  display: flex;
+  width: 3rem;
+  height: 3rem;
+  flex: none;
+  align-items: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  padding: 0 0.75rem;
+  background: #7622ed;
+  color: #fff;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  transition: width 240ms ease-in-out;
+}
+
+.action:hover,
+.action:focus-visible {
+  width: 10rem;
+}
+
+.actionLabel {
+  max-width: 0;
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 700;
+  opacity: 0;
+  white-space: nowrap;
+  transition:
+    max-width 200ms ease-in-out,
+    opacity 160ms ease-in-out;
+}
+
+.action:hover .actionLabel,
+.action:focus-visible .actionLabel {
+  max-width: 7.5rem;
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .action {
+    width: 10rem;
+  }
+
+  .actionLabel {
+    max-width: 7.5rem;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .action,
+  .actionLabel {
+    transition: none;
+  }
+}

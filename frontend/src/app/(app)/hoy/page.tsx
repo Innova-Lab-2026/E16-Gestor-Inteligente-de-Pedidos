@@ -100,18 +100,11 @@ export default async function HoyPage() {
 
   return (
     <section className="space-y-4 pt-2 pb-24">
-      <div className="app-page-heading flex items-start justify-between gap-3">
+      <div className="app-page-heading">
         <div>
           <h1 className="text-2xl font-bold text-[#102a39]">Hoy</h1>
           <p className="text-xs text-[#586574]">{fechaLegible}</p>
         </div>
-
-        <Link
-          href="/pedidos/nuevo"
-          className="rounded-full bg-[#056184] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#044d69]"
-        >
-          + Nuevo pedido
-        </Link>
       </div>
 
       {resumenRes.error ? (

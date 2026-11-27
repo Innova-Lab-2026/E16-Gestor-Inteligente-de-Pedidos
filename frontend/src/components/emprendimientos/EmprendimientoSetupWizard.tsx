@@ -5,7 +5,13 @@ import { useState } from "react";
 import styles from "@/components/auth/RegisterScreen.module.css";
 
 const productOptions = ["Artesanía", "Indumentaria", "Comida", "Otro"];
-const channelOptions = ["WhatsApp", "Telegram", "Texto"] as const;
+const channelOptions = ["Texto"];
+const unavailableChannels = [
+  "WhatsApp",
+  "Telegram",
+  "Instagram",
+  "Facebook",
+] as const;
 const deliveryOptions = ["Retiro", "Envío"] as const;
 
 export type EmprendimientoSetupValues = {
@@ -52,9 +58,7 @@ export default function EmprendimientoSetupWizard({
     initialValues?.especialidad ?? "",
   );
   const [productMenuOpen, setProductMenuOpen] = useState(false);
-  const [canales, setCanales] = useState<string[]>(
-    initialValues?.canales ?? [],
-  );
+  const [canales, setCanales] = useState<string[]>(["Texto"]);
   const [telefonos, setTelefonos] = useState({
     WhatsApp: initialValues?.telefonos?.WhatsApp ?? "",
     Telegram: initialValues?.telefonos?.Telegram ?? "",
@@ -70,7 +74,7 @@ export default function EmprendimientoSetupWizard({
     nombre.trim().length > 0 &&
     rubro.length > 0 &&
     (rubro !== "Otro" || especialidad.trim().length > 0);
-  const stepTwoValid = canales.length > 0 && modalidades.length > 0;
+  const stepTwoValid = canales.includes("Texto") && modalidades.length > 0;
 
   function toggleSelection(
     value: string,
@@ -114,11 +118,12 @@ export default function EmprendimientoSetupWizard({
   ) : (
     <button
       type="button"
-      className={styles.stepBack}
+      className={`${styles.stepBack} ${styles.stepCancel}`}
       onClick={onCancel}
-      aria-label="Volver"
+      aria-label="Cancelar registro"
     >
       <ArrowIcon />
+      <span>Cancelar</span>
     </button>
   );
 
@@ -291,20 +296,8 @@ export default function EmprendimientoSetupWizard({
                     }
                   />
                   <span className={styles.channelCopy}>
-                    <strong>
-                      {selected && channel === "Texto"
-                        ? "En persona o por teléfono"
-                        : channel}
-                    </strong>
-                    <small>
-                      {selected && channel === "Texto"
-                        ? "Los cargás vos en segundos"
-                        : selected
-                          ? "Los pedidos entran solos al gestor"
-                          : channel === "Texto"
-                            ? "En persona"
-                            : "Los pedidos entran solos"}
-                    </small>
+                    <strong>{channel}</strong>
+                    <small>Ingreso manual</small>
                     {showPhoneInputs && selected && isPhoneChannel && (
                       <input
                         className={styles.channelPhone}
@@ -329,26 +322,19 @@ export default function EmprendimientoSetupWizard({
                 </label>
               );
             })}
-            <div
-              className={`${styles.channelCard} ${styles.channelUnavailable}`}
-              aria-disabled="true"
-            >
-              <span className={styles.channelCheck} aria-hidden="true" />
-              <span className={styles.channelCopy}>
-                <strong>Instagram</strong>
-                <small>No disponible</small>
-              </span>
-            </div>
-            <div
-              className={`${styles.channelCard} ${styles.channelUnavailable}`}
-              aria-disabled="true"
-            >
-              <span className={styles.channelCheck} aria-hidden="true" />
-              <span className={styles.channelCopy}>
-                <strong>Facebook</strong>
-                <small>No disponible</small>
-              </span>
-            </div>
+            {unavailableChannels.map((channel) => (
+              <div
+                key={channel}
+                className={`${styles.channelCard} ${styles.channelUnavailable}`}
+                aria-disabled="true"
+              >
+                <span className={styles.channelCheck} aria-hidden="true" />
+                <span className={styles.channelCopy}>
+                  <strong>{channel}</strong>
+                  <small>Próximamente</small>
+                </span>
+              </div>
+            ))}
           </div>
 
           <fieldset className={styles.deliveryFieldset}>

@@ -6,12 +6,38 @@ export type RegisterState = {
   pendienteConfirmacion?: boolean;
 };
 
+function getBackendErrorMessage(payload: unknown): string | undefined {
+  if (typeof payload !== "object" || payload === null) return undefined;
+
+  const body = payload as Record<string, unknown>;
+  const backendError = body.error;
+
+  if (typeof backendError === "string" && backendError.trim()) {
+    return backendError;
+  }
+  if (
+    typeof backendError === "object" &&
+    backendError !== null &&
+    "message" in backendError &&
+    typeof backendError.message === "string" &&
+    backendError.message.trim()
+  ) {
+    return backendError.message;
+  }
+  if (typeof body.message === "string" && body.message.trim()) {
+    return body.message;
+  }
+
+  return undefined;
+}
+
 export async function register(
   _previousState: RegisterState,
   formData: FormData,
 ): Promise<RegisterState> {
   const apiUrl = process.env.BACKEND_API_URL?.replace(/\/+$/, "");
   if (!apiUrl) {
+    console.error("[register] Falta configurar BACKEND_API_URL");
     return { error: "No pudimos conectar con el servidor. Intentá nuevamente." };
   }
 
@@ -76,11 +102,22 @@ export async function register(
     });
 
     if (!response.ok) {
-      const body = await response.json().catch(() => null);
+      let body: unknown = null;
+      try {
+        body = await response.json();
+      } catch (error) {
+        console.error("[register] El backend devolvió una respuesta inválida", {
+          status: response.status,
+          error,
+        });
+      }
+
+      console.error("[register] El backend rechazó el registro", {
+        status: response.status,
+        message: getBackendErrorMessage(body),
+      });
       return {
-        error:
-          body?.error?.message ??
-          "No pudimos crear la cuenta. Revisá los datos e intentá nuevamente.",
+        error: "No pudimos crear la cuenta. Revisá los datos e intentá nuevamente.",
       };
     }
 
@@ -96,7 +133,8 @@ export async function register(
       success: "Cuenta creada. Ya podés iniciar sesión con tu email y contraseña.",
       pendienteConfirmacion: false,
     };
-  } catch {
+  } catch (error) {
+    console.error("[register] Error técnico al crear la cuenta", error);
     return { error: "No pudimos conectar con el servidor. Intentá nuevamente." };
   }
 }

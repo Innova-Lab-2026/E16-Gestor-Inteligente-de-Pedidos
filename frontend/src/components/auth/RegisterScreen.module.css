@@ -252,6 +252,16 @@
   cursor: pointer;
 }
 
+.stepCancel {
+  display: flex;
+  width: auto;
+  align-items: center;
+  gap: 3px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .stepBack svg {
   width: 22px;
   height: 22px;
@@ -260,6 +270,11 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 2;
+}
+
+.stepCancel svg {
+  width: 18px;
+  height: 18px;
 }
 
 .progressTrack {

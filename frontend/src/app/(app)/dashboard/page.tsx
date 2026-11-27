@@ -106,22 +106,12 @@ export default async function DashboardPage() {
       className="space-y-4 pb-24"
       aria-labelledby="dashboard-title"
     >
-      {/* Cabecera con saludo y acceso rápido a nuevo pedido */}
-      <div className="app-page-heading flex items-start justify-between gap-2">
+      <div className="app-page-heading">
         <div>
           <h1 id="dashboard-title" className="text-xl font-bold text-[#102a39]">
             Hola, {String(displayName)}
           </h1>
           <p className="text-xs text-[#586574]">{fechaLegible}</p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Link
-            href="/pedidos/nuevo"
-            className="rounded-full bg-[#056184] px-3.5 py-2 text-xs font-bold text-white transition hover:bg-[#044d69]"
-          >
-            + Pedido
-          </Link>
         </div>
       </div>
 

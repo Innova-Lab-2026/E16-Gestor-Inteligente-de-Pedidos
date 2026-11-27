@@ -74,6 +74,7 @@ export default function RegisterScreen() {
     account.password === account.repeatPassword &&
     termsAccepted;
   const registrationNotice = state.success ? "1" : null;
+  const registrationError = state.error?.trim() || null;
 
   useEffect(() => {
     if (registrationNotice) {
@@ -204,12 +205,12 @@ export default function RegisterScreen() {
             modalidades: deliveryModes,
             direccionRetiro: pickupAddress,
           }}
-          error={state.error}
+          error={registrationError}
           pending={isPending || Boolean(state.success)}
           pendingLabel={state.success ? "Cuenta creada" : "Creando cuenta..."}
           submitLabel="Crear cuenta"
           onComplete={handleSetupComplete}
-          onCancel={() => setStep(1)}
+          onCancel={() => router.replace(ROUTES.login)}
         />
       )}
     </main>
