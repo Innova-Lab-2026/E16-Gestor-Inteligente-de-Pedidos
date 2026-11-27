@@ -125,10 +125,10 @@ export default function NuevoProductoPage() {
           ← Volver
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             Catálogo &gt; Cargar
           </h1>
-          <p className="text-xs text-[#586574]">
+          <p className="text-sm text-slate-500 mt-1">
             Cargá tus productos, stock y precio para organizar tus ventas.
           </p>
         </div>

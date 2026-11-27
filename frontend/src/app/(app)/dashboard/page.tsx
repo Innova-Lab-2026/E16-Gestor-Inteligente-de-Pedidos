@@ -108,10 +108,13 @@ export default async function DashboardPage() {
     >
       <div className="app-page-heading">
         <div>
-          <h1 id="dashboard-title" className="text-xl font-bold text-[#102a39]">
+          <h1
+            id="dashboard-title"
+            className="text-2xl font-bold text-slate-900 tracking-tight"
+          >
             Hola, {String(displayName)}
           </h1>
-          <p className="text-xs text-[#586574]">{fechaLegible}</p>
+          <p className="text-sm text-slate-500 mt-1">{fechaLegible}</p>
         </div>
       </div>
 

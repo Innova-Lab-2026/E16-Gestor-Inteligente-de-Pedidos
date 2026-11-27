@@ -55,8 +55,10 @@ export default async function CatalogoPage({
   return (
     <section className="space-y-4 pt-2">
       <div className="app-page-heading">
-        <h1 className="text-2xl font-bold text-slate-900">Catálogo</h1>
-        <p className="text-sm text-[#586574]">
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+          Catálogo
+        </h1>
+        <p className="text-sm text-slate-500 mt-1">
           Listado de productos. Editalos con un solo click.
         </p>
       </div>

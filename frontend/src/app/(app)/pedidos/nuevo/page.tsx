@@ -33,8 +33,10 @@ export default async function NuevoPedidoPage() {
           ← Volver
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Nuevo pedido</h1>
-          <p className="text-xs text-[#586574]">
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            Nuevo pedido
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
             Completá los datos para descontar stock y agendar la entrega.
           </p>
         </div>

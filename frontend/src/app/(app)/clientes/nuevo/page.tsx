@@ -58,10 +58,10 @@ export default function NuevoClientePage() {
           ← Volver
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             Clientes &gt; Nuevo
           </h1>
-          <p className="text-xs text-[#586574]">
+          <p className="text-sm text-slate-500 mt-1">
             Registrá los datos de contacto y entrega del cliente.
           </p>
         </div>
